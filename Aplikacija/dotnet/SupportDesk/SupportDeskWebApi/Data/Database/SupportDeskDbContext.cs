@@ -22,6 +22,8 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<Message> Messages { get; set; }
     
+    public DbSet<RefreshToken.RefreshToken> RefreshTokens { get; set; }
+    
     public SupportDeskDbContext(DbContextOptions<SupportDeskDbContext> options) 
         : base(options)
     {
