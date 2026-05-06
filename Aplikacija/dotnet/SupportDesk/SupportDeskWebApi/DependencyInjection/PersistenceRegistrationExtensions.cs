@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using SupportDeskWebApi.Auth.Abstract;
 using SupportDeskWebApi.Data.Database;
+using SupportDeskWebApi.Data.Database.RefreshToken.Manager;
 using SupportDeskWebApi.Data.Database.UnitOfWork;
 using SupportDeskWebApi.DependencyInjection.Configuration;
 
@@ -22,8 +24,8 @@ public static class PersistenceRegistrationExtensions
             services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 
             services.AddSupportDeskRepositories(configuration);
-            
-            
+
+            services.AddTransient<IRefreshTokenManager, RefreshTokenManager>();
             
             return services;
         }

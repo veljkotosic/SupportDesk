@@ -1,4 +1,5 @@
 using DotNetEnv;
+using SupportDeskWebApi.Data.Database;
 using SupportDeskWebApi.DependencyInjection;
 
 if (File.Exists("../../../.env"))
@@ -27,6 +28,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+await app.Services.InitializeInfrastructureAsync();
 
 app.UseCors("frontend");
 
