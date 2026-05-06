@@ -26,13 +26,13 @@ public class RefreshLoginRequestHandler : IRequestHandler<RefreshLoginRequest, R
         var loginResult = await _authService.LoginWithRefreshTokenAsync(refreshToken, cancellationToken);
 
         var newAccessToken = _tokenProvider.GenerateAccessToken(loginResult.User, loginResult.Roles);
-        var newRefreshToken = _tokenProvider.GenerateRefreshToken();
+        var newRefreshTokenValue = _tokenProvider.GenerateRefreshToken();
         
         await _refreshTokenManager.RevokeAsync(refreshToken.Token, cancellationToken);
-        await _refreshTokenManager.AddAsync(newRefreshToken, loginResult.User.Id, cancellationToken);
+        var newRefreshToken = await _refreshTokenManager.AddAsync(newRefreshTokenValue, loginResult.User.Id, loginResult.Roles[0], cancellationToken);
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
-        return new RefreshLoginResult(newAccessToken, newRefreshToken);
+        return new RefreshLoginResult(newAccessToken, newRefreshTokenValue, newRefreshToken.ExpiresAt);
     }
 }

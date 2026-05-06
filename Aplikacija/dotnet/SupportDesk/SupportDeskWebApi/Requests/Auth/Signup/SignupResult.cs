@@ -2,4 +2,4 @@ using SupportDeskWebApi.Requests.Abstract;
 
 namespace SupportDeskWebApi.Requests.Auth.Signup;
 
-public record SignupResult(string AccessToken, string RefreshToken) : IRequestResult;
+public record SignupResult(string AccessToken, string RefreshToken, DateTime RefreshTokenExpirationDate) : IRequestResult;

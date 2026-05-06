@@ -14,6 +14,7 @@ public record UserRole
     public static UserRole SupportAgent => new("SupportAgent");
     
     public static IEnumerable<UserRole> All() => [Customer, OrganizationAdmin, SupportAgent];
+    public static IEnumerable<UserRole> OrganizationRoles() => [OrganizationAdmin, SupportAgent];
 
     public static UserRole? FromString(string name)
     {

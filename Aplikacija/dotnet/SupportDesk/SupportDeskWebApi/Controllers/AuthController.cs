@@ -23,33 +23,51 @@ public class AuthController : ControllerBase
     
     [AllowAnonymous]
     [HttpPost("signup")]
-    public async Task<ActionResult<SignupResult>> Signup(SignupRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> Signup(SignupRequest request, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.ExecuteAsync(request, cancellationToken);
-        return Ok(result);
+        SetTokenCookies(result.AccessToken, result.RefreshToken, result.RefreshTokenExpirationDate);
+        
+        return Ok();
     }
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult<LoginResult>> Login(LoginRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.ExecuteAsync(request, cancellationToken);
-        return Ok(result);
+        SetTokenCookies(result.AccessToken, result.RefreshToken, result.RefreshTokenExpirationDate);
+        
+        return Ok();
     }
     
     [AllowAnonymous]
     [HttpPost("refresh-login")]
-    public async Task<ActionResult<RefreshLoginResult>> RefreshLogin(RefreshLoginRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> RefreshLogin(CancellationToken cancellationToken)
     {
-        var result = await _dispatcher.ExecuteAsync(request, cancellationToken);
-        return Ok(result);
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+        {
+            return Unauthorized();
+        }
+        
+        var result = await _dispatcher.ExecuteAsync(new RefreshLoginRequest(refreshToken), cancellationToken);
+        SetTokenCookies(result.AccessToken, result.RefreshToken, result.RefreshTokenExpirationDate);
+        
+        return Ok();
     }
     
     [Authorize]
     [HttpDelete("logout")]
-    public async Task<ActionResult> Logout(LogoutRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> Logout(CancellationToken cancellationToken)
     {
-        await _dispatcher.ExecuteAsync(request, cancellationToken);
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+        {
+            return Unauthorized();
+        }
+        
+        await _dispatcher.ExecuteAsync(new LogoutRequest(refreshToken), cancellationToken);
+        ClearTokenCookies();
+        
         return Ok();
     }
 
@@ -58,6 +76,8 @@ public class AuthController : ControllerBase
     public async Task<ActionResult> LogoutAll(CancellationToken cancellationToken)
     {
         await _dispatcher.ExecuteAsync(new LogoutAllRequest(), cancellationToken);
+        ClearTokenCookies();
+        
         return Ok();
     }
     
@@ -67,5 +87,25 @@ public class AuthController : ControllerBase
     {
         var result = await _dispatcher.ExecuteAsync(new GetMeRequest(), cancellationToken);
         return result;
+    }
+    
+    private void SetTokenCookies(string accessToken, string refreshToken, DateTime refreshTokenExpiresAt)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false, 
+            SameSite = SameSiteMode.Strict,
+            Expires = refreshTokenExpiresAt
+        };
+
+        Response.Cookies.Append("accessToken", accessToken, cookieOptions);
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+    }
+
+    private void ClearTokenCookies()
+    {
+        Response.Cookies.Delete("accessToken");
+        Response.Cookies.Delete("refreshToken");
     }
 }

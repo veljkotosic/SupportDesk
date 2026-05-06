@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SupportDeskWebApi.Auth.Abstract;
 using SupportDeskWebApi.Auth.Jwt;
+using SupportDeskWebApi.Data.Entities.User;
 
 namespace SupportDeskWebApi.Data.Database.RefreshToken.Manager;
 
@@ -15,17 +16,30 @@ public class RefreshTokenManager : IRefreshTokenManager
         _jwtSettings = jwtSettings;
     }
     
-    public async Task AddAsync(string token, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<RefreshToken> AddAsync(string token, Guid userId, UserRole userRole, CancellationToken cancellationToken = default)
     {
+        DateTime expiresAt = DateTime.UtcNow.AddDays(7);
+
+        if (userRole == UserRole.Customer)
+        {
+            expiresAt = DateTime.UtcNow.AddDays(_jwtSettings.CustomerRefreshTokenExpirationDays);
+        } 
+        else if (UserRole.OrganizationRoles().Contains(userRole))
+        {
+            expiresAt = DateTime.UtcNow.AddDays(_jwtSettings.OrganizationRefreshTokenExpirationDays);
+        }
+        
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             Token = token,
             UserId = userId,
-            ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.CustomerRefreshTokenExpirationDays)
+            ExpiresAt = expiresAt
         };
         
         await _dbContext.AddAsync(refreshToken, cancellationToken);
+        
+        return refreshToken;
     }
 
     public async Task<RefreshToken> GetByValueAsync(string token, CancellationToken cancellationToken = default)

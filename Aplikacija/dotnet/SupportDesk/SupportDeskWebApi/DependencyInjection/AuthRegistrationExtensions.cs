@@ -64,10 +64,15 @@ public static class AuthRegistrationExtensions
                     {
                         OnMessageReceived = context =>
                         {
-                            var accessToken = context.Request.Query["access_token"];
+                            if (context.Request.Cookies.TryGetValue("accessToken", out var cookieToken))
+                            {
+                                context.Token = cookieToken;
+                            }
+        
+                            var accessToken = context.Request.Query["accessToken"];
                             var path = context.HttpContext.Request.Path;
 
-                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                            if (string.IsNullOrEmpty(context.Token) && !string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
                             {
                                 context.Token = accessToken;
                             }

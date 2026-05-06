@@ -28,11 +28,11 @@ public class LoginRequestHandler : IRequestHandler<LoginRequest, LoginResult>
         var loginResult = await _authService.LoginWithEmailAndPasswordAsync(request.Email, request.Password, cancellationToken);
 
         var accessToken = _tokenProvider.GenerateAccessToken(loginResult.User, loginResult.Roles);
-        var refreshToken = _tokenProvider.GenerateRefreshToken();
+        var refreshTokenValue = _tokenProvider.GenerateRefreshToken();
         
-        await _refreshTokenManager.AddAsync(refreshToken, loginResult.User.Id, cancellationToken);
+        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, loginResult.User.Id, loginResult.Roles[0], cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new LoginResult(accessToken, refreshToken);
+        return new LoginResult(accessToken, refreshTokenValue, refreshToken.ExpiresAt);
     }
 }
