@@ -30,4 +30,23 @@ public class HttpUserContext : IUserContext
         
         return Guid.Parse(userIdClaim.Value);
     }
+
+    public Guid GetCurrentUsersOrganizationId()
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        
+        if (user is null || !user.Identity!.IsAuthenticated)
+        {
+            throw new UnauthorizedAccessException("User is not authenticated");
+        }
+        
+        var organizationIdClaim = user.FindFirst("organizationId");
+        
+        if (organizationIdClaim is null)
+        {
+            throw new UnauthorizedAccessException("Organization id claim not found");
+        }
+        
+        return Guid.Parse(organizationIdClaim.Value);
+    }
 }

@@ -6,6 +6,7 @@ using SupportDeskWebApi.Data.Entities.Faq;
 using SupportDeskWebApi.Data.Entities.Message;
 using SupportDeskWebApi.Data.Entities.Note;
 using SupportDeskWebApi.Data.Entities.Organization;
+using SupportDeskWebApi.Data.Entities.SupportAgentInviteCode;
 using SupportDeskWebApi.Data.Entities.TemplateAnswer;
 using SupportDeskWebApi.Data.Entities.Ticket;
 using SupportDeskWebApi.Data.Entities.User;
@@ -21,6 +22,7 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Note> Notes { get; set; }
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<SupportAgentInviteCode> SupportAgentInviteCodes { get; set; }
     
     public DbSet<RefreshToken.RefreshToken> RefreshTokens { get; set; }
     

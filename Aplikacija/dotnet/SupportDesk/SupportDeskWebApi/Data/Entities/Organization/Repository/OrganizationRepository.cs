@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using SupportDeskWebApi.Data.Database;
 using SupportDeskWebApi.Data.Entities.Common.Repository;
 
@@ -9,5 +10,10 @@ public class OrganizationRepository : Repository<Organization>, IOrganizationRep
         : base(context)
     {
         
+    }
+
+    public async Task<Organization?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return await Context.Organizations.FirstOrDefaultAsync(o => o.Name == name, cancellationToken);
     }
 }

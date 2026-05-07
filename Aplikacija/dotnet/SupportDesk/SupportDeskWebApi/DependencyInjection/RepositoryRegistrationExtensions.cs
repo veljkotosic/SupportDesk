@@ -3,6 +3,7 @@ using SupportDeskWebApi.Data.Entities.Faq.Repository;
 using SupportDeskWebApi.Data.Entities.Message.Repository;
 using SupportDeskWebApi.Data.Entities.Note.Repository;
 using SupportDeskWebApi.Data.Entities.Organization.Repository;
+using SupportDeskWebApi.Data.Entities.SupportAgentInviteCode.Repository;
 using SupportDeskWebApi.Data.Entities.TemplateAnswer.Repository;
 using SupportDeskWebApi.Data.Entities.Ticket.Repository;
 using SupportDeskWebApi.Data.Entities.User.Repository;
@@ -23,6 +24,7 @@ public static class RepositoryRegistrationExtensions
             services.AddScoped<IFaqRepository, FaqRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<INoteRepository, NoteRepository>();
+            services.AddScoped<ISupportAgentInviteCodeRepository, SupportAgentInviteCodeRepository>();
             
             return services;
         }
