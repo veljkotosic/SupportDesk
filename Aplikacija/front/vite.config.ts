@@ -5,7 +5,6 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
@@ -25,11 +24,11 @@ export default defineConfig({
     allowedHosts: ['.ngrok-free.app'],
     proxy: {
       '/api': {
-        target: 'http://localhost:5266',
+        target: 'http://localhost:5000',
         changeOrigin: true
       },
       '/hubs': {
-        target: 'http://localhost:5039',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         ws: true
       }
