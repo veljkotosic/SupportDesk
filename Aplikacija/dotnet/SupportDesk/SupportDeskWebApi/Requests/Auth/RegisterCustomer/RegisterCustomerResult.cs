@@ -1,8 +1,8 @@
 using SupportDeskWebApi.Requests.Abstract;
 
-namespace SupportDeskWebApi.Requests.Auth.RefreshLogin;
+namespace SupportDeskWebApi.Requests.Auth.RegisterCustomer;
 
-public record RefreshLoginResult(
+public record RegisterCustomerResult(
     string AccessToken,
     string RefreshToken,
     DateTime RefreshTokenExpirationDate)

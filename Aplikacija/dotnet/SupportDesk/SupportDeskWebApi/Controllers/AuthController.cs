@@ -6,7 +6,9 @@ using SupportDeskWebApi.Requests.Auth.Login;
 using SupportDeskWebApi.Requests.Auth.Logout;
 using SupportDeskWebApi.Requests.Auth.LogoutAll;
 using SupportDeskWebApi.Requests.Auth.RefreshLogin;
-using SupportDeskWebApi.Requests.Auth.Signup;
+using SupportDeskWebApi.Requests.Auth.RegisterCustomer;
+using SupportDeskWebApi.Requests.Auth.RegisterOrganization;
+using SupportDeskWebApi.Requests.Auth.RegisterSupportAgent;
 
 namespace SupportDeskWebApi.Controllers;
 
@@ -22,8 +24,18 @@ public class AuthController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpPost("signup")]
-    public async Task<ActionResult> Signup(SignupRequest request, CancellationToken cancellationToken)
+    [HttpPost("registerCustomer")]
+    public async Task<ActionResult> RegisterCustomer(RegisterCustomerRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(request, cancellationToken);
+        SetTokenCookies(result.AccessToken, result.RefreshToken, result.RefreshTokenExpirationDate);
+        
+        return Ok();
+    }
+    
+    [AllowAnonymous]
+    [HttpPost("registerOrganization")]
+    public async Task<ActionResult> RegisterOrganization(RegisterOrganizationRequest request, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.ExecuteAsync(request, cancellationToken);
         SetTokenCookies(result.AccessToken, result.RefreshToken, result.RefreshTokenExpirationDate);
@@ -31,6 +43,16 @@ public class AuthController : ControllerBase
         return Ok();
     }
 
+    [AllowAnonymous]
+    [HttpPost("registerSupportAgent")]
+    public async Task<ActionResult> RegisterSupportAgent(RegisterSupportAgentRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(request, cancellationToken);
+        SetTokenCookies(result.AccessToken, result.RefreshToken, result.RefreshTokenExpirationDate);
+        
+        return Ok();
+    }
+    
     [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult> Login(LoginRequest request, CancellationToken cancellationToken)

@@ -24,6 +24,11 @@ public class JwtTokenProvider : ITokenProvider
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email!),
         };
+
+        if (user.OrganizationId.HasValue)
+        {
+            claims.Add(new Claim("organizationId", user.OrganizationId.Value.ToString()));
+        }
         
         foreach (var role in roles)
         {

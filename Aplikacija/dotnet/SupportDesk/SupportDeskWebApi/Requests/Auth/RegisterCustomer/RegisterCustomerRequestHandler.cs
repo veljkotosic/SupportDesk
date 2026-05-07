@@ -3,17 +3,16 @@ using SupportDeskWebApi.Data.Database.UnitOfWork;
 using SupportDeskWebApi.Data.Entities.User;
 using SupportDeskWebApi.Requests.Abstract;
 
-namespace SupportDeskWebApi.Requests.Auth.Signup;
+namespace SupportDeskWebApi.Requests.Auth.RegisterCustomer;
 
-public class SignupRequestHandler : IRequestHandler<SignupRequest, SignupResult>
+public class RegisterCustomerRequestHandler : IRequestHandler<RegisterCustomerRequest, RegisterCustomerResult>
 {
     private readonly IAuthService _authService;
     private readonly ITokenProvider _tokenProvider;
     private readonly IRefreshTokenManager _refreshTokenManager;
     private readonly IUnitOfWork _unitOfWork;
 
-
-    public SignupRequestHandler(
+    public RegisterCustomerRequestHandler(
         IAuthService authService, 
         ITokenProvider tokenProvider,
         IRefreshTokenManager refreshTokenManager,
@@ -25,9 +24,9 @@ public class SignupRequestHandler : IRequestHandler<SignupRequest, SignupResult>
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<SignupResult> HandleAsync(SignupRequest request, CancellationToken cancellationToken = default)
+    public async Task<RegisterCustomerResult> HandleAsync(RegisterCustomerRequest request, CancellationToken cancellationToken = default)
     {
-        var user = new User
+        var user = new Data.Entities.User.User
         {
             Id = Guid.NewGuid(),
             Email = request.Email,
@@ -36,8 +35,8 @@ public class SignupRequestHandler : IRequestHandler<SignupRequest, SignupResult>
             NormalizedUserName = request.Username.ToUpperInvariant(),
             CreatedAt = DateTime.UtcNow
         };
-        
-        var role = UserRole.FromString(request.Role)!;
+
+        var role = UserRole.Customer;
         
         await _authService.SignUpWithEmailAndPasswordAsync(user, request.Password, role, cancellationToken);
         
@@ -49,6 +48,6 @@ public class SignupRequestHandler : IRequestHandler<SignupRequest, SignupResult>
         var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, loginResult.User.Id, role, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
-        return new SignupResult(accessToken, refreshTokenValue, refreshToken.ExpiresAt);
+        return new RegisterCustomerResult(accessToken, refreshTokenValue, refreshToken.ExpiresAt);
     }
 }

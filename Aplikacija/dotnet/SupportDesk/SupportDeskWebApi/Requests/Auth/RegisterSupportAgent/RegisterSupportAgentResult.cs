@@ -1,8 +1,8 @@
 using SupportDeskWebApi.Requests.Abstract;
 
-namespace SupportDeskWebApi.Requests.Auth.RefreshLogin;
+namespace SupportDeskWebApi.Requests.Auth.RegisterSupportAgent;
 
-public record RefreshLoginResult(
+public record RegisterSupportAgentResult(
     string AccessToken,
     string RefreshToken,
     DateTime RefreshTokenExpirationDate)
