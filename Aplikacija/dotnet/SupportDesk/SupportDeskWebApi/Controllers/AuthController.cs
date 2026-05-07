@@ -64,7 +64,7 @@ public class AuthController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpPost("refresh-login")]
+    [HttpPost("refreshLogin")]
     public async Task<ActionResult> RefreshLogin(CancellationToken cancellationToken)
     {
         if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
@@ -94,7 +94,7 @@ public class AuthController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("logout-all")]
+    [HttpDelete("logoutAll")]
     public async Task<ActionResult> LogoutAll(CancellationToken cancellationToken)
     {
         await _dispatcher.ExecuteAsync(new LogoutAllRequest(), cancellationToken);
