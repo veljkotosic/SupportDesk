@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SupportDeskWebApi.Auth.Abstract;
 using SupportDeskWebApi.Data.Entities.Category;
 using SupportDeskWebApi.Data.Entities.Faq;
 using SupportDeskWebApi.Data.Entities.Message;
@@ -15,6 +16,8 @@ namespace SupportDeskWebApi.Data.Database;
 
 public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
+    private readonly IUserContext _userContext;
+    
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<Faq> Faqs { get; set; }
     public DbSet<TemplateAnswer> TemplateAnswers { get; set; }
@@ -26,10 +29,12 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     
     public DbSet<RefreshToken.RefreshToken> RefreshTokens { get; set; }
     
-    public SupportDeskDbContext(DbContextOptions<SupportDeskDbContext> options) 
+    public SupportDeskDbContext(
+        DbContextOptions<SupportDeskDbContext> options, 
+        IUserContext userContext) 
         : base(options)
     {
-        
+        _userContext = userContext;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,5 +52,8 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
             .WithMany(u => u.AssignedTickets)
             .HasForeignKey(t => t.SupportAgentId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Category>()
+            .HasQueryFilter(c => c.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
     }
 }
