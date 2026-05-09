@@ -25,7 +25,7 @@ public class GenerateSupportAgentInviteCodeRequestHandler
     
     public async Task<GenerateSupportAgentInviteCodeResult> HandleAsync(GenerateSupportAgentInviteCodeRequest request, CancellationToken cancellationToken = default)
     {
-        var organizationId = _userContext.GetCurrentUsersOrganizationId();
+        var organizationId = _userContext.GetCurrentUsersOrganizationId()!;
         
         var inviteCode = await _supportAgentInviteCodeRepository.GetByEmailAsync(request.Email, cancellationToken);
 
@@ -34,7 +34,7 @@ public class GenerateSupportAgentInviteCodeRequestHandler
             inviteCode = new SupportAgentInviteCode
             {
                 Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
+                OrganizationId = (Guid)organizationId,
                 Email = request.Email,
                 Code = Guid.NewGuid(),
                 CreatedAt = DateTime.UtcNow,
