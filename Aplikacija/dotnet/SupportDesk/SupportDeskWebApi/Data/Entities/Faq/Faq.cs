@@ -11,9 +11,11 @@ public class Faq : IEntity
     public Guid OrganizationId { get; set; }
     public Organization.Organization Organization { get; set; } = null!;
 
+    [Required]
+    [MaxLength(256)]
     public string Question { get; set; } = null!;
 
+    [Required]
+    [MaxLength(400)]
     public string Answer { get; set; } = null!;
-    
-    public DateTime CreatedAt { get; set; }
 }
