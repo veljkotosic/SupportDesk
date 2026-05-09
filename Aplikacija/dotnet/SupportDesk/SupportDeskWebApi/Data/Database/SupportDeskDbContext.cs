@@ -55,5 +55,8 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
         
         modelBuilder.Entity<Category>()
             .HasQueryFilter(c => c.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
+        
+        modelBuilder.Entity<TemplateAnswer>()
+            .HasQueryFilter(ta => ta.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
     }
 }
