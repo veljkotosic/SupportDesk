@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SupportDeskWebApi.Data.Database;
@@ -11,9 +12,11 @@ using SupportDeskWebApi.Data.Database;
 namespace SupportDeskWebApi.Migrations
 {
     [DbContext(typeof(SupportDeskDbContext))]
-    partial class SupportDeskDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509210147_Added Priority And Subject To Ticket")]
+    partial class AddedPriorityAndSubjectToTicket
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -418,7 +421,7 @@ namespace SupportDeskWebApi.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<Guid?>("SupportAgentId")
+                    b.Property<Guid>("SupportAgentId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -682,7 +685,8 @@ namespace SupportDeskWebApi.Migrations
                     b.HasOne("SupportDeskWebApi.Data.Entities.User.User", "SupportAgent")
                         .WithMany("AssignedTickets")
                         .HasForeignKey("SupportAgentId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Category");
 

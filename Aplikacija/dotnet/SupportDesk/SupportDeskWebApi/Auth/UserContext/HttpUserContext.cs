@@ -31,7 +31,7 @@ public class HttpUserContext : IUserContext
         return Guid.Parse(userIdClaim.Value);
     }
 
-    public Guid GetCurrentUsersOrganizationId()
+    public Guid? GetCurrentUsersOrganizationId()
     {
         var user = _httpContextAccessor.HttpContext?.User;
         
@@ -44,7 +44,7 @@ public class HttpUserContext : IUserContext
         
         if (organizationIdClaim is null)
         {
-            throw new UnauthorizedAccessException("Organization id claim not found");
+            return null;
         }
         
         return Guid.Parse(organizationIdClaim.Value);

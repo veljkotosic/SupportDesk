@@ -54,12 +54,22 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
             .OnDelete(DeleteBehavior.Restrict);
         
         modelBuilder.Entity<Category>()
-            .HasQueryFilter(c => c.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
+            .HasQueryFilter(c => _userContext.GetCurrentUsersOrganizationId() != null && c.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
         
         modelBuilder.Entity<TemplateAnswer>()
-            .HasQueryFilter(ta => ta.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
+            .HasQueryFilter(ta => _userContext.GetCurrentUsersOrganizationId() != null && ta.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
         
         modelBuilder.Entity<Faq>()
-            .HasQueryFilter(f => f.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
+            .HasQueryFilter(f => _userContext.GetCurrentUsersOrganizationId() != null && f.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
+        
+        modelBuilder.Entity<Ticket>()
+            .HasQueryFilter(t => 
+                (_userContext.GetCurrentUsersOrganizationId() != null && t.OrganizationId == _userContext.GetCurrentUsersOrganizationId()) || 
+                (t.CustomerId == _userContext.GetCurrentUserId()));
+
+        modelBuilder.Entity<Message>()
+            .HasQueryFilter(m => 
+                (_userContext.GetCurrentUsersOrganizationId() != null && m.OrganizationId == _userContext.GetCurrentUsersOrganizationId()) || 
+                (m.Ticket.CustomerId == _userContext.GetCurrentUserId()));
     }
 }

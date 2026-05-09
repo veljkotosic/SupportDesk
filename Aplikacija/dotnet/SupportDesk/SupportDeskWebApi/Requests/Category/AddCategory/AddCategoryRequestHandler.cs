@@ -24,7 +24,7 @@ public class AddCategoryRequestHandler
 
     public async Task<AddCategoryResult> HandleAsync(AddCategoryRequest request, CancellationToken cancellationToken = default)
     {
-        var organizationId = _userContext.GetCurrentUsersOrganizationId();
+        var organizationId = _userContext.GetCurrentUsersOrganizationId()!;
 
         var category = await _categoryRepository.GetByNameAsync(request.Name, cancellationToken);
             
@@ -36,7 +36,7 @@ public class AddCategoryRequestHandler
         category = new Data.Entities.Category.Category
         {
             Id = Guid.NewGuid(),
-            OrganizationId = organizationId,
+            OrganizationId = (Guid)organizationId,
             Name = request.Name,
             Description = request.Description
         };

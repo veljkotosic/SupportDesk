@@ -24,12 +24,12 @@ public class AddFaqRequestHandler
 
     public async Task<AddFaqResult> HandleAsync(AddFaqRequest request, CancellationToken cancellationToken = default)
     {
-        var organizationId = _userContext.GetCurrentUsersOrganizationId();
+        var organizationId = _userContext.GetCurrentUsersOrganizationId()!;
 
         var faq = new Data.Entities.Faq.Faq
         {
             Id = Guid.NewGuid(),
-            OrganizationId = organizationId,
+            OrganizationId = (Guid)organizationId,
             Question = request.Question,
             Answer = request.Answer
         };

@@ -15,13 +15,19 @@ public class Ticket : IEntity
     public Guid CustomerId { get; set; }
     public User.User Customer { get; set; } = null!;
     
-    public Guid SupportAgentId { get; set; }
-    public User.User SupportAgent { get; set; } = null!;
+    public Guid? SupportAgentId { get; set; }
+    public User.User? SupportAgent { get; set; } = null!;
     
     public Guid CategoryId { get; set; }
     public Category.Category Category { get; set; } = null!;
     
     public TicketStatus Status { get; set; }
+    
+    public TicketPriority Priority { get; set; }
+    
+    [Required]
+    [MaxLength(256)]
+    public string Subject { get; set; } = null!;
     
     public DateTime OpenedAt { get; set; }
     

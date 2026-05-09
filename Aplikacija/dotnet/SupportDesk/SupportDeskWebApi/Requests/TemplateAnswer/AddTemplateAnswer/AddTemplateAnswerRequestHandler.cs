@@ -24,7 +24,7 @@ public class AddTemplateAnswerRequestHandler
 
     public async Task<AddTemplateAnswerResult> HandleAsync(AddTemplateAnswerRequest request, CancellationToken cancellationToken = default)
     {
-        var organizationId = _userContext.GetCurrentUsersOrganizationId();
+        var organizationId = _userContext.GetCurrentUsersOrganizationId()!;
 
         var templateAnswer = await _templateAnswerRepository.GetByTitleAsync(request.Title, cancellationToken);
             
@@ -36,7 +36,7 @@ public class AddTemplateAnswerRequestHandler
         templateAnswer = new Data.Entities.TemplateAnswer.TemplateAnswer
         {
             Id = Guid.NewGuid(),
-            OrganizationId = organizationId,
+            OrganizationId = (Guid)organizationId,
             Title = request.Title,
             Text = request.Text
         };
