@@ -13,8 +13,12 @@ public class Note : IEntity
     
     public Guid TicketId { get; set; }
     public Ticket.Ticket Ticket { get; set; } = null!;
+    
+    public Guid AuthorId { get; set; }
+    public User.User Author { get; set; } = null!;
 
     [Required] 
+    [MaxLength(400)]
     public string Text { get; set; } = null!;
     
     public DateTime CreatedAt { get; set; }
