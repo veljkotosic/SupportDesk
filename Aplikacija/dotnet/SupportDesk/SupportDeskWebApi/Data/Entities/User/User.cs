@@ -14,4 +14,6 @@ public class User : IdentityUser<Guid>, IEntity
     public List<Ticket.Ticket> AssignedTickets { get; set; } = [];
     
     public List<Message.Message> Messages { get; set; } = [];
+    
+    public List<Note.Note> Notes { get; set; } = [];
 }

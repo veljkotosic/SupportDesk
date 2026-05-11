@@ -71,5 +71,10 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
             .HasQueryFilter(m => 
                 (_userContext.GetCurrentUsersOrganizationId() != null && m.OrganizationId == _userContext.GetCurrentUsersOrganizationId()) || 
                 (m.Ticket.CustomerId == _userContext.GetCurrentUserId()));
+        
+        modelBuilder.Entity<Note>()
+            .HasQueryFilter(n => 
+                (_userContext.GetCurrentUsersOrganizationId() != null && n.OrganizationId == _userContext.GetCurrentUsersOrganizationId()) || 
+                (n.Ticket.CustomerId == _userContext.GetCurrentUserId()));
     }
 }
