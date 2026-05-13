@@ -2,6 +2,7 @@ import {SignalRService} from "@/services/signalR.ts";
 import type {Ticket} from "@/types/ticket/ticket.ts";
 import type {TicketFeedback} from "@/types/ticket/ticketFeedback.ts";
 import type {TicketFeedbackInfo} from "@/types/ticket/info/ticketFeedbackInfo.ts";
+import type {Message} from "@/types/message/message.ts";
 
 const client = new SignalRService(`/hubs/organizationDashboardHub`);
 
@@ -30,8 +31,13 @@ export const organizationDashboardHubService = {
     client.on<TicketFeedbackInfo>("TicketFeedback", callback);
   },
 
+  onNewTicketMessage(callback: (message: Message) => void): void {
+    client.on<Message>("NewTicketMessage", callback);
+  },
+
   offAll(): void {
     client.off("NewTicket");
     client.off("TicketFeedback");
+    client.off("NewTicketMessage");
   }
 }

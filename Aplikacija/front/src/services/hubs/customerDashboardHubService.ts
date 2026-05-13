@@ -1,6 +1,7 @@
 import {SignalRService} from "@/services/signalR.ts";
 import type {TicketAssignedInfo} from "@/types/ticket/info/ticketAssignedInfo.ts";
 import type {TicketClosedInfo} from "@/types/ticket/info/ticketClosedInfo.ts";
+import type {Message} from "@/types/message/message.ts";
 
 const client = new SignalRService(`/hubs/customerDashboardHub`);
 
@@ -29,8 +30,13 @@ export const customerDashboardHubService = {
     client.on<TicketClosedInfo>("TicketClosed", callback);
   },
 
+  onNewTicketMessage(callback: (message: Message) => void): void {
+    client.on<Message>("NewTicketMessage", callback);
+  },
+
   offAll(): void {
     client.off("TicketAssigned");
     client.off("TicketClosed");
+    client.off("NewTicketMessage");
   }
 }

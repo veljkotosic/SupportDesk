@@ -53,7 +53,7 @@ public class CreateTicketRequestHandler
         
         await _ticketRepository.SaveAsync(ticket, cancellationToken);
 
-        var initialMessage = new Message
+        var initialMessage = new Data.Entities.Message.Message
         {
             Id = Guid.NewGuid(),
             OrganizationId = request.OrganizationId,
