@@ -29,6 +29,7 @@ public class RegisterCustomerRequestHandler : IRequestHandler<RegisterCustomerRe
         var user = new Data.Entities.User.User
         {
             Id = Guid.NewGuid(),
+            Type = UserType.Customer,
             Email = request.Email,
             NormalizedEmail = request.Email.ToUpperInvariant(),
             UserName = request.Username,

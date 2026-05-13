@@ -1,6 +1,7 @@
 using DotNetEnv;
 using SupportDeskWebApi.Data.Database;
 using SupportDeskWebApi.DependencyInjection;
+using SupportDeskWebApi.Hubs;
 
 if (File.Exists("../../../.env"))
 {
@@ -14,6 +15,8 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddControllers();
 
 builder.Services.AddSupportDesk(builder.Configuration);
+
+builder.Services.AddSignalR();
 
 builder.Services.AddCors(options =>
 {
@@ -39,5 +42,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<CustomerDashboardHub>("hubs/customerDashboardHub");
+app.MapHub<OrganizationDashboardHub>("hubs/organizationDashboardHub");
+app.MapHub<TicketHub>("hubs/ticketHub");
 
 app.Run();

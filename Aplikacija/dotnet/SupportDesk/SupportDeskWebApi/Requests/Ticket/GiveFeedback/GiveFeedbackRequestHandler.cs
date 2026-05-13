@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.SignalR;
 using SupportDeskWebApi.Auth.Abstract;
 using SupportDeskWebApi.Data.Database.UnitOfWork;
 using SupportDeskWebApi.Data.Entities.Ticket.Enums;
 using SupportDeskWebApi.Data.Entities.Ticket.Repository;
+using SupportDeskWebApi.Hubs;
 using SupportDeskWebApi.Requests.Abstract;
 
 namespace SupportDeskWebApi.Requests.Ticket.GiveFeedback;
@@ -12,15 +14,22 @@ public class GiveFeedbackRequestHandler
     private readonly IUserContext _userContext;
     private readonly ITicketRepository _ticketRepository;
     private readonly IUnitOfWork _unitOfWork;
+    
+    private readonly IHubContext<OrganizationDashboardHub> _organizationDashboardHubContext;
+    private readonly IHubContext<TicketHub> _ticketHubContext;
 
     public GiveFeedbackRequestHandler(
         IUserContext userContext,
         ITicketRepository ticketRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IHubContext<OrganizationDashboardHub> organizationDashboardHubContext,
+        IHubContext<TicketHub> ticketHubContext)
     {
         _userContext = userContext;
         _ticketRepository = ticketRepository;
         _unitOfWork = unitOfWork;
+        _organizationDashboardHubContext = organizationDashboardHubContext;
+        _ticketHubContext = ticketHubContext;
     }
 
     public async Task HandleAsync(GiveFeedbackRequest request, CancellationToken cancellationToken = default)
@@ -48,5 +57,13 @@ public class GiveFeedbackRequestHandler
         
         await _ticketRepository.SaveAsync(ticket, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+        var ticketFeedbackInfoDto = new TicketFeedbackInfoDto(ticket.Id, ticket.Feedback);      
+        
+        await _organizationDashboardHubContext.Clients.Group(ticket.OrganizationId.ToString())
+            .SendAsync("TicketFeedback", ticketFeedbackInfoDto, cancellationToken);
+        
+        await _ticketHubContext.Clients.Group(ticket.Id.ToString())
+            .SendAsync("TicketFeedback", ticketFeedbackInfoDto, cancellationToken);       
     }
 }
