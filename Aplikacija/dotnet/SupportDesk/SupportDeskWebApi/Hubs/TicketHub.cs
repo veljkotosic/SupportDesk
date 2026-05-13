@@ -15,13 +15,13 @@ public class TicketHub : Hub
         _dispatcher = dispatcher;
     }
     
-    public async Task JoinTicket(Guid ticketId, CancellationToken cancellationToken)
+    public async Task JoinTicket(string ticketId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, ticketId.ToString(), cancellationToken);
+        await Groups.AddToGroupAsync(Context.ConnectionId, ticketId, Context.ConnectionAborted); 
     }
     
-    public async Task LeaveTicket(Guid ticketId, CancellationToken cancellationToken)
+    public async Task LeaveTicket(string ticketId)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, ticketId.ToString(), cancellationToken);
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, ticketId, Context.ConnectionAborted);
     }
 }

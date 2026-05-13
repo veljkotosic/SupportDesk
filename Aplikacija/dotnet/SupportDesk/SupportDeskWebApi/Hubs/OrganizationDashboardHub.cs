@@ -16,11 +16,17 @@ public class OrganizationDashboardHub : Hub
 
     public async Task StartLiveUpdates()
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, _userContext.GetCurrentUsersOrganizationId().ToString()!);
+        await Groups.AddToGroupAsync(
+            Context.ConnectionId,
+            _userContext.GetCurrentUsersOrganizationId().ToString()!,
+            Context.ConnectionAborted);
     }
     
     public async Task StopLiveUpdates()
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, _userContext.GetCurrentUsersOrganizationId().ToString()!);
+        await Groups.RemoveFromGroupAsync(
+            Context.ConnectionId, 
+            _userContext.GetCurrentUsersOrganizationId().ToString()!,
+            Context.ConnectionAborted);
     }
 }
