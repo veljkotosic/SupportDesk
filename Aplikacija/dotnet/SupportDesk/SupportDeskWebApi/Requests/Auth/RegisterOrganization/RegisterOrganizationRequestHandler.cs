@@ -53,6 +53,7 @@ public class RegisterOrganizationRequestHandler
         var organizationAdmin = new Data.Entities.User.User
         {
             Id = Guid.NewGuid(),
+            Type = UserType.OrganizationAdmin,
             OrganizationId = organization.Id,
             UserName = request.Username,
             NormalizedUserName = request.Username.ToUpperInvariant(),

@@ -8,6 +8,8 @@ public class User : IdentityUser<Guid>, IEntity
     public Guid? OrganizationId { get; set; }
     public Organization.Organization? Organization { get; set; }
     
+    public UserType Type { get; set; }
+    
     public DateTime CreatedAt { get; set; }
     
     public List<Ticket.Ticket> OpenedTickets { get; set; } = [];

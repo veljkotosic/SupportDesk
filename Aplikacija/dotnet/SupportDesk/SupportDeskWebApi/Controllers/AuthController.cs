@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using SupportDeskWebApi.Dispatcher;
+using SupportDeskWebApi.Hubs;
 using SupportDeskWebApi.Requests.Auth.GetMe;
 using SupportDeskWebApi.Requests.Auth.Login;
 using SupportDeskWebApi.Requests.Auth.Logout;
@@ -17,12 +19,12 @@ namespace SupportDeskWebApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IDispatcher _dispatcher;
-    
+
     public AuthController(IDispatcher dispatcher)
     {
         _dispatcher = dispatcher;
     }
-    
+
     [AllowAnonymous]
     [HttpPost("registerCustomer")]
     public async Task<ActionResult> RegisterCustomer(RegisterCustomerRequest request, CancellationToken cancellationToken)

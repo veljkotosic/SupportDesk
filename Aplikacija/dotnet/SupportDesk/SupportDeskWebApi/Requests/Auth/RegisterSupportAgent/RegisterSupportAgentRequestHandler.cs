@@ -69,6 +69,7 @@ public class RegisterSupportAgentRequestHandler
         var supportAgent = new Data.Entities.User.User()
         {
             Id = Guid.NewGuid(),
+            Type = UserType.SupportAgent,
             OrganizationId = inviteCode.OrganizationId,
             UserName = request.Username,
             NormalizedUserName = request.Username.ToUpperInvariant(),
