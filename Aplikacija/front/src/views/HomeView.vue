@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { ArrowRight, MessageSquare, Moon, Sun } from 'lucide-vue-next'
+import { MessageSquare, Moon, Sun } from 'lucide-vue-next'
 import { useAppStore } from '../stores/appStore'
+import router from "@/router";
 
 const appStore = useAppStore()
 const { theme } = storeToRefs(appStore)
@@ -11,23 +12,15 @@ const handleToggleTheme = () => {
 }
 
 const handleLogoClick = () => {
-  // navigation will be wired later
+
 }
 
 const handleSignIn = () => {
-  // navigation will be wired later
+  router.push('/login')
 }
 
-const handleGetStarted = () => {
-  // navigation will be wired later
-}
-
-const handleGetStartedFree = () => {
-  // action will be wired later
-}
-
-const handleCreateOrganization = () => {
-  // action will be wired later
+const handleSignUp = () => {
+  router.push('/register')
 }
 </script>
 
@@ -71,9 +64,9 @@ const handleCreateOrganization = () => {
           <button
             type="button"
             class="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-600"
-            @click="handleGetStarted"
+            @click="handleSignUp"
           >
-            Get Started
+            Sign Up
           </button>
         </div>
       </div>
@@ -86,30 +79,6 @@ const handleCreateOrganization = () => {
           <br />
           <span class="text-blue-500">customer support</span>
         </h1>
-
-        <p class="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-gray-500 dark:text-gray-400">
-          SupportDesk unifies your team's customer support with smart ticketing,
-          real-time chat, and multi-tenant management — all in one beautiful platform.
-        </p>
-
-        <div class="mb-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <button
-            type="button"
-            class="flex items-center gap-2 rounded-xl bg-blue-500 px-6 py-3 text-sm font-medium text-white shadow-md transition-all hover:bg-blue-600 hover:shadow-lg"
-            @click="handleGetStartedFree"
-          >
-            Get Started Free
-            <ArrowRight :size="16" />
-          </button>
-
-          <button
-            type="button"
-            class="flex items-center gap-2 rounded-xl border border-gray-200 px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900"
-            @click="handleCreateOrganization"
-          >
-            Create Organization
-          </button>
-        </div>
       </section>
     </main>
 
