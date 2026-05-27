@@ -5,9 +5,13 @@ import type {TicketFeedback} from "@/types/ticket/ticketFeedback.ts";
 export interface Ticket {
   id: string;
   organizationId: string;
+  organizationName: string;
   categoryId: string;
+  categoryName: string;
   customerId: string;
+  customerUsername: string;
   supportAgentId: string;
+  supportAgentUsername: string;
   status: TicketStatus;
   priority: TicketPriority;
   subject: string;

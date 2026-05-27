@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import {reactive, ref} from 'vue'
+import {reactive} from 'vue'
 import { ArrowRight } from 'lucide-vue-next'
 import AuthLogo from '../../components/AuthLogo.vue'
 import PasswordField from '../../components/PasswordField.vue'
 import type {LoginInput} from "@/types/auth/loginInput.ts";
 
 import { useAuthStore } from "@/stores/authStore.ts";
+import {UserType} from "@/types/user/userType.ts";
+import router from "@/router";
 
 const authStore = useAuthStore()
 
@@ -14,6 +16,16 @@ const loginForm = reactive<LoginInput>({ email: '', password: '' })
 async function handleLogin() {
   try {
     await authStore.login(loginForm)
+    const user = authStore.user!
+
+    if (user.type === UserType.Customer) {
+      await router.push({ name: 'customerDashboard' })
+    } else if (user.type === UserType.SupportAgent) {
+      await router.push({ name: 'supportAgentDashboard' });
+    } else if (user.type === UserType.OrganizationAdmin) {
+      await router.push({ name: 'organizationDashboard' });
+    }
+
   } catch (e: any) {
 
   }

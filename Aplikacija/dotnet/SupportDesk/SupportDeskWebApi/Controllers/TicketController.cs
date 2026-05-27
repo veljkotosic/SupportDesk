@@ -4,6 +4,8 @@ using SupportDeskWebApi.Dispatcher;
 using SupportDeskWebApi.Requests.Ticket.AssignTicket;
 using SupportDeskWebApi.Requests.Ticket.CloseTicket;
 using SupportDeskWebApi.Requests.Ticket.CreateTicket;
+using SupportDeskWebApi.Requests.Ticket.GetCustomerTickets;
+using SupportDeskWebApi.Requests.Ticket.GetTicket;
 using SupportDeskWebApi.Requests.Ticket.GiveFeedback;
 
 namespace SupportDeskWebApi.Controllers;
@@ -53,5 +55,23 @@ public class TicketController : ControllerBase
         await _dispatcher.ExecuteAsync(request, cancellationToken);
         
         return Ok();
+    }
+    
+    [Authorize(Roles = "Customer")]
+    [HttpGet("customerTickets")]
+    public async Task<ActionResult<GetCustomerTicketsResult>> GetCustomerTickets(CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new GetCustomerTicketsRequest(), cancellationToken);
+        
+        return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("{ticketId:guid}")]
+    public async Task<ActionResult<GetTicketResult>> GetTicket([FromRoute] Guid ticketId, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new GetTicketRequest(ticketId), cancellationToken);
+        
+        return Ok(result);
     }
 }

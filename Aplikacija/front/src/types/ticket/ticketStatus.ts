@@ -1,5 +1,6 @@
 export enum TicketStatus {
   Open,
   Closed,
-  Assigned
+  Assigned,
+  Archived
 }

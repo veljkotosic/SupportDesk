@@ -1,13 +1,17 @@
 using SupportDeskWebApi.Data.Entities.Ticket.Enums;
 
-namespace SupportDeskWebApi.Requests.Ticket.CreateTicket;
+namespace SupportDeskWebApi.Requests.Ticket.Common;
 
-public record CreateTicketDto(
+public record TicketDetailsDto(
     Guid Id,
     Guid OrganizationId,
+    string OrganizationName,
     Guid CategoryId,
+    string CategoryName,
     Guid CustomerId,
+    string CustomerUsername,
     Guid? SupportAgentId,
+    string? SupportAgentUsername,
     TicketStatus Status,
     TicketPriority Priority,
     string Subject,

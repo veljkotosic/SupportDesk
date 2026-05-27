@@ -42,7 +42,6 @@ async function request<T = any>(method: string, url: string, body?: any, attempt
     if (isRefreshed) {
       return await request<T>(method, url, body, false);
     } else {
-      window.location.href = '/login';
       throw new Error('Session expired');
     }
   }

@@ -1,0 +1,6 @@
+using SupportDeskWebApi.Requests.Abstract;
+using SupportDeskWebApi.Requests.Ticket.Common;
+
+namespace SupportDeskWebApi.Requests.Ticket.GetCustomerTickets;
+
+public record GetCustomerTicketsResult(List<TicketDetailsDto> Tickets) : IRequestResult;

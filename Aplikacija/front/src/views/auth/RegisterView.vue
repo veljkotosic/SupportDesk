@@ -134,7 +134,7 @@ async function handleRegisterOrganization() {
           </button>
         </div>
 
-        <register-form class="space-y-4" @submit.prevent="handleRegister">
+        <form class="space-y-4" @submit.prevent="handleRegister">
           <div>
             <label
               for="register-name"
@@ -246,7 +246,7 @@ async function handleRegisterOrganization() {
             {{ submitLabel }}
             <ArrowRight :size="16" />
           </button>
-        </register-form>
+        </form>
       </div>
 
       <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-5">

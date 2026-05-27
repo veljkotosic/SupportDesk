@@ -40,7 +40,7 @@ public class RegisterOrganizationRequestHandler
             throw AuthException.OrganizationAlreadyExist();
         }
         
-        var organization = new Organization
+        var organization = new Data.Entities.Organization.Organization
         {
             Id = Guid.NewGuid(),
             Status = OrganizationStatus.Active,
