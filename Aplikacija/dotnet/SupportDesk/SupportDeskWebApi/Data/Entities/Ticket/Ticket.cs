@@ -36,8 +36,12 @@ public class Ticket : IEntity
     public DateTime ClosedAt { get; set; }
     
     public TicketFeedback Feedback { get; set; }
+    
+    public DateTime LastMessageAt { get; set; }
 
     public List<Note.Note> Notes { get; set; } = [];
     
     public List<Message.Message> Messages { get; set; } = [];
+    
+    public List<TicketNotification.TicketNotification> Notifications { get; set; } = [];
 }

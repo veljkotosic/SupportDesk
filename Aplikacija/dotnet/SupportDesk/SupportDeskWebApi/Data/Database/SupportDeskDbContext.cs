@@ -10,6 +10,7 @@ using SupportDeskWebApi.Data.Entities.Organization;
 using SupportDeskWebApi.Data.Entities.SupportAgentInviteCode;
 using SupportDeskWebApi.Data.Entities.TemplateAnswer;
 using SupportDeskWebApi.Data.Entities.Ticket;
+using SupportDeskWebApi.Data.Entities.TicketNotification;
 using SupportDeskWebApi.Data.Entities.User;
 
 namespace SupportDeskWebApi.Data.Database;
@@ -26,6 +27,7 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<SupportAgentInviteCode> SupportAgentInviteCodes { get; set; }
+    public DbSet<TicketNotification> TicketNotifications { get; set; }
     
     public DbSet<RefreshToken.RefreshToken> RefreshTokens { get; set; }
     
@@ -61,6 +63,11 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
         
         modelBuilder.Entity<Faq>()
             .HasQueryFilter(f => _userContext.GetCurrentUsersOrganizationId() != null && f.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
+        
+        modelBuilder.Entity<TicketNotification>()
+            .HasQueryFilter(tn => 
+                (_userContext.GetCurrentUsersOrganizationId() != null && tn.OrganizationId == _userContext.GetCurrentUsersOrganizationId()) || 
+                (tn.Ticket.CustomerId == _userContext.GetCurrentUserId()));
         
         modelBuilder.Entity<Ticket>()
             .HasQueryFilter(t => 

@@ -6,6 +6,7 @@ import RegisterView from "@/views/auth/RegisterView.vue";
 import CustomerDashboardView from "@/views/customer/CustomerDashboardView.vue";
 import {UserType} from "@/types/user/userType.ts"
 import OpenTicketView from "@/views/customer/OpenTicketView.vue";
+import CustomerTicketView from "@/views/customer/CustomerTicketView.vue";
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -55,6 +56,15 @@ const router = createRouter({
       path: '/customer/openTicket',
       name: 'customerOpenTicket',
       component: OpenTicketView,
+      meta: {
+        requiresAuth: true,
+        allowedUsers: [UserType.Customer]
+      }
+    },
+    {
+      path: '/customer/ticket/:id',
+      name: 'customerTicket',
+      component: CustomerTicketView,
       meta: {
         requiresAuth: true,
         allowedUsers: [UserType.Customer]

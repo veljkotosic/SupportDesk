@@ -243,13 +243,13 @@ function handleCancel() {
         </div>
 
         <div class="flex gap-3 mt-4">
-          <RouterLink
-            to="#"
+          <a
+            href="#"
             class="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all text-center"
             @click.prevent="handleCancel"
           >
             Cancel
-          </RouterLink>
+          </a>
           <button
             type="submit"
             class="flex-1 flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm"

@@ -52,7 +52,6 @@ public class CreateTicketRequestHandler
             Feedback = TicketFeedback.None
         };
         
-        await _ticketRepository.SaveAsync(ticket, cancellationToken);
 
         var initialMessage = new Data.Entities.Message.Message
         {
@@ -64,6 +63,9 @@ public class CreateTicketRequestHandler
             Text = request.InitialMessage
         };
         
+        ticket.LastMessageAt = initialMessage.CreatedAt;
+        
+        await _ticketRepository.SaveAsync(ticket, cancellationToken);
         await _messageRepository.SaveAsync(initialMessage, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

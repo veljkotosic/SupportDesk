@@ -1,6 +1,7 @@
 import type {TicketStatus} from "@/types/ticket/ticketStatus.ts";
 import type {TicketPriority} from "@/types/ticket/ticketPriority.ts";
 import type {TicketFeedback} from "@/types/ticket/ticketFeedback.ts";
+import type {TicketNotification} from "@/types/ticketNotification/ticketNotification.ts";
 
 export interface Ticket {
   id: string;
@@ -19,4 +20,6 @@ export interface Ticket {
   assignedAt: Date;
   closedAt?: Date;
   feedback: TicketFeedback;
+
+  unreadNotifications: TicketNotification[];
 }

@@ -1,4 +1,6 @@
 using SupportDeskWebApi.Data.Entities.Ticket.Enums;
+using SupportDeskWebApi.Data.Entities.TicketNotification;
+using SupportDeskWebApi.Requests.TicketNotification.Common;
 
 namespace SupportDeskWebApi.Requests.Ticket.Common;
 
@@ -18,4 +20,5 @@ public record TicketDetailsDto(
     DateTime OpenedAt,
     DateTime? AssignedAt,
     DateTime? ClosedAt,
-    TicketFeedback Feedback);
+    TicketFeedback Feedback,
+    List<TicketNotificationDetailsDto> UnreadNotifications);

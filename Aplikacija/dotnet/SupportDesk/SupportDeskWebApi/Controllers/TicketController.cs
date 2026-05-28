@@ -6,7 +6,9 @@ using SupportDeskWebApi.Requests.Ticket.CloseTicket;
 using SupportDeskWebApi.Requests.Ticket.CreateTicket;
 using SupportDeskWebApi.Requests.Ticket.GetCustomerTickets;
 using SupportDeskWebApi.Requests.Ticket.GetTicket;
+using SupportDeskWebApi.Requests.Ticket.GetTicketViewInfo;
 using SupportDeskWebApi.Requests.Ticket.GiveFeedback;
+using SupportDeskWebApi.Requests.Ticket.ReadAllNotifications;
 
 namespace SupportDeskWebApi.Controllers;
 
@@ -73,5 +75,23 @@ public class TicketController : ControllerBase
         var result = await _dispatcher.ExecuteAsync(new GetTicketRequest(ticketId), cancellationToken);
         
         return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("{ticketId:guid}/info")]
+    public async Task<ActionResult<GetTicketViewInfoResult>> GetTicketViewInfo([FromRoute] Guid ticketId, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new GetTicketViewInfoRequest(ticketId), cancellationToken);
+        
+        return Ok(result);
+    }
+    
+    [Authorize(Roles = "Customer")]
+    [HttpPut("{ticketId:guid}/readAllNotifications")]
+    public async Task<ActionResult> ReadAllNotifications([FromRoute] Guid ticketId, CancellationToken cancellationToken)
+    {
+        await _dispatcher.ExecuteAsync(new ReadAllNotificationsRequest(ticketId), cancellationToken);
+        
+        return Ok();
     }
 }

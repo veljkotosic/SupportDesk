@@ -1,17 +1,15 @@
-import { HubConnection, HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
-import { useAuthStore } from "@/stores/authStore.ts";
+import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
 import { authService} from "@/services/auth/authService.ts";
 
 export class SignalRService {
   private connection: HubConnection;
 
   constructor(hubUrl: string) {
-    const authStore = useAuthStore();
-
     this.connection = new HubConnectionBuilder()
       .withUrl(hubUrl, {
         withCredentials: true
       })
+      .configureLogging(LogLevel.Information)
       .withAutomaticReconnect()
       .build();
   }

@@ -2,7 +2,10 @@ import {defineStore} from "pinia";
 import {computed, ref} from "vue";
 import type {Ticket} from "@/types/ticket/ticket.ts";
 import {ticketService} from "@/services/ticket/ticketService.ts";
-import type {TicketStatus} from "@/types/ticket/ticketStatus.ts";
+import {TicketStatus} from "@/types/ticket/ticketStatus.ts";
+import type {TicketAssignedInfo} from "@/types/ticket/info/ticketAssignedInfo.ts";
+import type {TicketClosedInfo} from "@/types/ticket/info/ticketClosedInfo.ts";
+import type {TicketNotification} from "@/types/ticketNotification/ticketNotification.ts";
 
 export type FilterStatus = TicketStatus | 'All'
 
@@ -48,6 +51,50 @@ export const useTicketStore = defineStore('ticket', () =>{
     loadedTickets.value.push(newTicket)
   }
 
+  function newNotification(notification: TicketNotification) {
+    const ticket = loadedTickets.value.find(t => t.id === notification.ticketId)
+    if (ticket === undefined) {
+      return
+    }
+
+    ticket.unreadNotifications.push(notification)
+  }
+
+  async function readNotifications(ticketId: string) {
+    const ticket = loadedTickets.value.find(t => t.id === ticketId)
+    if (ticket === undefined) {
+      return
+    }
+
+    await ticketService.readAllNotifications(ticket.id)
+
+    ticket.unreadNotifications = []
+  }
+
+  function assignTicket(info: TicketAssignedInfo) {
+    const ticket = loadedTickets.value.find(t => t.id === info.ticketId)
+
+    if (ticket === undefined || ticket.status !== TicketStatus.Open) {
+      return
+    }
+
+    ticket.status = TicketStatus.Assigned
+    ticket.assignedAt = info.assignedAt
+    ticket.supportAgentId = info.supportAgentId
+    ticket.supportAgentUsername = info.supportAgentUsername
+  }
+
+  function closeTicket(info: TicketClosedInfo) {
+    const ticket = loadedTickets.value.find(t => t.id === info.ticketId)
+
+    if (ticket === undefined || ticket.status !== TicketStatus.Assigned) {
+      return
+    }
+
+    ticket.status = TicketStatus.Closed
+    ticket.closedAt = info.closedAt
+  }
+
   return {
     loadedTickets,
     filteredTickets,
@@ -56,6 +103,10 @@ export const useTicketStore = defineStore('ticket', () =>{
     loadTickets,
     unloadTickets,
     setStatusFilter,
-    addNewlyCreatedTicket
+    addNewlyCreatedTicket,
+    newNotification,
+    readNotifications,
+    assignTicket,
+    closeTicket
   }
 })

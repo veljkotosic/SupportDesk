@@ -33,4 +33,6 @@ public class Organization : IEntity
     public List<Ticket.Ticket> Tickets { get; set; } = [];
     
     public List<SupportAgentInviteCode.SupportAgentInviteCode> SupportAgentInviteCodes { get; set; } = [];
+    
+    public List<TicketNotification.TicketNotification> TicketNotifications { get; set; } = [];
 }

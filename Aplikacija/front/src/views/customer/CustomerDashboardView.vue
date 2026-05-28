@@ -7,6 +7,8 @@ import PriorityBadge from "@/components/PriorityBadge.vue";
 import CategoryBadge from "@/components/CategoryBadge.vue";
 import {type FilterStatus, useTicketStore} from "@/stores/ticketStore.ts";
 import {TicketStatus} from "@/types/ticket/ticketStatus.ts";
+import type {Ticket as TicketEntity} from "@/types/ticket/ticket.ts";
+import {customerDashboardHubService} from "@/services/hubs/customerDashboardHubService.ts";
 
 const ticketStore = useTicketStore()
 
@@ -17,12 +19,26 @@ const ticketStatusFilters: { label: string; value: FilterStatus }[] = [
   { label: 'Closed', value: TicketStatus.Closed },
 ]
 
-onBeforeMount(() => {
-  ticketStore.loadTickets()
+onBeforeMount(async () => {
+  await ticketStore.loadTickets()
+  await customerDashboardHubService.connect()
+  await customerDashboardHubService.startLiveUpdates()
+  customerDashboardHubService.onTicketAssigned((info) => {
+    ticketStore.assignTicket(info)
+  })
+  customerDashboardHubService.onTicketClosed((info) => {
+    ticketStore.closeTicket(info)
+  })
+  customerDashboardHubService.onTicketNotification((notification) => {
+    ticketStore.newNotification(notification)
+  })
 })
 
-onUnmounted(() => {
+onUnmounted(async () => {
   ticketStore.unloadTickets()
+  customerDashboardHubService.offAll()
+  await customerDashboardHubService.stopLiveUpdates()
+  await customerDashboardHubService.disconnect()
 })
 
 const search = ref('')
@@ -51,8 +67,19 @@ const stats = computed(() => [
   },
 ])
 
-function handleTicketRoute(ticketId: string) {
-  void ticketId
+const getNotificationLabel = (ticket: TicketEntity) => {
+  const count = ticket.unreadNotifications.length;
+  if (count === 1) {
+    return ticket.unreadNotifications[0]!.text;
+  }
+  if (count > 1) {
+    return `You have ${count} new notifications.`;
+  }
+  return '';
+};
+
+async function handleTicketRoute(ticketId: string) {
+  await ticketStore.readNotifications(ticketId)
   // TODO: Replace with Vue Router navigation to /customer/tickets/:id.
 }
 
@@ -155,6 +182,11 @@ function handleFilterChange(nextFilter: FilterStatus) {
             :key="ticket.id"
             href="#"
             class="block bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md transition-all p-4 group"
+            :class="[
+              ticket.unreadNotifications.length > 0
+                ? 'border-blue-400 dark:border-blue-500 shadow-md ring-1 ring-blue-100 dark:ring-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10'
+                : 'border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md'
+            ]"
             @click.prevent="handleTicketRoute(ticket.id)"
           >
             <div class="flex items-start gap-3">
@@ -187,6 +219,17 @@ function handleFilterChange(nextFilter: FilterStatus) {
                   </p>
                   <p v-else class="text-xs text-gray-400">Awaiting assignment</p>
                   <p class="text-xs text-gray-400">{{ ticket.organizationName }}</p>
+
+                  <div v-if="ticket.unreadNotifications.length > 0" class="flex-grow flex items-center gap-2">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    </span>
+
+                    <p class="text-xs font-semibold text-blue-600 dark:text-blue-400 italic">
+                      {{ getNotificationLabel(ticket) }}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
