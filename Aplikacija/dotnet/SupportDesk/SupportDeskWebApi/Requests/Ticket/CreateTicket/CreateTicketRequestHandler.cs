@@ -7,6 +7,7 @@ using SupportDeskWebApi.Data.Entities.Ticket.Enums;
 using SupportDeskWebApi.Data.Entities.Ticket.Repository;
 using SupportDeskWebApi.Hubs;
 using SupportDeskWebApi.Requests.Abstract;
+using SupportDeskWebApi.Requests.Ticket.Common;
 
 namespace SupportDeskWebApi.Requests.Ticket.CreateTicket;
 
@@ -51,7 +52,6 @@ public class CreateTicketRequestHandler
             Feedback = TicketFeedback.None
         };
         
-        await _ticketRepository.SaveAsync(ticket, cancellationToken);
 
         var initialMessage = new Data.Entities.Message.Message
         {
@@ -63,24 +63,13 @@ public class CreateTicketRequestHandler
             Text = request.InitialMessage
         };
         
+        ticket.LastMessageAt = initialMessage.CreatedAt;
+        
+        await _ticketRepository.SaveAsync(ticket, cancellationToken);
         await _messageRepository.SaveAsync(initialMessage, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var ticketDto = new CreateTicketDto
-        (
-            ticket.Id,
-            ticket.OrganizationId,
-            ticket.CategoryId,
-            ticket.CustomerId,
-            ticket.SupportAgentId,
-            ticket.Status,
-            ticket.Priority,
-            ticket.Subject,
-            ticket.OpenedAt,
-            ticket.AssignedAt,
-            ticket.ClosedAt,
-            ticket.Feedback
-        );
+        var ticketDto = await _ticketRepository.GetTicketAsync(ticket.Id, cancellationToken);
         
         await _organizationDashboardHubContext.Clients.Group(request.OrganizationId.ToString())
             .SendAsync("NewTicket", ticketDto, cancellationToken);       

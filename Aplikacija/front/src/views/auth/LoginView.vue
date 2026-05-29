@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import {reactive, ref} from 'vue'
+import {reactive} from 'vue'
 import { ArrowRight } from 'lucide-vue-next'
 import AuthLogo from '../../components/AuthLogo.vue'
 import PasswordField from '../../components/PasswordField.vue'
 import type {LoginInput} from "@/types/auth/loginInput.ts";
 
 import { useAuthStore } from "@/stores/authStore.ts";
+import {UserType} from "@/types/user/userType.ts";
+import router from "@/router";
+import {useRoute} from "vue-router";
 
+const route = useRoute()
 const authStore = useAuthStore()
 
 const loginForm = reactive<LoginInput>({ email: '', password: '' })
@@ -14,6 +18,22 @@ const loginForm = reactive<LoginInput>({ email: '', password: '' })
 async function handleLogin() {
   try {
     await authStore.login(loginForm)
+    const user = authStore.user!
+
+    const redirectTo = route.query.redirect as string
+    if (redirectTo) {
+      await router.push(redirectTo)
+      return
+    }
+
+    if (user.type === UserType.Customer) {
+      await router.push({ name: 'customerDashboard' })
+    } else if (user.type === UserType.SupportAgent) {
+      await router.push({ name: 'supportAgentDashboard' });
+    } else if (user.type === UserType.OrganizationAdmin) {
+      await router.push({ name: 'organizationDashboard' });
+    }
+
   } catch (e: any) {
 
   }
@@ -66,7 +86,10 @@ async function handleLogin() {
 
       <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-5">
         Don't have an account?
-        <RouterLink to="/register" class="text-blue-500 hover:text-blue-600 font-medium">
+        <RouterLink
+          :to="{ path: '/register', query: { redirect: route.query.redirect } }"
+          class="text-blue-500 hover:text-blue-600 font-medium"
+        >
           Create one here
         </RouterLink>
       </p>

@@ -3,7 +3,7 @@ import type {LoginInput} from "@/types/auth/loginInput.ts";
 import type {RegisterCustomerInput} from "@/types/auth/registerCustomerInput.ts";
 import type {RegisterOrganizationInput} from "@/types/auth/registerOrganizationInput.ts";
 import type {RegisterSupportAgentInput} from "@/types/auth/registerSupportAgentInput.ts";
-import type {Me} from "@/types/user/me.ts";
+import type {User} from "@/types/user/user.ts";
 
 const BASE_URL: string = '/api/Auth'
 
@@ -36,7 +36,7 @@ export const authService = {
     return api.delete<void>(`${BASE_URL}/logoutAll`)
   },
 
-  async getMe() : Promise<Me> {
-    return await api.get<Me>(`${BASE_URL}/me`)
+  async getMe() : Promise<User> {
+    return await api.get<User>(`${BASE_URL}/me`)
   },
 }

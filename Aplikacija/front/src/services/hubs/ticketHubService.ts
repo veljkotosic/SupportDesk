@@ -1,10 +1,9 @@
 import {SignalRService} from "@/services/signalR.ts";
-import type {Message} from "@/types/message/message.ts";
 import type {Note} from "@/types/note/note.ts";
 import type {TicketAssignedInfo} from "@/types/ticket/info/ticketAssignedInfo.ts";
-import type {TicketFeedback} from "@/types/ticket/ticketFeedback.ts";
 import type {TicketClosedInfo} from "@/types/ticket/info/ticketClosedInfo.ts";
 import type {TicketFeedbackInfo} from "@/types/ticket/info/ticketFeedbackInfo.ts";
+import type {MessageDetails} from "@/types/message/messageDetails.ts";
 
 const client = new SignalRService(`/hubs/ticketHub`);
 
@@ -25,8 +24,8 @@ export const ticketHubService = {
     await client.invoke("LeaveTicket", ticketId);
   },
 
-  onNewMessage(callback: (message: Message) => void): void {
-    client.on<Message>("NewMessage", callback);
+  onNewMessage(callback: (message: MessageDetails) => void): void {
+    client.on<MessageDetails>("NewMessage", callback);
   },
 
   onNewNote(callback: (note: Note) => void): void {

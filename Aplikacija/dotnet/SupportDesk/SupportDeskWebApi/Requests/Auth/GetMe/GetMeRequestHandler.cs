@@ -30,6 +30,6 @@ public class GetMeRequestHandler : IRequestHandler<GetMeRequest, GetMeResult>
             throw AuthException.UserNotFound();
         }
 
-        return new GetMeResult(result.Id.ToString(), result.UserName!);
+        return new GetMeResult(result.Id.ToString(), result.UserName!, result.Email!, result.Type);
     }
 }

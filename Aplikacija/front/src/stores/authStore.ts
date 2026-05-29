@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { authService } from '@/services/auth/authService'
-import type { Me } from '@/types/user/me'
+import type { User } from '@/types/user/user.ts'
 import type { LoginInput } from '@/types/auth/loginInput'
 import type { RegisterCustomerInput } from '@/types/auth/registerCustomerInput'
 import type { RegisterOrganizationInput } from '@/types/auth/registerOrganizationInput'
@@ -9,13 +9,18 @@ import type { RegisterSupportAgentInput } from '@/types/auth/registerSupportAgen
 import router from "@/router";
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<Me | null>(null)
+  const isInitialized = ref(false)
+
+  const user = ref<User | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
   const isAuthenticated = computed(() => !!user.value)
 
   async function initialize() {
+    if (isInitialized.value) {
+      return;
+    }
     isLoading.value = true
     error.value = null
     try {
@@ -24,6 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
     } finally {
       isLoading.value = false
+      isInitialized.value = true
     }
   }
 
@@ -101,6 +107,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isLoading,
     error,
+    isInitialized,
     initialize,
     registerCustomer,
     registerOrganization,

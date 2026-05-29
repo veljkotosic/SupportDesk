@@ -4,7 +4,11 @@ using SupportDeskWebApi.Dispatcher;
 using SupportDeskWebApi.Requests.Ticket.AssignTicket;
 using SupportDeskWebApi.Requests.Ticket.CloseTicket;
 using SupportDeskWebApi.Requests.Ticket.CreateTicket;
+using SupportDeskWebApi.Requests.Ticket.GetCustomerTickets;
+using SupportDeskWebApi.Requests.Ticket.GetTicket;
+using SupportDeskWebApi.Requests.Ticket.GetTicketViewInfo;
 using SupportDeskWebApi.Requests.Ticket.GiveFeedback;
+using SupportDeskWebApi.Requests.Ticket.ReadAllNotifications;
 
 namespace SupportDeskWebApi.Controllers;
 
@@ -51,6 +55,42 @@ public class TicketController : ControllerBase
     public async Task<ActionResult> AssignTicket(AssignTicketRequest request, CancellationToken cancellationToken)
     {
         await _dispatcher.ExecuteAsync(request, cancellationToken);
+        
+        return Ok();
+    }
+    
+    [Authorize(Roles = "Customer")]
+    [HttpGet("customerTickets")]
+    public async Task<ActionResult<GetCustomerTicketsResult>> GetCustomerTickets(CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new GetCustomerTicketsRequest(), cancellationToken);
+        
+        return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("{ticketId:guid}")]
+    public async Task<ActionResult<GetTicketResult>> GetTicket([FromRoute] Guid ticketId, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new GetTicketRequest(ticketId), cancellationToken);
+        
+        return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("{ticketId:guid}/info")]
+    public async Task<ActionResult<GetTicketViewInfoResult>> GetTicketViewInfo([FromRoute] Guid ticketId, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new GetTicketViewInfoRequest(ticketId), cancellationToken);
+        
+        return Ok(result);
+    }
+    
+    [Authorize(Roles = "Customer")]
+    [HttpPut("{ticketId:guid}/readAllNotifications")]
+    public async Task<ActionResult> ReadAllNotifications([FromRoute] Guid ticketId, CancellationToken cancellationToken)
+    {
+        await _dispatcher.ExecuteAsync(new ReadAllNotificationsRequest(ticketId), cancellationToken);
         
         return Ok();
     }

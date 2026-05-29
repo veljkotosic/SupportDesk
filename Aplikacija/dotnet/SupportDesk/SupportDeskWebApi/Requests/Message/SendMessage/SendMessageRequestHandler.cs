@@ -8,6 +8,7 @@ using SupportDeskWebApi.Data.Entities.User;
 using SupportDeskWebApi.Data.Entities.User.Repository;
 using SupportDeskWebApi.Hubs;
 using SupportDeskWebApi.Requests.Abstract;
+using SupportDeskWebApi.Requests.Message.Common;
 
 namespace SupportDeskWebApi.Requests.Message.SendMessage;
 
@@ -48,6 +49,8 @@ public class SendMessageRequestHandler
     {
         var userId = _userContext.GetCurrentUserId();
         
+        var isSupportAgent = _userContext.GetCurrentUsersOrganizationId() != null;
+        
         var ticket = await _ticketRepository.GetByIdAsync(request.TicketId, cancellationToken);
         
         if (ticket is null) 
@@ -58,6 +61,11 @@ public class SendMessageRequestHandler
         if (ticket.Status == TicketStatus.Closed)
         {
             throw new Exception("Cannot send message to closed ticket");
+        }
+        
+        if (ticket.Status == TicketStatus.Open && isSupportAgent)
+        {
+            throw new Exception("Cannot send message to unassigned ticket");
         }
         
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
@@ -75,11 +83,10 @@ public class SendMessageRequestHandler
         await _messageRepository.SaveAsync(message, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
-        var messageDto = new SendMessageDto(
+        var messageDto = new MessageDetailsDto(
             message.Id,
-            message.OrganizationId,
-            message.TicketId,
             message.SenderId,
+            user!.UserName!,
             message.Text,
             message.CreatedAt
         );
@@ -92,7 +99,7 @@ public class SendMessageRequestHandler
             await _organizationDashboardHubContext.Clients.Group(ticket.OrganizationId.ToString())
                 .SendAsync("NewTicketMessage", messageDto, cancellationToken);
         }
-        else if (user.Type == UserType.SupportAgent || user.Type == UserType.OrganizationAdmin)
+        else if (user.Type is UserType.SupportAgent or UserType.OrganizationAdmin)
         {
             await _customerDashboardHubContext.Clients.Group(ticket.CustomerId.ToString())
                 .SendAsync("NewTicketMessage", messageDto, cancellationToken);

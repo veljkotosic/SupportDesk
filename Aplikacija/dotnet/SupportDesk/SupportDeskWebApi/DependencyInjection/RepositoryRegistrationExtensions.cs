@@ -6,6 +6,7 @@ using SupportDeskWebApi.Data.Entities.Organization.Repository;
 using SupportDeskWebApi.Data.Entities.SupportAgentInviteCode.Repository;
 using SupportDeskWebApi.Data.Entities.TemplateAnswer.Repository;
 using SupportDeskWebApi.Data.Entities.Ticket.Repository;
+using SupportDeskWebApi.Data.Entities.TicketNotification.Repository;
 using SupportDeskWebApi.Data.Entities.User.Repository;
 
 namespace SupportDeskWebApi.DependencyInjection;
@@ -25,6 +26,7 @@ public static class RepositoryRegistrationExtensions
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<INoteRepository, NoteRepository>();
             services.AddScoped<ISupportAgentInviteCodeRepository, SupportAgentInviteCodeRepository>();
+            services.AddScoped<ITicketNotificationRepository, TicketNotificationRepository>();
             
             return services;
         }

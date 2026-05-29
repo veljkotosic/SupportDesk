@@ -407,6 +407,9 @@ namespace SupportDeskWebApi.Migrations
                     b.Property<int>("Feedback")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("OpenedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -438,6 +441,38 @@ namespace SupportDeskWebApi.Migrations
                     b.HasIndex("SupportAgentId");
 
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("SupportDeskWebApi.Data.Entities.TicketNotification.TicketNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("TicketNotifications");
                 });
 
             modelBuilder.Entity("SupportDeskWebApi.Data.Entities.User.User", b =>
@@ -710,6 +745,25 @@ namespace SupportDeskWebApi.Migrations
                     b.Navigation("SupportAgent");
                 });
 
+            modelBuilder.Entity("SupportDeskWebApi.Data.Entities.TicketNotification.TicketNotification", b =>
+                {
+                    b.HasOne("SupportDeskWebApi.Data.Entities.Organization.Organization", "Organization")
+                        .WithMany("TicketNotifications")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SupportDeskWebApi.Data.Entities.Ticket.Ticket", "Ticket")
+                        .WithMany("Notifications")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("SupportDeskWebApi.Data.Entities.User.User", b =>
                 {
                     b.HasOne("SupportDeskWebApi.Data.Entities.Organization.Organization", "Organization")
@@ -738,6 +792,8 @@ namespace SupportDeskWebApi.Migrations
 
                     b.Navigation("TemplateAnswers");
 
+                    b.Navigation("TicketNotifications");
+
                     b.Navigation("Tickets");
 
                     b.Navigation("Users");
@@ -748,6 +804,8 @@ namespace SupportDeskWebApi.Migrations
                     b.Navigation("Messages");
 
                     b.Navigation("Notes");
+
+                    b.Navigation("Notifications");
                 });
 
             modelBuilder.Entity("SupportDeskWebApi.Data.Entities.User.User", b =>
