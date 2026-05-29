@@ -78,8 +78,7 @@ async function handleSubmit() {
   try {
     const ticketId = await openTicketStore.createTicket(form)
     await ticketStore.addNewlyCreatedTicket(ticketId)
-    //TODO: change routing to ticket view instead of dashboard
-    router.back()
+    await router.push(`/customer/ticket/${ticketId}`)
   } catch (e: any) {
 
   }

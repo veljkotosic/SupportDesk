@@ -56,13 +56,19 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
             .OnDelete(DeleteBehavior.Restrict);
         
         modelBuilder.Entity<Category>()
-            .HasQueryFilter(c => _userContext.GetCurrentUsersOrganizationId() != null && c.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
-        
+            .HasQueryFilter(c => 
+                (_userContext.GetCurrentUsersOrganizationId() != null && c.OrganizationId == _userContext.GetCurrentUsersOrganizationId()) ||
+                (_userContext.GetCurrentUsersOrganizationId() == null)); 
+
         modelBuilder.Entity<TemplateAnswer>()
-            .HasQueryFilter(ta => _userContext.GetCurrentUsersOrganizationId() != null && ta.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
-        
+            .HasQueryFilter(ta => 
+                (_userContext.GetCurrentUsersOrganizationId() != null && ta.OrganizationId == _userContext.GetCurrentUsersOrganizationId()) ||
+                (_userContext.GetCurrentUsersOrganizationId() == null));
+
         modelBuilder.Entity<Faq>()
-            .HasQueryFilter(f => _userContext.GetCurrentUsersOrganizationId() != null && f.OrganizationId == _userContext.GetCurrentUsersOrganizationId());
+            .HasQueryFilter(f => 
+                (_userContext.GetCurrentUsersOrganizationId() != null && f.OrganizationId == _userContext.GetCurrentUsersOrganizationId()) ||
+                (_userContext.GetCurrentUsersOrganizationId() == null));
         
         modelBuilder.Entity<TicketNotification>()
             .HasQueryFilter(tn => 

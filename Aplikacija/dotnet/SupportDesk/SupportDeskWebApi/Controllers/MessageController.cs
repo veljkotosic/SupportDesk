@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportDeskWebApi.Dispatcher;
+using SupportDeskWebApi.Requests.Message.GetMessage;
 using SupportDeskWebApi.Requests.Message.SendMessage;
 
 namespace SupportDeskWebApi.Controllers;
@@ -21,6 +22,15 @@ public class MessageController : ControllerBase
     public async Task<ActionResult<SendMessageResult>> SendMessage(SendMessageRequest request, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.ExecuteAsync(request, cancellationToken);
+        
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("{messageId:guid}")]
+    public async Task<ActionResult<GetMessageResult>> GetMessage([FromRoute] Guid messageId, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new GetMessageRequest(messageId), cancellationToken);
         
         return Ok(result);
     }

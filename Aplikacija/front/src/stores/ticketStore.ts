@@ -60,17 +60,6 @@ export const useTicketStore = defineStore('ticket', () =>{
     ticket.unreadNotifications.push(notification)
   }
 
-  async function readNotifications(ticketId: string) {
-    const ticket = loadedTickets.value.find(t => t.id === ticketId)
-    if (ticket === undefined) {
-      return
-    }
-
-    await ticketService.readAllNotifications(ticket.id)
-
-    ticket.unreadNotifications = []
-  }
-
   function assignTicket(info: TicketAssignedInfo) {
     const ticket = loadedTickets.value.find(t => t.id === info.ticketId)
 
@@ -105,7 +94,6 @@ export const useTicketStore = defineStore('ticket', () =>{
     setStatusFilter,
     addNewlyCreatedTicket,
     newNotification,
-    readNotifications,
     assignTicket,
     closeTicket
   }

@@ -50,12 +50,15 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
                 t.AssignedAt,
                 t.ClosedAt,
                 t.Feedback,
-                t.Messages.Select(m => new MessageDetailsDto(
+                t.Messages
+                    .OrderBy(m => m.CreatedAt)
+                    .Select(m => new MessageDetailsDto(
                     m.Id,
                     m.SenderId,
                     m.Sender.UserName!,
                     m.Text,
-                    m.CreatedAt)).ToList(),
+                    m.CreatedAt))
+                    .ToList(),
                 t.Notes.Select(n => new NoteDetailsDto(
                     n.Id,
                     n.AuthorId,

@@ -9,6 +9,7 @@ import {type FilterStatus, useTicketStore} from "@/stores/ticketStore.ts";
 import {TicketStatus} from "@/types/ticket/ticketStatus.ts";
 import type {Ticket as TicketEntity} from "@/types/ticket/ticket.ts";
 import {customerDashboardHubService} from "@/services/hubs/customerDashboardHubService.ts";
+import router from "@/router";
 
 const ticketStore = useTicketStore()
 
@@ -79,8 +80,7 @@ const getNotificationLabel = (ticket: TicketEntity) => {
 };
 
 async function handleTicketRoute(ticketId: string) {
-  await ticketStore.readNotifications(ticketId)
-  // TODO: Replace with Vue Router navigation to /customer/tickets/:id.
+  await router.push(`/customer/ticket/${ticketId}`)
 }
 
 function handleFilterChange(nextFilter: FilterStatus) {
