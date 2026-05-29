@@ -8,7 +8,10 @@ import {AccountType} from "@/types/account/accountType.ts";
 import type {RegisterCustomerInput} from "@/types/auth/registerCustomerInput.ts";
 import type {RegisterSupportAgentInput} from "@/types/auth/registerSupportAgentInput.ts";
 import type {RegisterOrganizationInput} from "@/types/auth/registerOrganizationInput.ts";
+import {useRoute, useRouter} from "vue-router";
 
+const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 
 const accountType = ref<AccountType>(AccountType.Customer)
@@ -65,6 +68,13 @@ async function handleRegisterCustomer() {
       username: registerForm.name,
       password: registerForm.password,
     } as RegisterCustomerInput)
+
+    const redirectTo = route.query.redirect as string
+    if (redirectTo) {
+      await router.push(redirectTo)
+    } else {
+      await router.push({ name: 'customerDashboard' })
+    }
   } catch (e: any) {
 
   }
@@ -251,7 +261,10 @@ async function handleRegisterOrganization() {
 
       <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-5">
         Already have an account?
-        <RouterLink to="/login" class="text-blue-500 hover:text-blue-600 font-medium">
+        <RouterLink
+          :to="{ path: '/login', query: { redirect: route.query.redirect } }"
+          class="text-blue-500 hover:text-blue-600 font-medium"
+        >
           Sign in
         </RouterLink>
       </p>

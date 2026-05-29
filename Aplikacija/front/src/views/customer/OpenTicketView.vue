@@ -8,7 +8,9 @@ import router from "@/router";
 import type {OpenTicketInput} from "@/types/ticket/openTicketInput.ts";
 import {storeToRefs} from "pinia";
 import {useTicketStore} from "@/stores/ticketStore.ts";
+import {useRoute} from "vue-router";
 
+const route = useRoute()
 const openTicketStore = useOpenTicketStore()
 const ticketStore = useTicketStore()
 
@@ -46,17 +48,28 @@ const priorityColors: Record<TicketPriority, string> = {
   [TicketPriority.Critical]: 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
 }
 
-onMounted(() => {
-  openTicketStore.listOrganizations()
+onMounted(async () => {
+  await openTicketStore.listOrganizations()
+
+  const { organizationId, categoryId, subject } = route.query
+
+  if (organizationId) {
+    form.organizationId = organizationId as string
+    await handleOrganizationChange()
+
+    if (categoryId) {
+      form.categoryId = categoryId as string
+    }
+
+    if (subject) {
+      form.subject = subject as string
+    }
+  }
 })
 
 onUnmounted(() => {
   openTicketStore.unload()
 })
-
-function handleBackRoute() {
-  router.back()
-}
 
 async function handleOrganizationChange() {
   form.categoryId = ''
@@ -83,10 +96,6 @@ async function handleSubmit() {
 
   }
 }
-
-function handleCancel() {
-  router.back()
-}
 </script>
 
 <template>
@@ -94,9 +103,8 @@ function handleCancel() {
     <div class="p-6 max-w-2xl mx-auto">
       <div class="flex items-center gap-3 mb-7">
         <RouterLink
-          to=""
+          to="/customer/dashboard"
           class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-          @click.prevent="handleBackRoute"
         >
           <ArrowLeft :size="17" />
         </RouterLink>
@@ -242,13 +250,12 @@ function handleCancel() {
         </div>
 
         <div class="flex gap-3 mt-4">
-          <a
-            href="#"
+          <RouterLink
+            to="/customer/dashboard"
             class="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all text-center"
-            @click.prevent="handleCancel"
           >
             Cancel
-          </a>
+          </RouterLink>
           <button
             type="submit"
             class="flex-1 flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm"

@@ -8,7 +8,9 @@ import type {LoginInput} from "@/types/auth/loginInput.ts";
 import { useAuthStore } from "@/stores/authStore.ts";
 import {UserType} from "@/types/user/userType.ts";
 import router from "@/router";
+import {useRoute} from "vue-router";
 
+const route = useRoute()
 const authStore = useAuthStore()
 
 const loginForm = reactive<LoginInput>({ email: '', password: '' })
@@ -17,6 +19,12 @@ async function handleLogin() {
   try {
     await authStore.login(loginForm)
     const user = authStore.user!
+
+    const redirectTo = route.query.redirect as string
+    if (redirectTo) {
+      await router.push(redirectTo)
+      return
+    }
 
     if (user.type === UserType.Customer) {
       await router.push({ name: 'customerDashboard' })
@@ -78,7 +86,10 @@ async function handleLogin() {
 
       <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-5">
         Don't have an account?
-        <RouterLink to="/register" class="text-blue-500 hover:text-blue-600 font-medium">
+        <RouterLink
+          :to="{ path: '/register', query: { redirect: route.query.redirect } }"
+          class="text-blue-500 hover:text-blue-600 font-medium"
+        >
           Create one here
         </RouterLink>
       </p>

@@ -20,7 +20,7 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
 
     public async Task<List<TicketDetailsDto>> GetCustomerTicketsAsync(CancellationToken cancellationToken = default)
     {
-        return await GetTicketDetailsQuery().IgnoreQueryFilters().ToListAsync(cancellationToken);
+        return await GetTicketDetailsQuery().ToListAsync(cancellationToken);
     }
 
     public async Task<TicketDetailsDto?> GetTicketAsync(Guid id, CancellationToken cancellationToken = default)
