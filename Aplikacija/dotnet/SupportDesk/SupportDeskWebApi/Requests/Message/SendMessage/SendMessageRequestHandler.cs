@@ -4,7 +4,6 @@ using SupportDeskWebApi.Data.Database.UnitOfWork;
 using SupportDeskWebApi.Data.Entities.Message.Repository;
 using SupportDeskWebApi.Data.Entities.Ticket.Enums;
 using SupportDeskWebApi.Data.Entities.Ticket.Repository;
-using SupportDeskWebApi.Data.Entities.User;
 using SupportDeskWebApi.Data.Entities.User.Repository;
 using SupportDeskWebApi.Hubs;
 using SupportDeskWebApi.Requests.Abstract;
@@ -79,8 +78,11 @@ public class SendMessageRequestHandler
             Text = request.Text,
             CreatedAt = DateTime.UtcNow
         };
-        
+
+        ticket.LastMessageAt = message.CreatedAt;
+
         await _messageRepository.SaveAsync(message, cancellationToken);
+        await _ticketRepository.SaveAsync(ticket, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
         var messageDto = new MessageDetailsDto(
@@ -94,12 +96,14 @@ public class SendMessageRequestHandler
         await _ticketHubContext.Clients.Group(request.TicketId.ToString())
             .SendAsync("NewMessage", messageDto, cancellationToken);
 
-        if (user!.Type == UserType.Customer)
-        {
-            await _organizationDashboardHubContext.Clients.Group(ticket.OrganizationId.ToString())
-                .SendAsync("NewTicketMessage", messageDto, cancellationToken);
-        }
-        else if (user.Type is UserType.SupportAgent or UserType.OrganizationAdmin)
+        var organizationDashboardMessageInfo = new OrganizationDashboardMessageInfoDto(
+            ticket.Id,
+            message.CreatedAt);
+
+        await _organizationDashboardHubContext.Clients.Group(ticket.OrganizationId.ToString())
+            .SendAsync("NewTicketMessage", organizationDashboardMessageInfo, cancellationToken);
+
+        if (isSupportAgent)
         {
             await _customerDashboardHubContext.Clients.Group(ticket.CustomerId.ToString())
                 .SendAsync("NewTicketMessage", messageDto, cancellationToken);

@@ -3,11 +3,11 @@ import {api} from "@/services/api.ts";
 import type {OpenTicketInput} from "@/types/ticket/openTicketInput.ts";
 import type {TicketViewInfo} from "@/types/ticket/ticketViewInfo.ts";
 import type {TicketFeedback} from "@/types/ticket/ticketFeedback.ts";
+import type {CustomerTicketsPage} from "@/types/ticket/customerTicketsPage.ts";
 
 export const ticketService = {
-  async getTickets(): Promise<Ticket[]> {
-    const result = await api.get<any>('/api/Ticket/customerTickets');
-    return result.tickets
+  async getTickets(skip: number, take: number): Promise<CustomerTicketsPage> {
+    return await api.get<CustomerTicketsPage>(`/api/Ticket/customerTickets?skip=${skip}&take=${take}`)
   },
 
   async getTicket(ticketId: string): Promise<Ticket> {

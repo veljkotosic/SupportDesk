@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {computed, onBeforeMount, onUnmounted, ref} from 'vue'
-import { CheckCircle, Clock, MessageSquare, Plus, Search, Ticket } from 'lucide-vue-next'
+import {computed, onBeforeMount, onUnmounted} from 'vue'
+import { CheckCircle, ChevronLeft, ChevronRight, Clock, MessageSquare, Plus, Search, Ticket } from 'lucide-vue-next'
 import CustomerLayout from '../../layouts/CustomerDashboardLayout.vue'
 import StatusBadge from "@/components/StatusBadge.vue";
 import PriorityBadge from "@/components/PriorityBadge.vue";
@@ -10,7 +10,9 @@ import {TicketStatus} from "@/types/ticket/ticketStatus.ts";
 import type {Ticket as TicketEntity} from "@/types/ticket/ticket.ts";
 import {customerDashboardHubService} from "@/services/hubs/customerDashboardHubService.ts";
 import router from "@/router";
+import {useAuthStore} from "@/stores/authStore.ts";
 
+const authStore = useAuthStore()
 const ticketStore = useTicketStore()
 
 const ticketStatusFilters: { label: string; value: FilterStatus }[] = [
@@ -42,26 +44,24 @@ onUnmounted(async () => {
   await customerDashboardHubService.disconnect()
 })
 
-const search = ref('')
-
 const stats = computed(() => [
   {
     label: 'Total Tickets',
-    value: ticketStore.loadedTickets.length,
+    value: ticketStore.totalCount,
     icon: Ticket,
     iconClass: 'text-blue-500',
     bg: 'bg-blue-50 dark:bg-blue-900/20',
   },
   {
     label: 'Open',
-    value: ticketStore.loadedTickets.filter((ticket) => ticket.status === TicketStatus.Open || ticket.status === TicketStatus.Assigned).length,
+    value: ticketStore.openCount + ticketStore.assignedCount,
     icon: Clock,
     iconClass: 'text-amber-500',
     bg: 'bg-amber-50 dark:bg-amber-900/20',
   },
   {
     label: 'Resolved',
-    value: ticketStore.loadedTickets.filter((ticket) => ticket.status === TicketStatus.Closed).length,
+    value: ticketStore.closedCount,
     icon: CheckCircle,
     iconClass: 'text-emerald-500',
     bg: 'bg-emerald-50 dark:bg-emerald-900/20',
@@ -86,6 +86,14 @@ async function handleTicketRoute(ticketId: string) {
 function handleFilterChange(nextFilter: FilterStatus) {
   ticketStore.setStatusFilter(nextFilter)
 }
+
+async function handlePreviousPage() {
+  await ticketStore.goToPage(ticketStore.currentPage - 1)
+}
+
+async function handleNextPage() {
+  await ticketStore.goToPage(ticketStore.currentPage + 1)
+}
 </script>
 
 <template>
@@ -94,7 +102,7 @@ function handleFilterChange(nextFilter: FilterStatus) {
       <div class="flex items-start justify-between gap-4 mb-7">
         <div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-            My Support Tickets
+            Hello, {{ authStore.user!.userName }}
           </h1>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             Track and manage your support requests
@@ -235,6 +243,36 @@ function handleFilterChange(nextFilter: FilterStatus) {
             </div>
           </a>
         </template>
+      </div>
+
+      <div
+        v-if="ticketStore.totalCount > 0"
+        class="flex items-center justify-between gap-4 mt-5 px-1"
+      >
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          Page {{ ticketStore.currentPage }} of {{ ticketStore.totalPages }}
+          · {{ ticketStore.totalCount }} tickets
+        </p>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            :disabled="ticketStore.currentPage === 1"
+            @click="handlePreviousPage"
+          >
+            <ChevronLeft :size="14" />
+            Previous
+          </button>
+          <button
+            type="button"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            :disabled="ticketStore.currentPage === ticketStore.totalPages"
+            @click="handleNextPage"
+          >
+            Next
+            <ChevronRight :size="14" />
+          </button>
+        </div>
       </div>
     </div>
   </CustomerLayout>

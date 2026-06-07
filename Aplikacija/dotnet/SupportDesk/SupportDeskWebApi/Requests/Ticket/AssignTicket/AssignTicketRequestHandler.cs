@@ -23,6 +23,7 @@ public class AssignTicketRequestHandler
     private readonly IUnitOfWork _unitOfWork;
     
     private readonly IHubContext<CustomerDashboardHub> _customerDashboardHubContext;
+    private readonly IHubContext<OrganizationDashboardHub> _organizationDashboardHubContext;
     private readonly IHubContext<TicketHub> _ticketHubContext;
 
     public AssignTicketRequestHandler(
@@ -32,6 +33,7 @@ public class AssignTicketRequestHandler
         ITicketNotificationRepository ticketNotificationRepository,
         IUnitOfWork unitOfWork,
         IHubContext<CustomerDashboardHub> customerDashboardHubContext,
+        IHubContext<OrganizationDashboardHub> organizationDashboardHubContext,
         IHubContext<TicketHub> ticketHubContext)
     {
         _userContext = userContext;
@@ -40,6 +42,7 @@ public class AssignTicketRequestHandler
         _ticketNotificationRepository = ticketNotificationRepository;
         _unitOfWork = unitOfWork;
         _customerDashboardHubContext = customerDashboardHubContext;
+        _organizationDashboardHubContext = organizationDashboardHubContext;
         _ticketHubContext = ticketHubContext;
     }
 
@@ -96,6 +99,9 @@ public class AssignTicketRequestHandler
         await _customerDashboardHubContext.Clients.Group(ticket.CustomerId.ToString())
             .SendAsync("NewTicketNotification", notificationDto, cancellationToken);
         await _customerDashboardHubContext.Clients.Group(ticket.CustomerId.ToString())
+            .SendAsync("TicketAssigned", ticketAssignedInfoDto, cancellationToken);
+
+        await _organizationDashboardHubContext.Clients.Group(ticket.OrganizationId.ToString())
             .SendAsync("TicketAssigned", ticketAssignedInfoDto, cancellationToken);
         
         await _ticketHubContext.Clients.Group(ticket.Id.ToString())

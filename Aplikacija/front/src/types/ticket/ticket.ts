@@ -11,15 +11,16 @@ export interface Ticket {
   categoryName: string;
   customerId: string;
   customerUsername: string;
-  supportAgentId: string;
-  supportAgentUsername: string;
+  supportAgentId?: string;
+  supportAgentUsername?: string;
   status: TicketStatus;
   priority: TicketPriority;
   subject: string;
   openedAt: Date;
-  assignedAt: Date;
+  assignedAt?: Date;
   closedAt?: Date;
   feedback: TicketFeedback;
+  lastMessageAt: Date;
 
   unreadNotifications: TicketNotification[];
 }

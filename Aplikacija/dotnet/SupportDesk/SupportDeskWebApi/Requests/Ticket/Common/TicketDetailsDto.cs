@@ -21,4 +21,5 @@ public record TicketDetailsDto(
     DateTime? AssignedAt,
     DateTime? ClosedAt,
     TicketFeedback Feedback,
+    DateTime LastMessageAt,
     List<TicketNotificationDetailsDto> UnreadNotifications);

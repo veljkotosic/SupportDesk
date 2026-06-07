@@ -11,8 +11,8 @@ public class GetMessageRequestHandler
     : IRequestHandler<GetMessageRequest, GetMessageResult>
 {
     private readonly IUserContext _userContext;
-    private readonly IUserRepository _userRepository;
     private readonly ITicketRepository _ticketRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IMessageRepository _messageRepository;
 
     public GetMessageRequestHandler(
@@ -39,8 +39,13 @@ public class GetMessageRequestHandler
         }
         
         var ticket = await _ticketRepository.GetByIdAsync(message.TicketId, cancellationToken);
+
+        if (ticket is null)
+        {
+            throw new Exception("Ticket not found.");
+        }
         
-        if (ticket!.CustomerId != userId)
+        if (ticket.CustomerId != userId)
         {
             throw new UnauthorizedAccessException("You can only view messages from your own tickets.");
         }

@@ -21,6 +21,7 @@ public class CloseTicketRequestHandler
     private readonly IUnitOfWork _unitOfWork;
     
     private readonly IHubContext<CustomerDashboardHub> _customerDashboardHubContext;
+    private readonly IHubContext<OrganizationDashboardHub> _organizationDashboardHubContext;
     private readonly IHubContext<TicketHub> _ticketHubContext;
 
     public CloseTicketRequestHandler(
@@ -29,6 +30,7 @@ public class CloseTicketRequestHandler
         ITicketNotificationRepository ticketNotificationRepository,
         IUnitOfWork unitOfWork, 
         IHubContext<CustomerDashboardHub> customerDashboardHubContext,
+        IHubContext<OrganizationDashboardHub> organizationDashboardHubContext,
         IHubContext<TicketHub> ticketHubContext)
     {
         _userContext = userContext;
@@ -36,6 +38,7 @@ public class CloseTicketRequestHandler
         _ticketNotificationRepository = ticketNotificationRepository;       
         _unitOfWork = unitOfWork;
         _customerDashboardHubContext = customerDashboardHubContext;
+        _organizationDashboardHubContext = organizationDashboardHubContext;
         _ticketHubContext = ticketHubContext;
     }
 
@@ -77,7 +80,7 @@ public class CloseTicketRequestHandler
         await _ticketNotificationRepository.SaveAsync(notification, cancellationToken);       
         await _unitOfWork.SaveChangesAsync(cancellationToken);       
         
-        var ticketClosedInfoDto = new TicketClosedInfoDto(ticket.Id, ticket.ClosedAt);
+        var ticketClosedInfoDto = new TicketClosedInfoDto(ticket.Id, userId, ticket.ClosedAt);
         
         var notificationDto = new TicketNotificationDetailsDto(
             notification.Id,
@@ -90,6 +93,9 @@ public class CloseTicketRequestHandler
         await _customerDashboardHubContext.Clients.Group(ticket.CustomerId.ToString())
             .SendAsync("NewTicketNotification", notificationDto, cancellationToken);
         await _customerDashboardHubContext.Clients.Group(ticket.CustomerId.ToString())
+            .SendAsync("TicketClosed", ticketClosedInfoDto, cancellationToken);
+
+        await _organizationDashboardHubContext.Clients.Group(ticket.OrganizationId.ToString())
             .SendAsync("TicketClosed", ticketClosedInfoDto, cancellationToken);
         
         await _ticketHubContext.Clients.Group(ticket.Id.ToString())

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportDeskWebApi.Dispatcher;
@@ -61,9 +62,12 @@ public class TicketController : ControllerBase
     
     [Authorize(Roles = "Customer")]
     [HttpGet("customerTickets")]
-    public async Task<ActionResult<GetCustomerTicketsResult>> GetCustomerTickets(CancellationToken cancellationToken)
+    public async Task<ActionResult<GetCustomerTicketsResult>> GetCustomerTickets(
+        [FromQuery, Range(0, int.MaxValue)] int skip = 0,
+        [FromQuery, Range(1, 50)] int take = 10,
+        CancellationToken cancellationToken = default)
     {
-        var result = await _dispatcher.ExecuteAsync(new GetCustomerTicketsRequest(), cancellationToken);
+        var result = await _dispatcher.ExecuteAsync(new GetCustomerTicketsRequest(skip, take), cancellationToken);
         
         return Ok(result);
     }

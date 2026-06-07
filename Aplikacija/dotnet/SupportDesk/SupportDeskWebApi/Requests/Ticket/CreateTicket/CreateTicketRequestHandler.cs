@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using SupportDeskWebApi.Auth.Abstract;
+using SupportDeskWebApi.Data.Database;
 using SupportDeskWebApi.Data.Database.UnitOfWork;
 using SupportDeskWebApi.Data.Entities.Message;
 using SupportDeskWebApi.Data.Entities.Message.Repository;
@@ -8,6 +10,7 @@ using SupportDeskWebApi.Data.Entities.Ticket.Repository;
 using SupportDeskWebApi.Hubs;
 using SupportDeskWebApi.Requests.Abstract;
 using SupportDeskWebApi.Requests.Ticket.Common;
+using SupportDeskWebApi.Requests.TicketNotification.Common;
 
 namespace SupportDeskWebApi.Requests.Ticket.CreateTicket;
 
@@ -15,6 +18,7 @@ public class CreateTicketRequestHandler
     : IRequestHandler<CreateTicketRequest, CreateTicketResult>
 {
     private readonly IUserContext _userContext;
+    private readonly SupportDeskDbContext _context;
     private readonly ITicketRepository _ticketRepository;
     private readonly IMessageRepository _messageRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -23,12 +27,14 @@ public class CreateTicketRequestHandler
 
     public CreateTicketRequestHandler(
         IUserContext userContext,
+        SupportDeskDbContext context,
         ITicketRepository ticketRepository,
         IMessageRepository messageRepository,
         IUnitOfWork unitOfWork, 
         IHubContext<OrganizationDashboardHub> organizationDashboardHubContext)
     {
         _userContext = userContext;
+        _context = context;
         _ticketRepository = ticketRepository;
         _messageRepository = messageRepository;
         _unitOfWork = unitOfWork;
@@ -69,7 +75,29 @@ public class CreateTicketRequestHandler
         await _messageRepository.SaveAsync(initialMessage, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var ticketDto = await _ticketRepository.GetTicketAsync(ticket.Id, cancellationToken);
+        var ticketDto = await _context.Tickets
+            .AsNoTracking()
+            .Where(t => t.Id == ticket.Id)
+            .Select(t => new TicketDetailsDto(
+                t.Id,
+                t.OrganizationId,
+                t.Organization.Name,
+                t.CategoryId,
+                t.Category.Name,
+                t.CustomerId,
+                t.Customer.UserName!,
+                t.SupportAgentId,
+                t.SupportAgent != null ? t.SupportAgent.UserName : null,
+                t.Status,
+                t.Priority,
+                t.Subject,
+                t.OpenedAt,
+                t.AssignedAt,
+                t.ClosedAt,
+                t.Feedback,
+                t.LastMessageAt,
+                new List<TicketNotificationDetailsDto>()))
+            .FirstAsync(cancellationToken);
         
         await _organizationDashboardHubContext.Clients.Group(request.OrganizationId.ToString())
             .SendAsync("NewTicket", ticketDto, cancellationToken);       
