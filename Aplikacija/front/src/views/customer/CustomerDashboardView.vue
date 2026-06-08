@@ -14,6 +14,7 @@ import {useAuthStore} from "@/stores/authStore.ts";
 
 const authStore = useAuthStore()
 const ticketStore = useTicketStore()
+let searchTimeout: ReturnType<typeof setTimeout> | undefined
 
 const ticketStatusFilters: { label: string; value: FilterStatus }[] = [
   { label: 'All', value: 'All' },
@@ -38,6 +39,9 @@ onBeforeMount(async () => {
 })
 
 onUnmounted(async () => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
   ticketStore.unloadTickets()
   customerDashboardHubService.offAll()
   await customerDashboardHubService.stopLiveUpdates()
@@ -47,7 +51,7 @@ onUnmounted(async () => {
 const stats = computed(() => [
   {
     label: 'Total Tickets',
-    value: ticketStore.totalCount,
+    value: ticketStore.allCount,
     icon: Ticket,
     iconClass: 'text-blue-500',
     bg: 'bg-blue-50 dark:bg-blue-900/20',
@@ -83,8 +87,16 @@ async function handleTicketRoute(ticketId: string) {
   await router.push(`/customer/ticket/${ticketId}`)
 }
 
-function handleFilterChange(nextFilter: FilterStatus) {
-  ticketStore.setStatusFilter(nextFilter)
+async function handleFilterChange(nextFilter: FilterStatus) {
+  await ticketStore.setStatusFilter(nextFilter)
+}
+
+function handleSearchInput() {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+
+  searchTimeout = setTimeout(ticketStore.applySearch, 300)
 }
 
 async function handlePreviousPage() {
@@ -143,6 +155,7 @@ async function handleNextPage() {
             type="text"
             placeholder="Search your tickets..."
             class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+            @input="handleSearchInput"
           />
         </div>
         <div class="flex gap-2 overflow-x-auto">

@@ -6,10 +6,13 @@ using SupportDeskWebApi.Requests.Ticket.AssignTicket;
 using SupportDeskWebApi.Requests.Ticket.CloseTicket;
 using SupportDeskWebApi.Requests.Ticket.CreateTicket;
 using SupportDeskWebApi.Requests.Ticket.GetCustomerTickets;
+using SupportDeskWebApi.Requests.Ticket.GetOrganizationTickets;
 using SupportDeskWebApi.Requests.Ticket.GetTicket;
 using SupportDeskWebApi.Requests.Ticket.GetTicketViewInfo;
 using SupportDeskWebApi.Requests.Ticket.GiveFeedback;
 using SupportDeskWebApi.Requests.Ticket.ReadAllNotifications;
+using TicketPriority = SupportDeskWebApi.Data.Entities.Ticket.Enums.TicketPriority;
+using TicketStatus = SupportDeskWebApi.Data.Entities.Ticket.Enums.TicketStatus;
 
 namespace SupportDeskWebApi.Controllers;
 
@@ -65,10 +68,29 @@ public class TicketController : ControllerBase
     public async Task<ActionResult<GetCustomerTicketsResult>> GetCustomerTickets(
         [FromQuery, Range(0, int.MaxValue)] int skip = 0,
         [FromQuery, Range(1, 50)] int take = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] TicketStatus? status = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await _dispatcher.ExecuteAsync(new GetCustomerTicketsRequest(skip, take), cancellationToken);
+        var result = await _dispatcher.ExecuteAsync(new GetCustomerTicketsRequest(skip, take, search, status), cancellationToken);
         
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "OrganizationAdmin, SupportAgent")]
+    [HttpGet("organizationTickets")]
+    public async Task<ActionResult<GetOrganizationTicketsResult>> GetOrganizationTickets(
+        [FromQuery, Range(0, int.MaxValue)] int skip = 0,
+        [FromQuery, Range(1, 50)] int take = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] TicketStatus? status = null,
+        [FromQuery] TicketPriority? priority = null,
+        [FromQuery] string sortBy = "latest",
+        CancellationToken cancellationToken = default)
+    {
+        var request = new GetOrganizationTicketsRequest(skip, take, search, status, priority, sortBy);
+        var result = await _dispatcher.ExecuteAsync(request, cancellationToken);
+
         return Ok(result);
     }
     

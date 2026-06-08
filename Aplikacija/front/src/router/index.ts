@@ -9,6 +9,7 @@ import OpenTicketView from "@/views/customer/OpenTicketView.vue";
 import CustomerTicketView from "@/views/customer/CustomerTicketView.vue";
 import OrganizationAdminDashboardView from "@/views/organization/OrganizationAdminDashboardView.vue";
 import OrganizationAdminAgentsView from "@/views/organization/OrganizationAdminAgentsView.vue";
+import OrganizationAdminTicketsView from "@/views/organization/OrganizationAdminTicketsView.vue";
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -85,6 +86,15 @@ const router = createRouter({
       path: '/organization/agents',
       name: 'organizationAgents',
       component: OrganizationAdminAgentsView,
+      meta: {
+        requiresAuth: true,
+        allowedUsers: [UserType.OrganizationAdmin]
+      }
+    },
+    {
+      path: '/organization/tickets',
+      name: 'organizationTickets',
+      component: OrganizationAdminTicketsView,
       meta: {
         requiresAuth: true,
         allowedUsers: [UserType.OrganizationAdmin]

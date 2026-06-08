@@ -17,32 +17,28 @@ export const useTicketStore = defineStore('ticket', () =>{
   const currentPage = ref(1)
   const pageSize = ref(5)
   const totalCount = ref(0)
+  const allCount = ref(0)
   const openCount = ref(0)
   const assignedCount = ref(0)
   const closedCount = ref(0)
 
   const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
-  const filteredTickets = computed(() => {
-    return loadedTickets.value.filter((ticket) => {
-      const matchesStatus =
-        statusFilter.value === 'All' || ticket.status === statusFilter.value
-
-      const matchesSearch = ticket.subject
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase())
-
-      return matchesStatus && matchesSearch
-    })
-  })
+  const filteredTickets = computed(() => loadedTickets.value)
 
   async function loadTickets(page = currentPage.value) {
     try {
       const nextPage = Math.min(Math.max(1, page), totalPages.value)
-      const result = await ticketService.getTickets((nextPage - 1) * pageSize.value, pageSize.value)
+      const result = await ticketService.getTickets(
+        (nextPage - 1) * pageSize.value,
+        pageSize.value,
+        searchQuery.value,
+        statusFilter.value === 'All' ? null : statusFilter.value,
+      )
 
       loadedTickets.value = result.tickets
       totalCount.value = result.totalCount
+      allCount.value = result.allCount
       openCount.value = result.openCount
       assignedCount.value = result.assignedCount
       closedCount.value = result.closedCount
@@ -58,24 +54,26 @@ export const useTicketStore = defineStore('ticket', () =>{
     searchQuery.value = ''
     currentPage.value = 1
     totalCount.value = 0
+    allCount.value = 0
     openCount.value = 0
     assignedCount.value = 0
     closedCount.value = 0
   }
 
-  function setStatusFilter(filter: FilterStatus) {
+  async function setStatusFilter(filter: FilterStatus) {
     statusFilter.value = filter
+    currentPage.value = 1
+    await loadTickets()
+  }
+
+  async function applySearch() {
+    currentPage.value = 1
+    await loadTickets()
   }
 
   async function addNewlyCreatedTicket(ticketId: string) {
-    const newTicket = await ticketService.getTicket(ticketId)
-    totalCount.value += 1
-    openCount.value += 1
-
-    if (currentPage.value === 1) {
-      loadedTickets.value.unshift(newTicket)
-      loadedTickets.value = loadedTickets.value.slice(0, pageSize.value)
-    }
+    await ticketService.getTicket(ticketId)
+    await loadTickets(1)
   }
 
   async function goToPage(page: number) {
@@ -95,30 +93,12 @@ export const useTicketStore = defineStore('ticket', () =>{
     ticket.unreadNotifications.push(notification)
   }
 
-  function assignTicket(info: TicketAssignedInfo) {
-    const ticket = loadedTickets.value.find(t => t.id === info.ticketId)
-
-    openCount.value = Math.max(0, openCount.value - 1)
-    assignedCount.value += 1
-
-    if (ticket !== undefined && ticket.status === TicketStatus.Open) {
-      ticket.status = TicketStatus.Assigned
-      ticket.assignedAt = info.assignedAt
-      ticket.supportAgentId = info.supportAgentId
-      ticket.supportAgentUsername = info.supportAgentUsername
-    }
+  async function assignTicket(info: TicketAssignedInfo) {
+    await loadTickets()
   }
 
-  function closeTicket(info: TicketClosedInfo) {
-    const ticket = loadedTickets.value.find(t => t.id === info.ticketId)
-
-    assignedCount.value = Math.max(0, assignedCount.value - 1)
-    closedCount.value += 1
-
-    if (ticket !== undefined && ticket.status === TicketStatus.Assigned) {
-      ticket.status = TicketStatus.Closed
-      ticket.closedAt = info.closedAt
-    }
+  async function closeTicket(info: TicketClosedInfo) {
+    await loadTickets()
   }
 
   return {
@@ -129,6 +109,7 @@ export const useTicketStore = defineStore('ticket', () =>{
     currentPage,
     pageSize,
     totalCount,
+    allCount,
     totalPages,
     openCount,
     assignedCount,
@@ -136,6 +117,7 @@ export const useTicketStore = defineStore('ticket', () =>{
     loadTickets,
     unloadTickets,
     setStatusFilter,
+    applySearch,
     addNewlyCreatedTicket,
     goToPage,
     newNotification,

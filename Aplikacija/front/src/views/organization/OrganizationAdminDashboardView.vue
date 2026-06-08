@@ -104,9 +104,6 @@ async function handleViewTickets() {
   await router.push('/organization/tickets')
 }
 
-async function handleViewTicket(ticketId: string) {
-  await router.push(`/organization/tickets/${ticketId}`)
-}
 </script>
 
 <template>
@@ -292,13 +289,9 @@ async function handleViewTicket(ticketId: string) {
                   </span>
                 </td>
                 <td class="px-5 py-3.5">
-                  <button
-                    type="button"
-                    class="text-left text-sm text-gray-900 dark:text-white font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors line-clamp-1 max-w-xs"
-                    @click="handleViewTicket(ticket.id)"
-                  >
+                  <p class="text-sm text-gray-900 dark:text-white font-medium line-clamp-1 max-w-xs">
                     {{ ticket.subject }}
-                  </button>
+                  </p>
                   <p class="text-xs text-gray-400 mt-0.5">{{ ticket.id }}</p>
                 </td>
                 <td class="px-5 py-3.5 whitespace-nowrap">
