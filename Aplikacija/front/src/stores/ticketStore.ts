@@ -15,7 +15,7 @@ export const useTicketStore = defineStore('ticket', () =>{
   const statusFilter = ref<FilterStatus>('All')
   const searchQuery = ref('')
   const currentPage = ref(1)
-  const pageSize = ref(10)
+  const pageSize = ref(5)
   const totalCount = ref(0)
   const openCount = ref(0)
   const assignedCount = ref(0)
