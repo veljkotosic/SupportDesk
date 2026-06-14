@@ -20,24 +20,34 @@ public class GetCustomerTicketsRequestHandler
 
     public async Task<GetCustomerTicketsResult> HandleAsync(GetCustomerTicketsRequest request, CancellationToken cancellationToken = default)
     {
-        if (request.Skip < 0)
+        var customerTickets = _context.Tickets.AsNoTracking();
+
+        var allCount = await customerTickets.CountAsync(cancellationToken);
+        var openCount = await customerTickets.CountAsync(t => t.Status == TicketStatus.Open, cancellationToken);
+        var assignedCount = await customerTickets.CountAsync(t => t.Status == TicketStatus.Assigned, cancellationToken);
+        var closedCount = await customerTickets.CountAsync(t => t.Status == TicketStatus.Closed, cancellationToken);
+
+        var filteredTickets = customerTickets;
+        var search = request.Search?.Trim();
+
+        if (!string.IsNullOrWhiteSpace(search))
         {
-            throw new ArgumentOutOfRangeException(nameof(request.Skip), "Skip cannot be negative.");
+            var searchPattern = $"%{search}%";
+            filteredTickets = filteredTickets.Where(ticket =>
+                EF.Functions.ILike(ticket.Subject, searchPattern) ||
+                EF.Functions.ILike(ticket.Id.ToString(), searchPattern) ||
+                EF.Functions.ILike(ticket.Organization.Name, searchPattern) ||
+                EF.Functions.ILike(ticket.Category.Name, searchPattern));
         }
 
-        if (request.Take is < 1 or > 50)
+        if (request.Status.HasValue)
         {
-            throw new ArgumentOutOfRangeException(nameof(request.Take), "Take must be between 1 and 50.");
+            filteredTickets = filteredTickets.Where(ticket => ticket.Status == request.Status.Value);
         }
 
-        var ticketsQuery = _context.Tickets.AsNoTracking();
+        var totalCount = await filteredTickets.CountAsync(cancellationToken);
 
-        var totalCount = await ticketsQuery.CountAsync(cancellationToken);
-        var openCount = await ticketsQuery.CountAsync(t => t.Status == TicketStatus.Open, cancellationToken);
-        var assignedCount = await ticketsQuery.CountAsync(t => t.Status == TicketStatus.Assigned, cancellationToken);
-        var closedCount = await ticketsQuery.CountAsync(t => t.Status == TicketStatus.Closed, cancellationToken);
-
-        var tickets = await ticketsQuery
+        var tickets = await filteredTickets
             .OrderByDescending(t => t.LastMessageAt)
             .ThenByDescending(t => t.Id)
             .Skip(request.Skip)
@@ -72,6 +82,6 @@ public class GetCustomerTicketsRequestHandler
                     .ToList()))
             .ToListAsync(cancellationToken);
 
-        return new GetCustomerTicketsResult(tickets, totalCount, openCount, assignedCount, closedCount);
+        return new GetCustomerTicketsResult(tickets, totalCount, allCount, openCount, assignedCount, closedCount);
     }
 }

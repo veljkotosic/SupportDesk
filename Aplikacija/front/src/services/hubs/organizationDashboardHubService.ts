@@ -1,8 +1,9 @@
 import {SignalRService} from "@/services/signalR.ts";
 import type {Ticket} from "@/types/ticket/ticket.ts";
-import type {TicketFeedback} from "@/types/ticket/ticketFeedback.ts";
 import type {TicketFeedbackInfo} from "@/types/ticket/info/ticketFeedbackInfo.ts";
-import type {Message} from "@/types/message/message.ts";
+import type {TicketAssignedInfo} from "@/types/ticket/info/ticketAssignedInfo.ts";
+import type {TicketClosedInfo} from "@/types/ticket/info/ticketClosedInfo.ts";
+import type {OrganizationDashboardMessageInfo} from "@/types/organizationAdminDashboard/organizationDashboardMessageInfo.ts";
 
 const client = new SignalRService(`/hubs/organizationDashboardHub`);
 
@@ -31,12 +32,22 @@ export const organizationDashboardHubService = {
     client.on<TicketFeedbackInfo>("TicketFeedback", callback);
   },
 
-  onNewTicketMessage(callback: (message: Message) => void): void {
-    client.on<Message>("NewTicketMessage", callback);
+  onTicketAssigned(callback: (ticketAssignedInfo: TicketAssignedInfo) => void): void {
+    client.on<TicketAssignedInfo>("TicketAssigned", callback);
+  },
+
+  onTicketClosed(callback: (ticketClosedInfo: TicketClosedInfo) => void): void {
+    client.on<TicketClosedInfo>("TicketClosed", callback);
+  },
+
+  onNewTicketMessage(callback: (message: OrganizationDashboardMessageInfo) => void): void {
+    client.on<OrganizationDashboardMessageInfo>("NewTicketMessage", callback);
   },
 
   offAll(): void {
     client.off("NewTicket");
+    client.off("TicketAssigned");
+    client.off("TicketClosed");
     client.off("TicketFeedback");
     client.off("NewTicketMessage");
   }
