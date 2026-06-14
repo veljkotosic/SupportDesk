@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SupportDeskWebApi.Dispatcher;
 using SupportDeskWebApi.Requests.TemplateAnswer.AddTemplateAnswer;
 using SupportDeskWebApi.Requests.TemplateAnswer.RemoveTemplateAnswer;
+using SupportDeskWebApi.Requests.TemplateAnswer.UpdateTemplateAnswer;
 
 namespace SupportDeskWebApi.Controllers;
 
@@ -26,6 +27,15 @@ public class TemplateAnswerController : ControllerBase
         return Ok(result);
     }
     
+    [Authorize(Roles = "OrganizationAdmin")]
+    [HttpPut]
+    public async Task<ActionResult> UpdateTemplateAnswer(UpdateTemplateAnswerRequest request, CancellationToken cancellationToken)
+    {
+        await _dispatcher.ExecuteAsync(request, cancellationToken);
+
+        return Ok();
+    }
+
     [Authorize(Roles = "OrganizationAdmin")]
     [HttpDelete]
     public async Task<ActionResult> RemoveTemplateAnswer(RemoveTemplateAnswerRequest request, CancellationToken cancellationToken)

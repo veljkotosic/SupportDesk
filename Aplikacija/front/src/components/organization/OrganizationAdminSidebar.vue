@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleHelp, LayoutDashboard, Ticket, Users } from 'lucide-vue-next'
+import { LayoutDashboard, Settings, Ticket, Users } from 'lucide-vue-next'
 import AppLogo from '@/components/AppLogo.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { User } from '@/types/user/user.ts'
@@ -17,7 +17,7 @@ const navItems = [
   { label: 'Dashboard', href: '/organization/dashboard', icon: LayoutDashboard },
   { label: 'Tickets', href: '/organization/tickets', icon: Ticket },
   { label: 'Agents', href: '/organization/agents', icon: Users },
-  { label: 'FAQ', href: '/organization/faq', icon: CircleHelp },
+  { label: 'Settings', href: '/organization/settings', icon: Settings },
 ]
 
 function isActive(href: string, activePath?: string) {

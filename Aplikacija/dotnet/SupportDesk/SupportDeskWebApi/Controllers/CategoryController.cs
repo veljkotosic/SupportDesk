@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SupportDeskWebApi.Dispatcher;
 using SupportDeskWebApi.Requests.Category.AddCategory;
 using SupportDeskWebApi.Requests.Category.RemoveCategory;
+using SupportDeskWebApi.Requests.Category.UpdateCategory;
 
 namespace SupportDeskWebApi.Controllers;
 
@@ -26,6 +27,15 @@ public class CategoryController : ControllerBase
         return Ok(result);
     }
     
+    [Authorize(Roles = "OrganizationAdmin")]
+    [HttpPut]
+    public async Task<ActionResult> UpdateCategory(UpdateCategoryRequest request, CancellationToken cancellationToken)
+    {
+        await _dispatcher.ExecuteAsync(request, cancellationToken);
+
+        return Ok();
+    }
+
     [Authorize(Roles = "OrganizationAdmin")]
     [HttpDelete]
     public async Task<ActionResult> RemoveCategory(RemoveCategoryRequest request, CancellationToken cancellationToken)

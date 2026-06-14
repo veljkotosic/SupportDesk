@@ -11,6 +11,7 @@ import { TicketStatus } from '@/types/ticket/ticketStatus.ts'
 
 defineProps<{
   title: string
+  detailBasePath?: string
 }>()
 
 const ticketStore = useOrganizationTicketListStore()
@@ -58,6 +59,10 @@ function formatLastMessage(dateInput: Date | string) {
     minute: '2-digit',
     hour12: false,
   })
+}
+
+function getDetailPath(basePath: string | undefined, ticketId: string) {
+  return basePath ? `${basePath}/${ticketId}` : undefined
 }
 
 function handleSearchInput() {
@@ -246,7 +251,14 @@ async function handleNextPage() {
                 <CategoryBadge :category="ticket.categoryName" />
               </td>
               <td class="px-5 py-3.5">
-                <p class="text-sm text-gray-900 dark:text-white font-medium line-clamp-1 max-w-[280px]">
+                <RouterLink
+                  v-if="getDetailPath(detailBasePath, ticket.id)"
+                  :to="getDetailPath(detailBasePath, ticket.id)!"
+                  class="block text-sm text-gray-900 dark:text-white font-medium hover:text-blue-500 transition-colors line-clamp-1 max-w-[280px]"
+                >
+                  {{ ticket.subject }}
+                </RouterLink>
+                <p v-else class="text-sm text-gray-900 dark:text-white font-medium line-clamp-1 max-w-[280px]">
                   {{ ticket.subject }}
                 </p>
                 <p class="text-xs text-gray-400 mt-0.5 font-mono">{{ ticket.id }}</p>
