@@ -14,6 +14,7 @@ import router from "@/router";
 import {ticketHubService} from "@/services/hubs/ticketHubService.ts";
 import type {MessageDetails} from "@/types/message/messageDetails.ts";
 import {storeToRefs} from "pinia";
+import {isRealDate} from "@/utility/date.ts";
 
 const route = useRoute()
 
@@ -28,6 +29,10 @@ const ticketId = route.params.id as string
 const messagesContainer = ref<HTMLElement | null>(null)
 
 const formatMessageDate = (dateInput: Date | string) => {
+  if (!isRealDate(dateInput)) {
+    return '—'
+  }
+
   const date = new Date(dateInput)
   const now = new Date()
 
@@ -268,7 +273,7 @@ async function handleSubmitFeedback(ticketFeedback: TicketFeedback) {
             <div class="relative flex justify-center">
               <span class="flex items-center gap-1.5 px-3 py-1 bg-gray-50 dark:bg-gray-950 text-xs text-gray-400 rounded-full">
                 <XCircle :size="11" />
-                Ticket closed{{ ticket!.closedAt ? ` · ${formatMessageDate(ticket!.closedAt)}` : '' }}
+                Ticket closed{{ isRealDate(ticket!.closedAt) ? ` · ${formatMessageDate(ticket!.closedAt!)}` : '' }}
               </span>
             </div>
           </div>

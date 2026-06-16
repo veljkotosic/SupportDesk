@@ -44,5 +44,13 @@ export const ticketService = {
 
   async giveFeedback(ticketId: string, feedback: TicketFeedback) : Promise<void> {
     await api.put("/api/Ticket/feedback", { ticketId: ticketId, feedback: feedback })
+  },
+
+  async assignTicket(ticketId: string): Promise<void> {
+    await api.put('/api/Ticket/assign', { ticketId })
+  },
+
+  async closeTicket(ticketId: string): Promise<void> {
+    await api.put('/api/Ticket/close', { ticketId })
   }
 }

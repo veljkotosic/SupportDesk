@@ -5,6 +5,6 @@ import OrganizationTicketList from '@/components/ticket/OrganizationTicketList.v
 
 <template>
   <OrganizationAdminLayout active-path="/organization/tickets">
-    <OrganizationTicketList title="All Tickets" />
+    <OrganizationTicketList title="All Tickets" detail-base-path="/organization/tickets" />
   </OrganizationAdminLayout>
 </template>
