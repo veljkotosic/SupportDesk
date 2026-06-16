@@ -24,6 +24,7 @@ public class GetTicketViewInfoRequestHandler
     public async Task<GetTicketViewInfoResult> HandleAsync(GetTicketViewInfoRequest request, CancellationToken cancellationToken = default)
     {
         var userId = _userContext.GetCurrentUserId();
+        var organizationId = _userContext.GetCurrentUsersOrganizationId();
         
         var ticket = await _context.Tickets
             .AsNoTracking()
@@ -36,6 +37,7 @@ public class GetTicketViewInfoRequestHandler
                 t.Category.Name,
                 t.CustomerId,
                 t.Customer.UserName!,
+                t.Customer.Email!,
                 t.SupportAgentId,
                 t.SupportAgent != null ? t.SupportAgent.UserName : null,
                 t.Status,
@@ -45,6 +47,7 @@ public class GetTicketViewInfoRequestHandler
                 t.AssignedAt,
                 t.ClosedAt,
                 t.Feedback,
+                t.LastMessageAt,
                 t.Messages
                     .OrderBy(m => m.CreatedAt)
                     .Select(m => new MessageDetailsDto(
@@ -55,6 +58,8 @@ public class GetTicketViewInfoRequestHandler
                         m.CreatedAt))
                     .ToList(),
                 t.Notes
+                    .Where(n => organizationId != null)
+                    .OrderBy(n => n.CreatedAt)
                     .Select(n => new NoteDetailsDto(
                         n.Id,
                         n.AuthorId,
@@ -69,7 +74,7 @@ public class GetTicketViewInfoRequestHandler
             throw new Exception("Ticket not found.");      
         }
 
-        if (ticket.CustomerId != userId)
+        if (organizationId is null && ticket.CustomerId != userId)
         {
             throw new UnauthorizedAccessException("You can only view your own tickets.");     
         }

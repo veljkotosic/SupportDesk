@@ -8,6 +8,8 @@ import type {MessageDetails} from "@/types/message/messageDetails.ts";
 import type {TicketAssignedInfo} from "@/types/ticket/info/ticketAssignedInfo.ts";
 import {TicketStatus} from "@/types/ticket/ticketStatus.ts";
 import type {TicketClosedInfo} from "@/types/ticket/info/ticketClosedInfo.ts";
+import {noteService} from "@/services/note/noteService.ts";
+import type {NoteDetails} from "@/types/note/noteDetails.ts";
 
 export const useTicketViewStore = defineStore('ticketView', () => {
   const ticket = ref<TicketViewInfo | null>(null)
@@ -30,6 +32,28 @@ export const useTicketViewStore = defineStore('ticketView', () => {
     } catch (e: any) {
 
     }
+  }
+
+  async function addNote(ticketId: string, text: string) {
+    await noteService.addNote(ticketId, text)
+  }
+
+  async function assignCurrentTicket(ticketId: string) {
+    await ticketService.assignTicket(ticketId)
+  }
+
+  async function closeCurrentTicket(ticketId: string) {
+    await ticketService.closeTicket(ticketId)
+  }
+
+  async function reloadTicket() {
+    if (ticket.value) {
+      await loadTicket(ticket.value.id)
+    }
+  }
+
+  function receiveNote(note: NoteDetails) {
+    ticket.value!.notes.push(note)
   }
 
   function receiveMessage(message: MessageDetails) {
@@ -75,7 +99,12 @@ export const useTicketViewStore = defineStore('ticketView', () => {
     loadTicket,
     unloadTicket,
     sendMessage,
+    addNote,
+    assignCurrentTicket,
+    closeCurrentTicket,
+    reloadTicket,
     receiveMessage,
+    receiveNote,
     GiveFeedback,
     assignTicket,
     closeTicket,

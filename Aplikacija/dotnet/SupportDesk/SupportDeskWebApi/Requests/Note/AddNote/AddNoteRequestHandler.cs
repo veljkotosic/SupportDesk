@@ -65,7 +65,7 @@ public class AddNoteRequestHandler
             note.Text,
             note.CreatedAt);
         
-        await _ticketHubContext.Clients.Group(request.TicketId.ToString())
+        await _ticketHubContext.Clients.Group($"{request.TicketId}:organization")
             .SendAsync("NewNote", noteDto, cancellationToken);
         
         return new AddNoteResult(note.Id);       

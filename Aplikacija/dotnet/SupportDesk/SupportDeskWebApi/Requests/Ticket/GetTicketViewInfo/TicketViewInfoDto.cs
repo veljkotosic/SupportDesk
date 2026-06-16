@@ -12,6 +12,7 @@ public record TicketViewInfoDto(
     string CategoryName,
     Guid CustomerId,
     string CustomerUsername,
+    string CustomerEmail,
     Guid? SupportAgentId,
     string? SupportAgentUsername,
     TicketStatus Status,
@@ -21,5 +22,6 @@ public record TicketViewInfoDto(
     DateTime? AssignedAt,
     DateTime? ClosedAt,
     TicketFeedback Feedback,
+    DateTime LastMessageAt,
     List<MessageDetailsDto> Messages,
     List<NoteDetailsDto> Notes);

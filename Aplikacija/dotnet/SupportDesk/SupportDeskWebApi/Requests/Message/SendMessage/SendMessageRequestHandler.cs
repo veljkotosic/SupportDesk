@@ -66,6 +66,11 @@ public class SendMessageRequestHandler
         {
             throw new Exception("Cannot send message to unassigned ticket");
         }
+
+        if (isSupportAgent && ticket.SupportAgentId != userId)
+        {
+            throw new UnauthorizedAccessException("You can only send messages to tickets assigned to you.");
+        }
         
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
 
