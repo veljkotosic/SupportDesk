@@ -5,6 +5,7 @@ import { organizationDashboardHubService } from '@/services/hubs/organizationDas
 import type { OrganizationTicketListItem } from '@/types/ticket/organizationTicketListItem.ts'
 import type { TicketPriority } from '@/types/ticket/ticketPriority.ts'
 import type { TicketStatus } from '@/types/ticket/ticketStatus.ts'
+import type { TicketFeedbackInfo } from '@/types/ticket/info/ticketFeedbackInfo.ts'
 
 export type OrganizationTicketSort = 'latest' | 'oldest' | 'priority'
 
@@ -74,6 +75,7 @@ export const useOrganizationTicketListStore = defineStore('organizationTicketLis
     organizationDashboardHubService.onTicketAssigned(loadTickets)
     organizationDashboardHubService.onTicketClosed(loadTickets)
     organizationDashboardHubService.onNewTicketMessage(loadTickets)
+    organizationDashboardHubService.onGivenFeedback(updateTicketFeedback)
     await organizationDashboardHubService.startLiveUpdates()
   }
 
@@ -96,6 +98,13 @@ export const useOrganizationTicketListStore = defineStore('organizationTicketLis
     priorityFilter.value = null
     sortBy.value = 'latest'
     error.value = null
+  }
+
+  function updateTicketFeedback(info: TicketFeedbackInfo) {
+    const ticket = tickets.value.find(item => item.id === info.ticketId)
+    if (ticket) {
+      ticket.feedback = info.feedback
+    }
   }
 
   return {

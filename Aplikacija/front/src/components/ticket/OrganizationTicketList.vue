@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue'
-import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-vue-next'
+import { ChevronDown, ChevronLeft, ChevronRight, Lock, Search, SlidersHorizontal, X } from 'lucide-vue-next'
 import CategoryBadge from '@/components/CategoryBadge.vue'
 import PriorityBadge from '@/components/PriorityBadge.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useOrganizationTicketListStore } from '@/stores/organizationTicketListStore.ts'
+import { useAuthStore } from '@/stores/authStore.ts'
 import { TicketPriority } from '@/types/ticket/ticketPriority.ts'
 import { TicketStatus } from '@/types/ticket/ticketStatus.ts'
+import { TicketFeedback } from '@/types/ticket/ticketFeedback.ts'
+import { UserType } from '@/types/user/userType.ts'
 
 defineProps<{
   title: string
@@ -15,6 +18,7 @@ defineProps<{
 }>()
 
 const ticketStore = useOrganizationTicketListStore()
+const authStore = useAuthStore()
 const showFilters = ref(false)
 let searchTimeout: ReturnType<typeof setTimeout> | undefined
 
@@ -63,6 +67,46 @@ function formatLastMessage(dateInput: Date | string) {
 
 function getDetailPath(basePath: string | undefined, ticketId: string) {
   return basePath ? `${basePath}/${ticketId}` : undefined
+}
+
+function isAssignedToAnotherAgent(supportAgentId?: string) {
+  return authStore.user?.type === UserType.SupportAgent &&
+    Boolean(supportAgentId) &&
+    supportAgentId !== authStore.user.userId
+}
+
+function normalizeFeedback(feedback: TicketFeedback | string | number | null | undefined) {
+  if (feedback === TicketFeedback.Helpful || feedback === 'Helpful' || feedback === '1' || feedback === 1) {
+    return TicketFeedback.Helpful
+  }
+
+  if (feedback === TicketFeedback.Unhelpful || feedback === 'Unhelpful' || feedback === '2' || feedback === 2) {
+    return TicketFeedback.Unhelpful
+  }
+
+  return TicketFeedback.None
+}
+
+function getFeedbackLabel(feedback: TicketFeedback | string | number | null | undefined) {
+  const normalizedFeedback = normalizeFeedback(feedback)
+
+  if (normalizedFeedback === TicketFeedback.Helpful) return 'Helpful'
+  if (normalizedFeedback === TicketFeedback.Unhelpful) return 'Not helpful'
+  return 'No feedback'
+}
+
+function getFeedbackClass(feedback: TicketFeedback | string | number | null | undefined) {
+  const normalizedFeedback = normalizeFeedback(feedback)
+
+  if (normalizedFeedback === TicketFeedback.Helpful) {
+    return 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
+  }
+
+  if (normalizedFeedback === TicketFeedback.Unhelpful) {
+    return 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
+  }
+
+  return 'bg-gray-100 text-gray-500 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
 }
 
 function handleSearchInput() {
@@ -223,7 +267,7 @@ async function handleNextPage() {
           <thead>
             <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
               <th
-                v-for="heading in ['Category', 'Subject', 'Status', 'Priority', 'Customer', 'Assigned Agent', 'Last Message']"
+                v-for="heading in ['Category', 'Subject', 'Status', 'Priority', 'Feedback', 'Customer', 'Assigned Agent', 'Last Message']"
                 :key="heading"
                 class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide whitespace-nowrap"
               >
@@ -233,7 +277,7 @@ async function handleNextPage() {
           </thead>
           <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
             <tr v-if="ticketStore.tickets.length === 0">
-              <td colspan="7" class="px-5 py-12 text-center">
+              <td colspan="8" class="px-5 py-12 text-center">
                 <div class="flex flex-col items-center gap-2">
                   <Search :size="32" class="text-gray-300 dark:text-gray-600" />
                   <p class="text-gray-500 dark:text-gray-400 font-medium">No tickets found</p>
@@ -262,12 +306,24 @@ async function handleNextPage() {
                   {{ ticket.subject }}
                 </p>
                 <p class="text-xs text-gray-400 mt-0.5 font-mono">{{ ticket.id }}</p>
+                <p
+                  v-if="isAssignedToAnotherAgent(ticket.supportAgentId)"
+                  class="inline-flex items-center gap-1 text-xs text-amber-500 dark:text-amber-400 mt-1"
+                >
+                  <Lock :size="10" />
+                  Assigned to another agent
+                </p>
               </td>
               <td class="px-5 py-3.5 whitespace-nowrap">
                 <StatusBadge :status="ticket.status" />
               </td>
               <td class="px-5 py-3.5 whitespace-nowrap">
                 <PriorityBadge :priority="ticket.priority" />
+              </td>
+              <td class="px-5 py-3.5 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" :class="getFeedbackClass(ticket.feedback)">
+                  {{ getFeedbackLabel(ticket.feedback) }}
+                </span>
               </td>
               <td class="px-5 py-3.5 whitespace-nowrap">
                 <div class="flex items-center gap-2">
