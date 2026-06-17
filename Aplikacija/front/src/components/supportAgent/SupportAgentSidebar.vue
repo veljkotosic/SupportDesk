@@ -29,12 +29,6 @@ function handleNavigate(path: string) {
 <template>
   <div class="flex flex-col h-full">
     <AppLogo />
-    <div class="px-4 pt-4">
-      <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-        <Ticket :size="13" class="text-blue-500" />
-        <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Support Agent</span>
-      </div>
-    </div>
     <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
       <a
         v-for="item in navItems"

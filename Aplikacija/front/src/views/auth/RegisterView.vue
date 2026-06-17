@@ -9,6 +9,7 @@ import type {RegisterCustomerInput} from "@/types/auth/registerCustomerInput.ts"
 import type {RegisterSupportAgentInput} from "@/types/auth/registerSupportAgentInput.ts";
 import type {RegisterOrganizationInput} from "@/types/auth/registerOrganizationInput.ts";
 import {useRoute, useRouter} from "vue-router";
+import {UserType} from "@/types/user/userType.ts";
 
 const route = useRoute()
 const router = useRouter()
@@ -84,18 +85,36 @@ async function handleRegisterSupportAgent() {
   try {
     await authStore.registerSupportAgent({
       email: registerForm.email,
-      name: registerForm.name,
+      username: registerForm.name,
       password: registerForm.password,
-      inviteCode: registerForm.inviteCode,
+      code: registerForm.inviteCode,
     } as RegisterSupportAgentInput)
+
+    await routeAuthenticatedUser()
   } catch (e: any) {
 
   }
 }
 
+async function routeAuthenticatedUser() {
+  const redirectTo = route.query.redirect as string
+  if (redirectTo) {
+    await router.push(redirectTo)
+    return
+  }
+
+  if (authStore.user?.type === UserType.Customer) {
+    await router.push({ name: 'customerDashboard' })
+  } else if (authStore.user?.type === UserType.SupportAgent) {
+    await router.push({ name: 'supportAgentDashboard' })
+  } else if (authStore.user?.type === UserType.OrganizationAdmin) {
+    await router.push({ name: 'organizationDashboard' })
+  }
+}
+
 async function handleRegisterOrganization() {
   try {
-    await authStore.registerCustomer({
+    await authStore.registerOrganization({
       email: registerForm.email,
       username: registerForm.name,
       password: registerForm.password,
@@ -205,7 +224,7 @@ async function handleRegisterOrganization() {
               v-model="registerForm.inviteCode"
               type="text"
               placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-              maxlength="9"
+              maxlength="36"
               spellcheck="false"
               class="w-full px-4 py-2.5 rounded-xl border bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all text-sm font-mono tracking-widest uppercase"
               :class="

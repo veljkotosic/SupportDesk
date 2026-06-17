@@ -1,6 +1,6 @@
 export interface RegisterSupportAgentInput {
-  name: string;
+  username: string;
   email: string;
   password: string;
-  inviteCode: string;
+  code: string;
 }
