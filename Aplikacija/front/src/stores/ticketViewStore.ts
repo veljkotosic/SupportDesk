@@ -36,6 +36,7 @@ export const useTicketViewStore = defineStore('ticketView', () => {
 
   async function addNote(ticketId: string, text: string) {
     await noteService.addNote(ticketId, text)
+    await reloadTicket()
   }
 
   async function assignCurrentTicket(ticketId: string) {
