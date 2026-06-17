@@ -42,6 +42,8 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.HasPostgresExtension("pg_trgm");
         
         modelBuilder.Entity<Ticket>()
             .HasOne(t => t.Customer)
@@ -54,6 +56,46 @@ public class SupportDeskDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
             .WithMany(u => u.AssignedTickets)
             .HasForeignKey(t => t.SupportAgentId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Ticket>()
+            .HasIndex(t => new { t.OrganizationId, t.LastMessageAt, t.Id })
+            .IsDescending(false, true, true);
+
+        modelBuilder.Entity<Ticket>()
+            .HasIndex(t => new { t.OrganizationId, t.Status, t.LastMessageAt, t.Id })
+            .IsDescending(false, false, true, true);
+
+        modelBuilder.Entity<Ticket>()
+            .HasIndex(t => new { t.OrganizationId, t.Priority, t.LastMessageAt, t.Id })
+            .IsDescending(false, false, true, true);
+
+        modelBuilder.Entity<Ticket>()
+            .HasIndex(t => new { t.CustomerId, t.LastMessageAt, t.Id })
+            .IsDescending(false, true, true);
+
+        modelBuilder.Entity<Ticket>()
+            .HasIndex(t => new { t.CustomerId, t.Status, t.LastMessageAt, t.Id })
+            .IsDescending(false, false, true, true);
+
+        modelBuilder.Entity<Ticket>()
+            .HasIndex(t => t.Subject)
+            .HasMethod("gin")
+            .HasOperators("gin_trgm_ops");
+
+        modelBuilder.Entity<Category>()
+            .HasIndex(c => c.Name)
+            .HasMethod("gin")
+            .HasOperators("gin_trgm_ops");
+
+        modelBuilder.Entity<Organization>()
+            .HasIndex(o => o.Name)
+            .HasMethod("gin")
+            .HasOperators("gin_trgm_ops");
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.UserName)
+            .HasMethod("gin")
+            .HasOperators("gin_trgm_ops");
         
         modelBuilder.Entity<Category>()
             .HasQueryFilter(c => 

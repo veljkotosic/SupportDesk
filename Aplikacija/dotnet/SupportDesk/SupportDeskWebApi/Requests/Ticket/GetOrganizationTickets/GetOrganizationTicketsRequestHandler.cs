@@ -41,9 +41,11 @@ public class GetOrganizationTicketsRequestHandler
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchPattern = $"%{search}%";
+            var parsedTicketId = Guid.TryParse(search, out var ticketId) ? ticketId : (Guid?)null;
+
             filteredTickets = filteredTickets.Where(ticket =>
+                (parsedTicketId.HasValue && ticket.Id == parsedTicketId.Value) ||
                 EF.Functions.ILike(ticket.Subject, searchPattern) ||
-                EF.Functions.ILike(ticket.Id.ToString(), searchPattern) ||
                 EF.Functions.ILike(ticket.Customer.UserName!, searchPattern) ||
                 EF.Functions.ILike(ticket.Category.Name, searchPattern));
         }
