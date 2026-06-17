@@ -13,5 +13,6 @@ public record OrganizationTicketListItemDto(
     string? SupportAgentUsername,
     TicketStatus Status,
     TicketPriority Priority,
+    TicketFeedback Feedback,
     string Subject,
     DateTime LastMessageAt);

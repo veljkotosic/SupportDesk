@@ -83,6 +83,7 @@ public class GetOrganizationTicketsRequestHandler
                 ticket.SupportAgent != null ? ticket.SupportAgent.UserName : null,
                 ticket.Status,
                 ticket.Priority,
+                ticket.Feedback,
                 ticket.Subject,
                 ticket.LastMessageAt))
             .ToListAsync(cancellationToken);

@@ -12,6 +12,8 @@ import OrganizationAdminAgentsView from "@/views/organization/OrganizationAdminA
 import OrganizationAdminTicketsView from "@/views/organization/OrganizationAdminTicketsView.vue";
 import OrganizationAdminSettingsView from "@/views/organization/OrganizationAdminSettingsView.vue";
 import OrganizationAdminTicketDetailView from "@/views/organization/OrganizationAdminTicketDetailView.vue";
+import SupportAgentDashboardView from "@/views/supportAgent/SupportAgentDashboardView.vue";
+import SupportAgentTicketDetailView from "@/views/supportAgent/SupportAgentTicketDetailView.vue";
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -118,6 +120,24 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
         allowedUsers: [UserType.OrganizationAdmin]
+      }
+    },
+    {
+      path: '/supportAgent/dashboard',
+      name: 'supportAgentDashboard',
+      component: SupportAgentDashboardView,
+      meta: {
+        requiresAuth: true,
+        allowedUsers: [UserType.SupportAgent]
+      }
+    },
+    {
+      path: '/supportAgent/tickets/:id',
+      name: 'supportAgentTicketDetail',
+      component: SupportAgentTicketDetailView,
+      meta: {
+        requiresAuth: true,
+        allowedUsers: [UserType.SupportAgent]
       }
     },
   ],
