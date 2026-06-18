@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeMount, onBeforeUnmount, ref } from 'vue'
 import {
-  ArrowLeft, Building2, Calendar, Clock, Lock, Plus, Send, Tag, User, UserCheck, XCircle,
+  ArrowLeft, Building2, Calendar, Clock, FileText, Lock, Plus, Send, Tag, User, UserCheck, X, XCircle,
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import CategoryBadge from '@/components/CategoryBadge.vue'
@@ -16,6 +16,8 @@ import { TicketStatus } from '@/types/ticket/ticketStatus.ts'
 import { UserType } from '@/types/user/userType.ts'
 import type { MessageDetails } from '@/types/message/messageDetails.ts'
 import { isRealDate } from '@/utility/date.ts'
+import { templateAnswerService } from '@/services/templateAnswer/templateAnswerService.ts'
+import type { TemplateAnswer } from '@/types/templateAnswer/templateAnswer.ts'
 
 const props = defineProps<{
   ticketId: string
@@ -28,7 +30,10 @@ const { ticket } = storeToRefs(ticketStore)
 const newMessage = ref('')
 const newNote = ref('')
 const showNoteForm = ref(false)
+const showTemplates = ref(false)
+const templateAnswers = ref<TemplateAnswer[]>([])
 const messagesContainer = ref<HTMLElement | null>(null)
+const messageInput = ref<HTMLTextAreaElement | null>(null)
 
 const isAdmin = computed(() => authStore.user?.type === UserType.OrganizationAdmin)
 const isSupportAgent = computed(() => authStore.user?.type === UserType.SupportAgent)
@@ -75,6 +80,10 @@ onBeforeMount(async () => {
     await ticketStore.reloadTicket()
   }
 
+  if (isSupportAgent.value) {
+    await loadTemplateAnswers()
+  }
+
   await ticketHubService.connect()
   await ticketHubService.joinTicket(props.ticketId)
   ticketHubService.onNewMessage(async message => {
@@ -104,6 +113,15 @@ async function scrollToBottom() {
   }
 }
 
+async function loadTemplateAnswers() {
+  try {
+    const result = await templateAnswerService.getTemplateAnswers()
+    templateAnswers.value = result.templateAnswers
+  } catch (e: any) {
+    templateAnswers.value = []
+  }
+}
+
 function formatDate(dateInput?: Date | string) {
   if (!isRealDate(dateInput)) return '—'
   return new Date(dateInput).toLocaleString([], {
@@ -119,6 +137,7 @@ async function handleSendMessage() {
   if (!canSendMessage.value) return
   await ticketStore.sendMessage(props.ticketId, newMessage.value.trim())
   newMessage.value = ''
+  showTemplates.value = false
 }
 
 async function handleAddNote() {
@@ -133,6 +152,21 @@ async function handleCloseTicket() {
   if (canClose.value) {
     await ticketStore.closeCurrentTicket(props.ticketId)
   }
+}
+
+function handleToggleTemplates() {
+  showTemplates.value = !showTemplates.value
+}
+
+function handleCloseTemplates() {
+  showTemplates.value = false
+}
+
+async function handleUseTemplate(template: TemplateAnswer) {
+  newMessage.value = template.text
+  showTemplates.value = false
+  await nextTick()
+  messageInput.value?.focus()
 }
 </script>
 
@@ -278,8 +312,47 @@ async function handleCloseTicket() {
           </div>
         </div>
         <div v-else class="flex-shrink-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+          <div
+            v-if="showTemplates"
+            class="mb-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden"
+          >
+            <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Template Answers</span>
+              <button
+                type="button"
+                class="p-0.5 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                @click="handleCloseTemplates"
+              >
+                <X :size="13" />
+              </button>
+            </div>
+            <div v-if="templateAnswers.length === 0" class="px-3 py-5 text-center text-xs text-gray-400">
+              No template answers available.
+            </div>
+            <div v-else class="max-h-64 overflow-y-auto">
+              <button
+                v-for="template in templateAnswers"
+                :key="template.id"
+                type="button"
+                class="w-full text-left px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-50 dark:border-gray-800 last:border-b-0 transition-colors"
+                @click="handleUseTemplate(template)"
+              >
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ template.title }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">{{ template.text }}</p>
+              </button>
+            </div>
+          </div>
           <div class="flex items-end gap-3 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 px-4 py-3">
-            <textarea v-model="newMessage" rows="1" placeholder="Type a reply..." class="flex-1 bg-transparent text-sm text-gray-900 dark:text-white resize-none focus:outline-none min-h-6 max-h-[120px]" @keydown.enter.exact.prevent="handleSendMessage" />
+            <button
+              type="button"
+              class="flex-shrink-0 mb-0.5 transition-colors"
+              :class="showTemplates ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+              title="Template answers"
+              @click="handleToggleTemplates"
+            >
+              <FileText :size="18" />
+            </button>
+            <textarea ref="messageInput" v-model="newMessage" rows="1" placeholder="Type a reply..." class="flex-1 bg-transparent text-sm text-gray-900 dark:text-white resize-none focus:outline-none min-h-6 max-h-[120px]" @keydown.enter.exact.prevent="handleSendMessage" />
             <button type="button" class="w-8 h-8 rounded-xl flex items-center justify-center" :class="canSendMessage ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'" :disabled="!canSendMessage" @click="handleSendMessage">
               <Send :size="15" />
             </button>
