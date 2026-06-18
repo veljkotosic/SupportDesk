@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportDeskWebApi.Dispatcher;
 using SupportDeskWebApi.Requests.TemplateAnswer.AddTemplateAnswer;
+using SupportDeskWebApi.Requests.TemplateAnswer.GetTemplateAnswers;
 using SupportDeskWebApi.Requests.TemplateAnswer.RemoveTemplateAnswer;
 using SupportDeskWebApi.Requests.TemplateAnswer.UpdateTemplateAnswer;
 
@@ -16,6 +17,15 @@ public class TemplateAnswerController : ControllerBase
     public TemplateAnswerController(IDispatcher dispatcher)
     {
         _dispatcher = dispatcher;
+    }
+
+    [Authorize(Roles = "OrganizationAdmin, SupportAgent")]
+    [HttpGet]
+    public async Task<ActionResult<GetTemplateAnswersResult>> GetTemplateAnswers(CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new GetTemplateAnswersRequest(), cancellationToken);
+
+        return Ok(result);
     }
     
     [Authorize(Roles = "OrganizationAdmin")]
