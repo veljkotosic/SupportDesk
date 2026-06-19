@@ -8,6 +8,7 @@ import CategoryBadge from '@/components/CategoryBadge.vue'
 import PriorityBadge from '@/components/PriorityBadge.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import { useAuthStore } from '@/stores/authStore.ts'
 import { useTicketViewStore } from '@/stores/ticketViewStore.ts'
 import { ticketHubService } from '@/services/hubs/ticketHubService.ts'
@@ -32,6 +33,7 @@ const newNote = ref('')
 const showNoteForm = ref(false)
 const showTemplates = ref(false)
 const templateAnswers = ref<TemplateAnswer[]>([])
+const errorMessage = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 const messageInput = ref<HTMLTextAreaElement | null>(null)
 
@@ -135,22 +137,37 @@ function isCustomerMessage(message: MessageDetails) {
 
 async function handleSendMessage() {
   if (!canSendMessage.value) return
-  await ticketStore.sendMessage(props.ticketId, newMessage.value.trim())
-  newMessage.value = ''
-  showTemplates.value = false
+  errorMessage.value = ''
+  try {
+    await ticketStore.sendMessage(props.ticketId, newMessage.value.trim())
+    newMessage.value = ''
+    showTemplates.value = false
+  } catch (e: any) {
+    errorMessage.value = e?.message ?? 'Could not send message.'
+  }
 }
 
 async function handleAddNote() {
   const text = newNote.value.trim()
   if (!text) return
-  await ticketStore.addNote(props.ticketId, text)
-  newNote.value = ''
-  showNoteForm.value = false
+  errorMessage.value = ''
+  try {
+    await ticketStore.addNote(props.ticketId, text)
+    newNote.value = ''
+    showNoteForm.value = false
+  } catch (e: any) {
+    errorMessage.value = e?.message ?? 'Could not save note.'
+  }
 }
 
 async function handleCloseTicket() {
   if (canClose.value) {
-    await ticketStore.closeCurrentTicket(props.ticketId)
+    errorMessage.value = ''
+    try {
+      await ticketStore.closeCurrentTicket(props.ticketId)
+    } catch (e: any) {
+      errorMessage.value = e?.message ?? 'Could not close ticket.'
+    }
   }
 }
 
@@ -273,6 +290,8 @@ async function handleUseTemplate(template: TemplateAnswer) {
       </aside>
 
       <section class="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 min-w-0">
+        <ErrorBanner class="mx-5 mt-4" :message="errorMessage" dismissible @dismiss="errorMessage = ''" />
+
         <div ref="messagesContainer" class="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           <div v-for="group in groupedMessages" :key="`${group.senderId}-${group.createdAt}`" class="flex gap-3" :class="isCustomerMessage(group.messages[0]!) ? 'flex-row-reverse' : 'flex-row'">
             <UserAvatar :user-name="group.senderUsername" />

@@ -3,6 +3,7 @@ import { computed, onBeforeMount, onBeforeUnmount, reactive, ref } from 'vue'
 import { Edit2, FileText, HelpCircle, Plus, Search, Tag, Trash2, X } from 'lucide-vue-next'
 import OrganizationAdminLayout from '@/layouts/OrganizationAdminDashboardLayout.vue'
 import { type SettingsTab, useOrganizationSettingsStore } from '@/stores/organizationSettingsStore.ts'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 
 const settingsStore = useOrganizationSettingsStore()
 const showForm = ref(false)
@@ -76,30 +77,46 @@ async function handleSave() {
     return
   }
 
-  if (settingsStore.activeTab === 'faqs') {
-    if (editingId.value) await settingsStore.updateFaq(editingId.value, primary, secondary)
-    else await settingsStore.addFaq(primary, secondary)
-  } else if (settingsStore.activeTab === 'templates') {
-    if (editingId.value) await settingsStore.updateTemplate(editingId.value, primary, secondary)
-    else await settingsStore.addTemplate(primary, secondary)
-  } else {
-    if (editingId.value) await settingsStore.updateCategory(editingId.value, primary, secondary)
-    else await settingsStore.addCategory(primary, secondary)
-  }
+  try {
+    if (settingsStore.activeTab === 'faqs') {
+      if (editingId.value) await settingsStore.updateFaq(editingId.value, primary, secondary)
+      else await settingsStore.addFaq(primary, secondary)
+    } else if (settingsStore.activeTab === 'templates') {
+      if (editingId.value) await settingsStore.updateTemplate(editingId.value, primary, secondary)
+      else await settingsStore.addTemplate(primary, secondary)
+    } else {
+      if (editingId.value) await settingsStore.updateCategory(editingId.value, primary, secondary)
+      else await settingsStore.addCategory(primary, secondary)
+    }
 
-  handleCloseForm()
+    handleCloseForm()
+  } catch (e: any) {
+
+  }
 }
 
 async function handleRemoveFaq(id: string) {
-  await settingsStore.removeFaq(id)
+  try {
+    await settingsStore.removeFaq(id)
+  } catch (e: any) {
+
+  }
 }
 
 async function handleRemoveTemplate(id: string) {
-  await settingsStore.removeTemplate(id)
+  try {
+    await settingsStore.removeTemplate(id)
+  } catch (e: any) {
+
+  }
 }
 
 async function handleRemoveCategory(id: string) {
-  await settingsStore.removeCategory(id)
+  try {
+    await settingsStore.removeCategory(id)
+  } catch (e: any) {
+
+  }
 }
 </script>
 
@@ -178,7 +195,7 @@ async function handleRemoveCategory(id: string) {
         </div>
       </div>
 
-      <p v-if="settingsStore.error" class="mb-4 text-sm text-red-500">{{ settingsStore.error }}</p>
+      <ErrorBanner class="mb-4" :message="settingsStore.error" />
 
       <div class="relative mb-5">
         <Search :size="15" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />

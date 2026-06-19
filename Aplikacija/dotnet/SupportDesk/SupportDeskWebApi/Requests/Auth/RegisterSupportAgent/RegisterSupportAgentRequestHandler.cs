@@ -33,7 +33,12 @@ public class RegisterSupportAgentRequestHandler
 
     public async Task<RegisterSupportAgentResult> HandleAsync(RegisterSupportAgentRequest request, CancellationToken cancellationToken = default)
     {
-        var inviteCode = await _supportAgentInviteCodeRepository.GetByCodeAsync(new Guid(request.Code), cancellationToken);
+        if (!Guid.TryParse(request.Code, out var parsedCode))
+        {
+            throw AuthException.InvalidInviteCode();
+        }
+
+        var inviteCode = await _supportAgentInviteCodeRepository.GetByCodeAsync(parsedCode, cancellationToken);
         
         if (inviteCode is null)
         {

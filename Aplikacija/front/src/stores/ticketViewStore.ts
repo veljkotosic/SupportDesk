@@ -27,11 +27,7 @@ export const useTicketViewStore = defineStore('ticketView', () => {
   }
 
   async function sendMessage(ticketId: string, message: string) {
-    try {
-      const newMessageId = await messageService.sendMessage(ticketId, message)
-    } catch (e: any) {
-
-    }
+    await messageService.sendMessage(ticketId, message)
   }
 
   async function addNote(ticketId: string, text: string) {
@@ -62,13 +58,8 @@ export const useTicketViewStore = defineStore('ticketView', () => {
   }
 
   async function GiveFeedback(ticketId: string, feedback: TicketFeedback) {
-    try {
-      await ticketService.giveFeedback(ticketId, feedback)
-
-      ticket.value!.feedback = feedback
-    } catch (e: any) {
-
-    }
+    await ticketService.giveFeedback(ticketId, feedback)
+    ticket.value!.feedback = feedback
   }
 
   function assignTicket(info: TicketAssignedInfo) {

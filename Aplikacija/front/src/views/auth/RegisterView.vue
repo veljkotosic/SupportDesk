@@ -3,6 +3,7 @@ import {type Component, computed, reactive, ref} from 'vue'
 import {ArrowRight, Building2, User, UserCheck} from 'lucide-vue-next'
 import AuthLogo from '../../components/AuthLogo.vue'
 import PasswordField from '../../components/PasswordField.vue'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import {useAuthStore} from "@/stores/authStore.ts";
 import {AccountType} from "@/types/account/accountType.ts";
 import type {RegisterCustomerInput} from "@/types/auth/registerCustomerInput.ts";
@@ -17,6 +18,7 @@ const authStore = useAuthStore()
 
 const accountType = ref<AccountType>(AccountType.Customer)
 const codeError = ref('')
+const errorMessage = ref('')
 
 const registerForm = reactive({
   name: '',
@@ -50,9 +52,11 @@ const submitLabel = computed(() => {
 function selectAccountType(type: AccountType) {
   accountType.value = type
   codeError.value = ''
+  errorMessage.value = ''
 }
 
 async function handleRegister() {
+    errorMessage.value = ''
     if (accountType.value === AccountType.Customer) {
       await handleRegisterCustomer()
     } else if (accountType.value === AccountType.SupportAgent) {
@@ -77,7 +81,7 @@ async function handleRegisterCustomer() {
       await router.push({ name: 'customerDashboard' })
     }
   } catch (e: any) {
-
+    errorMessage.value = e?.message ?? 'Could not create account.'
   }
 }
 
@@ -92,7 +96,7 @@ async function handleRegisterSupportAgent() {
 
     await routeAuthenticatedUser()
   } catch (e: any) {
-
+    errorMessage.value = e?.message ?? 'Could not create account.'
   }
 }
 
@@ -120,8 +124,10 @@ async function handleRegisterOrganization() {
       password: registerForm.password,
       organizationName: registerForm.organizationName
     } as RegisterOrganizationInput)
-  } catch (e: any) {
 
+    await routeAuthenticatedUser()
+  } catch (e: any) {
+    errorMessage.value = e?.message ?? 'Could not create organization.'
   }
 }
 </script>
@@ -164,6 +170,8 @@ async function handleRegisterOrganization() {
         </div>
 
         <form class="space-y-4" @submit.prevent="handleRegister">
+          <ErrorBanner :message="errorMessage" dismissible @dismiss="errorMessage = ''" />
+
           <div>
             <label
               for="register-name"

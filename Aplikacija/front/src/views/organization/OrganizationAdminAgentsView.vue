@@ -4,6 +4,7 @@ import { Check, Copy, Hash, Plus, Search, X } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import OrganizationAdminLayout from '@/layouts/OrganizationAdminDashboardLayout.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import { useOrganizationAdminAgentStore } from '@/stores/organizationAdminAgentStore.ts'
 
 const agentStore = useOrganizationAdminAgentStore()
@@ -12,6 +13,7 @@ const { filteredAgents, searchQuery } = storeToRefs(agentStore)
 const showAddModal = ref(false)
 const agentEmail = ref('')
 const emailError = ref('')
+const modalError = ref('')
 const inviteCode = ref('')
 const copied = ref(false)
 const isGeneratingCode = ref(false)
@@ -37,6 +39,7 @@ function formatJoinedDate(dateInput: Date | string) {
 function handleOpenModal() {
   agentEmail.value = ''
   emailError.value = ''
+  modalError.value = ''
   inviteCode.value = ''
   copied.value = false
   showAddModal.value = true
@@ -48,6 +51,7 @@ function handleCloseModal() {
 
 function handleEmailInput() {
   emailError.value = ''
+  modalError.value = ''
   inviteCode.value = ''
   copied.value = false
 }
@@ -71,11 +75,12 @@ async function handleGenerateCode() {
 
   isGeneratingCode.value = true
   emailError.value = ''
+  modalError.value = ''
 
   try {
     inviteCode.value = await agentStore.generateInviteCode(email)
   } catch (e: any) {
-    emailError.value = e?.message ?? 'Failed to generate invite code.'
+    modalError.value = e?.message ?? 'Could not generate invite code.'
   } finally {
     isGeneratingCode.value = false
   }
@@ -200,6 +205,8 @@ function handleChangeEmail() {
         </p>
 
         <div>
+          <ErrorBanner class="mb-4" :message="modalError" dismissible @dismiss="modalError = ''" />
+
           <label for="agent-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             Agent Email <span class="text-red-400">*</span>
           </label>
