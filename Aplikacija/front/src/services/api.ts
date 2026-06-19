@@ -7,6 +7,39 @@ async function parseJsonOrThrow(res: Response) {
   }
 }
 
+function extractErrorMessages(errorBody: any): string[] {
+  if (!errorBody) {
+    return []
+  }
+
+  if (typeof errorBody === 'string') {
+    return [errorBody]
+  }
+
+  if (typeof errorBody.message === 'string' && errorBody.message.trim()) {
+    return [errorBody.message]
+  }
+
+  if (Array.isArray(errorBody.errors)) {
+    return errorBody.errors
+      .map((error: any) => typeof error === 'string' ? error : error?.message)
+      .filter(Boolean)
+  }
+
+  if (errorBody.errors && typeof errorBody.errors === 'object') {
+    return Object.values(errorBody.errors)
+      .flat()
+      .map((error: any) => typeof error === 'string' ? error : error?.message)
+      .filter(Boolean)
+  }
+
+  if (typeof errorBody.title === 'string' && errorBody.title.trim()) {
+    return [errorBody.title]
+  }
+
+  return []
+}
+
 async function refreshTokens(): Promise<boolean> {
   try {
     const res = await fetch(`/api/Auth/refreshLogin`, {
@@ -48,12 +81,13 @@ async function request<T = any>(method: string, url: string, body?: any, attempt
 
   if (!originalResponse.ok) {
     const errorBody = await parseJsonOrThrow(originalResponse);
+    const messages = extractErrorMessages(errorBody);
 
-    if (errorBody?.errors && Array.isArray(errorBody.errors)) {
-      const messages = errorBody.errors.map((e: any) => e.message ?? e);
+    if (messages.length > 0) {
       const err = new Error(messages[0]) as any;
       err.messages = messages;
       err.status = originalResponse.status;
+      err.body = errorBody;
       throw err;
     }
 

@@ -5,6 +5,7 @@ import CustomerLayout from '../../layouts/CustomerDashboardLayout.vue'
 import PriorityBadge from '../../components/PriorityBadge.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import CategoryBadge from '../../components/CategoryBadge.vue'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import {TicketFeedback} from "@/types/ticket/ticketFeedback.ts";
 import {useRoute} from "vue-router";
 import {useAuthStore} from "@/stores/authStore.ts";
@@ -22,6 +23,7 @@ const authStore = useAuthStore()
 const ticketViewStore = useTicketViewStore()
 
 const newMessage = ref('')
+const errorMessage = ref('')
 
 const { user } = storeToRefs(authStore)
 const ticketId = route.params.id as string
@@ -156,15 +158,25 @@ function handleBackRoute() {
 async function handleSendMessage() {
   if (!canSendMessage.value) return
 
-  await ticketViewStore.sendMessage(ticketId, newMessage.value.trim())
+  errorMessage.value = ''
+  try {
+    await ticketViewStore.sendMessage(ticketId, newMessage.value.trim())
 
-  await scrollToBottom()
+    await scrollToBottom()
 
-  newMessage.value = ''
+    newMessage.value = ''
+  } catch (e: any) {
+    errorMessage.value = e?.message ?? 'Could not send message.'
+  }
 }
 
 async function handleSubmitFeedback(ticketFeedback: TicketFeedback) {
-  await ticketViewStore.GiveFeedback(ticketId, ticketFeedback)
+  errorMessage.value = ''
+  try {
+    await ticketViewStore.GiveFeedback(ticketId, ticketFeedback)
+  } catch (e: any) {
+    errorMessage.value = e?.message ?? 'Could not save feedback.'
+  }
 }
 </script>
 
@@ -218,6 +230,8 @@ async function handleSubmitFeedback(ticketFeedback: TicketFeedback) {
           </span>
         </div>
       </div>
+
+      <ErrorBanner class="mx-5 mt-4" :message="errorMessage" dismissible @dismiss="errorMessage = ''" />
 
       <div
         ref="messagesContainer"

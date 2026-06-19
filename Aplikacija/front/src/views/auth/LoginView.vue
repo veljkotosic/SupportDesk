@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {reactive} from 'vue'
+import {reactive, ref} from 'vue'
 import { ArrowRight } from 'lucide-vue-next'
 import AuthLogo from '../../components/AuthLogo.vue'
 import PasswordField from '../../components/PasswordField.vue'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import type {LoginInput} from "@/types/auth/loginInput.ts";
 
 import { useAuthStore } from "@/stores/authStore.ts";
@@ -14,8 +15,10 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const loginForm = reactive<LoginInput>({ email: '', password: '' })
+const errorMessage = ref('')
 
 async function handleLogin() {
+  errorMessage.value = ''
   try {
     await authStore.login(loginForm)
     const user = authStore.user!
@@ -35,7 +38,7 @@ async function handleLogin() {
     }
 
   } catch (e: any) {
-
+    errorMessage.value = e?.message ?? 'Could not sign in.'
   }
 }
 </script>
@@ -51,6 +54,8 @@ async function handleLogin() {
         </h2>
 
         <form class="space-y-4" @submit.prevent="handleLogin">
+          <ErrorBanner :message="errorMessage" dismissible @dismiss="errorMessage = ''" />
+
           <div>
             <label
               for="login-email"

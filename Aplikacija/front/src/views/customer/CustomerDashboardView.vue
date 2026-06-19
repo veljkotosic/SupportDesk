@@ -5,6 +5,7 @@ import CustomerLayout from '../../layouts/CustomerDashboardLayout.vue'
 import StatusBadge from "@/components/StatusBadge.vue";
 import PriorityBadge from "@/components/PriorityBadge.vue";
 import CategoryBadge from "@/components/CategoryBadge.vue";
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import {type FilterStatus, useTicketStore} from "@/stores/ticketStore.ts";
 import {TicketStatus} from "@/types/ticket/ticketStatus.ts";
 import type {Ticket as TicketEntity} from "@/types/ticket/ticket.ts";
@@ -24,7 +25,11 @@ const ticketStatusFilters: { label: string; value: FilterStatus }[] = [
 ]
 
 onBeforeMount(async () => {
-  await ticketStore.loadTickets()
+  try {
+    await ticketStore.loadTickets()
+  } catch (e: any) {
+
+  }
   await customerDashboardHubService.connect()
   await customerDashboardHubService.startLiveUpdates()
   customerDashboardHubService.onTicketAssigned((info) => {
@@ -88,7 +93,11 @@ async function handleTicketRoute(ticketId: string) {
 }
 
 async function handleFilterChange(nextFilter: FilterStatus) {
-  await ticketStore.setStatusFilter(nextFilter)
+  try {
+    await ticketStore.setStatusFilter(nextFilter)
+  } catch (e: any) {
+
+  }
 }
 
 function handleSearchInput() {
@@ -96,15 +105,25 @@ function handleSearchInput() {
     clearTimeout(searchTimeout)
   }
 
-  searchTimeout = setTimeout(ticketStore.applySearch, 300)
+  searchTimeout = setTimeout(() => {
+    ticketStore.applySearch().catch(() => {})
+  }, 300)
 }
 
 async function handlePreviousPage() {
-  await ticketStore.goToPage(ticketStore.currentPage - 1)
+  try {
+    await ticketStore.goToPage(ticketStore.currentPage - 1)
+  } catch (e: any) {
+
+  }
 }
 
 async function handleNextPage() {
-  await ticketStore.goToPage(ticketStore.currentPage + 1)
+  try {
+    await ticketStore.goToPage(ticketStore.currentPage + 1)
+  } catch (e: any) {
+
+  }
 }
 </script>
 
@@ -175,6 +194,8 @@ async function handleNextPage() {
           </button>
         </div>
       </div>
+
+      <ErrorBanner class="mb-4" :message="ticketStore.error" />
 
       <div class="space-y-3">
         <div

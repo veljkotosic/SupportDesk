@@ -5,6 +5,7 @@ import CategoryBadge from '@/components/CategoryBadge.vue'
 import PriorityBadge from '@/components/PriorityBadge.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import { useOrganizationTicketListStore } from '@/stores/organizationTicketListStore.ts'
 import { useAuthStore } from '@/stores/authStore.ts'
 import { TicketPriority } from '@/types/ticket/ticketPriority.ts'
@@ -43,8 +44,17 @@ const hasFilters = computed(() =>
 )
 
 onBeforeMount(async () => {
-  await ticketStore.loadTickets()
-  await ticketStore.startLiveUpdates()
+  try {
+    await ticketStore.loadTickets()
+  } catch (e: any) {
+
+  }
+
+  try {
+    await ticketStore.startLiveUpdates()
+  } catch (e: any) {
+
+  }
 })
 
 onBeforeUnmount(async () => {
@@ -113,26 +123,44 @@ function handleSearchInput() {
   if (searchTimeout) {
     clearTimeout(searchTimeout)
   }
-  searchTimeout = setTimeout(ticketStore.applyFilters, 300)
+  searchTimeout = setTimeout(() => {
+    ticketStore.applyFilters().catch(() => {})
+  }, 300)
 }
 
 async function handleClearSearch() {
   ticketStore.searchQuery = ''
-  await ticketStore.applyFilters()
+  try {
+    await ticketStore.applyFilters()
+  } catch (e: any) {
+
+  }
 }
 
 async function handleStatusFilter(status: TicketStatus | null) {
   ticketStore.statusFilter = status
-  await ticketStore.applyFilters()
+  try {
+    await ticketStore.applyFilters()
+  } catch (e: any) {
+
+  }
 }
 
 async function handlePriorityFilter(priority: TicketPriority) {
   ticketStore.priorityFilter = ticketStore.priorityFilter === priority ? null : priority
-  await ticketStore.applyFilters()
+  try {
+    await ticketStore.applyFilters()
+  } catch (e: any) {
+
+  }
 }
 
 async function handleSortChange() {
-  await ticketStore.applyFilters()
+  try {
+    await ticketStore.applyFilters()
+  } catch (e: any) {
+
+  }
 }
 
 function handleToggleFilters() {
@@ -143,15 +171,27 @@ async function handleClearFilters() {
   ticketStore.searchQuery = ''
   ticketStore.statusFilter = null
   ticketStore.priorityFilter = null
-  await ticketStore.applyFilters()
+  try {
+    await ticketStore.applyFilters()
+  } catch (e: any) {
+
+  }
 }
 
 async function handlePreviousPage() {
-  await ticketStore.goToPage(ticketStore.currentPage - 1)
+  try {
+    await ticketStore.goToPage(ticketStore.currentPage - 1)
+  } catch (e: any) {
+
+  }
 }
 
 async function handleNextPage() {
-  await ticketStore.goToPage(ticketStore.currentPage + 1)
+  try {
+    await ticketStore.goToPage(ticketStore.currentPage + 1)
+  } catch (e: any) {
+
+  }
 }
 </script>
 
@@ -161,6 +201,8 @@ async function handleNextPage() {
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{{ title }}</h1>
       <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ ticketStore.totalCount }} tickets found</p>
     </div>
+
+    <ErrorBanner class="mb-4" :message="ticketStore.error" />
 
     <div class="flex gap-2 mb-5 overflow-x-auto pb-1">
       <button

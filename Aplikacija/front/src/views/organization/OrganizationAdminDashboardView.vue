@@ -12,13 +12,14 @@ import OrganizationAdminLayout from '@/layouts/OrganizationAdminDashboardLayout.
 import PriorityBadge from '@/components/PriorityBadge.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import { useOrganizationAdminDashboardStore } from '@/stores/organizationAdminDashboardStore.ts'
 import { storeToRefs } from 'pinia'
 import router from '@/router'
 
 const dashboardStore = useOrganizationAdminDashboardStore()
 
-const { organizationName, summary, ticketVolume, agents, recentTickets } = storeToRefs(dashboardStore)
+const { organizationName, summary, ticketVolume, agents, recentTickets, error } = storeToRefs(dashboardStore)
 
 const stats = computed(() => [
   {
@@ -69,8 +70,17 @@ const ticketVolumeScale = computed(() => {
 })
 
 onBeforeMount(async () => {
-  await dashboardStore.loadDashboard()
-  await dashboardStore.startLiveUpdates()
+  try {
+    await dashboardStore.loadDashboard()
+  } catch (e: any) {
+
+  }
+
+  try {
+    await dashboardStore.startLiveUpdates()
+  } catch (e: any) {
+
+  }
 })
 
 onBeforeUnmount(async () => {
@@ -121,6 +131,8 @@ async function handleViewTicket(ticketId: string) {
           Manage you organization here.
         </p>
       </div>
+
+      <ErrorBanner class="mb-5" :message="error" />
 
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         <div

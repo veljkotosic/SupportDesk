@@ -21,12 +21,14 @@ export const useTicketStore = defineStore('ticket', () =>{
   const openCount = ref(0)
   const assignedCount = ref(0)
   const closedCount = ref(0)
+  const error = ref<string | null>(null)
 
   const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
   const filteredTickets = computed(() => loadedTickets.value)
 
   async function loadTickets(page = currentPage.value) {
+    error.value = null
     try {
       const nextPage = Math.min(Math.max(1, page), totalPages.value)
       const result = await ticketService.getTickets(
@@ -44,7 +46,8 @@ export const useTicketStore = defineStore('ticket', () =>{
       closedCount.value = result.closedCount
       currentPage.value = Math.min(nextPage, Math.max(1, Math.ceil(result.totalCount / pageSize.value)))
     } catch (e: any) {
-
+      error.value = e?.message ?? 'Could not load tickets.'
+      throw e
     }
   }
 
@@ -58,6 +61,7 @@ export const useTicketStore = defineStore('ticket', () =>{
     openCount.value = 0
     assignedCount.value = 0
     closedCount.value = 0
+    error.value = null
   }
 
   async function setStatusFilter(filter: FilterStatus) {
@@ -114,6 +118,7 @@ export const useTicketStore = defineStore('ticket', () =>{
     openCount,
     assignedCount,
     closedCount,
+    error,
     loadTickets,
     unloadTickets,
     setStatusFilter,

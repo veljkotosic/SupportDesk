@@ -2,6 +2,7 @@
 import {computed, onMounted, onUnmounted, reactive, ref} from 'vue'
 import { ArrowLeft, ChevronDown, Send } from 'lucide-vue-next'
 import CustomerLayout from '../../layouts/CustomerDashboardLayout.vue'
+import ErrorBanner from '@/components/ErrorBanner.vue'
 import {TicketPriority} from "@/types/ticket/ticketPriority.ts";
 import {useOpenTicketStore} from "@/stores/openTicketStore.ts";
 import router from "@/router";
@@ -32,6 +33,7 @@ const form = reactive<OpenTicketInput>({
 })
 
 const submitted = ref(false)
+const errorMessage = ref('')
 
 const selectedOrganization = computed(() =>
   organizationListings.value.find((organization) => organization.organizationId === form.organizationId),
@@ -87,13 +89,14 @@ function handlePrioritySelect(priority: TicketPriority) {
 async function handleSubmit() {
   if (!canSubmit.value) return
 
-  submitted.value = true
+  errorMessage.value = ''
   try {
     const ticketId = await openTicketStore.createTicket(form)
     await ticketStore.addNewlyCreatedTicket(ticketId)
+    submitted.value = true
     await router.push(`/customer/ticket/${ticketId}`)
   } catch (e: any) {
-
+    errorMessage.value = e?.message ?? 'Could not submit ticket.'
   }
 }
 </script>
@@ -131,6 +134,8 @@ async function handleSubmit() {
       </div>
 
       <form v-else @submit.prevent="handleSubmit">
+        <ErrorBanner class="mb-4" :message="errorMessage" dismissible @dismiss="errorMessage = ''" />
+
         <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 space-y-5">
           <div>
             <label

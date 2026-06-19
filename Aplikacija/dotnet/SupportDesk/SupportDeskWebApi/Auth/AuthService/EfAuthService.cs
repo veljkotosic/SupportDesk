@@ -20,10 +20,15 @@ public class EfAuthService : IAuthService
 
         if (!result.Succeeded)
         {
-            throw new Exception("Failed to create user");
+            throw AuthException.RegistrationFailed(GetRegistrationErrors(result.Errors));
         }
         
-        await _userManager.AddToRoleAsync(user, role.Name);
+        var roleResult = await _userManager.AddToRoleAsync(user, role.Name);
+
+        if (!roleResult.Succeeded)
+        {
+            throw new Exception("Failed to create user");
+        }
     }
 
     public async Task<LoginResult> LoginWithEmailAndPasswordAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -79,5 +84,47 @@ public class EfAuthService : IAuthService
         }
         
         return new LoginResult(user, roles);
+    }
+
+    private static IReadOnlyList<string> GetRegistrationErrors(IEnumerable<IdentityError> identityErrors)
+    {
+        var errors = identityErrors.ToList();
+        var messages = new List<string>();
+
+        if (errors.Any(error => error.Code == "DuplicateEmail"))
+        {
+            messages.Add("Email is already taken.");
+        }
+
+        if (errors.Any(error => error.Code == "DuplicateUserName"))
+        {
+            messages.Add("Username is already taken.");
+        }
+
+        if (errors.Any(error => error.Code == "InvalidEmail"))
+        {
+            messages.Add("Email is invalid.");
+        }
+
+        if (errors.Any(error => error.Code == "InvalidUserName"))
+        {
+            messages.Add("Username is invalid.");
+        }
+
+        if (errors.Any(error => error.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)))
+        {
+            messages.Add("Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.");
+        }
+
+        messages.AddRange(errors
+            .Where(error => !IsKnownRegistrationError(error.Code))
+            .Select(error => error.Description));
+
+        return messages.Count > 0 ? messages : ["Could not create account."];
+    }
+
+    private static bool IsKnownRegistrationError(string code)
+    {
+        return code is "DuplicateEmail" or "DuplicateUserName" or "InvalidEmail" or "InvalidUserName" || code.StartsWith("Password", StringComparison.OrdinalIgnoreCase);
     }
 }
