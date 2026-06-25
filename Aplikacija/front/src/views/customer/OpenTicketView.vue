@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, reactive, ref} from 'vue'
-import { ArrowLeft, ChevronDown, Send } from 'lucide-vue-next'
+import { ArrowLeft, ChevronDown, HelpCircle, Send, X } from 'lucide-vue-next'
 import CustomerLayout from '../../layouts/CustomerDashboardLayout.vue'
 import ErrorBanner from '@/components/ErrorBanner.vue'
 import {TicketPriority} from "@/types/ticket/ticketPriority.ts";
@@ -34,6 +34,8 @@ const form = reactive<OpenTicketInput>({
 
 const submitted = ref(false)
 const errorMessage = ref('')
+const showFaqModal = ref(false)
+const expandedFaqId = ref<string | null>(null)
 
 const selectedOrganization = computed(() =>
   organizationListings.value.find((organization) => organization.organizationId === form.organizationId),
@@ -75,6 +77,8 @@ onUnmounted(() => {
 
 async function handleOrganizationChange() {
   form.categoryId = ''
+  showFaqModal.value = false
+  expandedFaqId.value = null
   await openTicketStore.selectOrganization(form.organizationId)
 }
 
@@ -98,6 +102,29 @@ async function handleSubmit() {
   } catch (e: any) {
     errorMessage.value = e?.message ?? 'Could not submit ticket.'
   }
+}
+
+async function handleOpenFaqModal() {
+  if (!form.organizationId) return
+
+  showFaqModal.value = true
+  expandedFaqId.value = null
+  errorMessage.value = ''
+
+  try {
+    await openTicketStore.loadFaqs(form.organizationId)
+  } catch (e: any) {
+    errorMessage.value = e?.message ?? 'Could not load FAQs.'
+  }
+}
+
+function handleCloseFaqModal() {
+  showFaqModal.value = false
+  expandedFaqId.value = null
+}
+
+function handleToggleFaq(faqId: string) {
+  expandedFaqId.value = expandedFaqId.value === faqId ? null : faqId
 }
 </script>
 
@@ -163,6 +190,15 @@ async function handleSubmit() {
               </select>
               <ChevronDown :size="15" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             </div>
+            <button
+              v-if="selectedOrganization"
+              type="button"
+              class="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 -ml-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              @click="handleOpenFaqModal"
+            >
+              <HelpCircle :size="13" />
+              See frequently asked questions
+            </button>
           </div>
 
           <div>
@@ -269,6 +305,66 @@ async function handleSubmit() {
             <Send :size="15" />
             Submit Ticket
           </button>
+        </div>
+
+        <div v-if="showFaqModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            aria-label="Close FAQ modal"
+            @click="handleCloseFaqModal"
+          />
+          <div class="relative z-10 w-full max-w-lg rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xl">
+            <div class="flex items-start justify-between gap-4 px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+              <div>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Frequently asked questions</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  {{ selectedOrganization?.organizationName }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                @click="handleCloseFaqModal"
+              >
+                <X :size="16" />
+              </button>
+            </div>
+
+            <div class="max-h-[60vh] overflow-y-auto p-5">
+              <div v-if="openTicketStore.isFaqLoading" class="py-10 text-center text-sm text-gray-400">
+                Loading FAQs...
+              </div>
+              <ErrorBanner v-else-if="openTicketStore.faqError" :message="openTicketStore.faqError" />
+              <div v-else-if="openTicketStore.faqs.length === 0" class="py-10 text-center">
+                <p class="text-sm text-gray-400">No frequently asked questions available for this organization.</p>
+              </div>
+              <div v-else class="space-y-2">
+                <button
+                  v-for="faq in openTicketStore.faqs"
+                  :key="faq.id"
+                  type="button"
+                  class="w-full rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/60 px-4 py-3 text-left transition-colors hover:border-blue-200 dark:hover:border-blue-800"
+                  @click="handleToggleFaq(faq.id)"
+                >
+                  <div class="flex items-start justify-between gap-3">
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ faq.question }}</span>
+                    <ChevronDown
+                      :size="15"
+                      class="mt-0.5 flex-shrink-0 text-gray-400 transition-transform"
+                      :class="expandedFaqId === faq.id ? 'rotate-180' : ''"
+                    />
+                  </div>
+                  <p
+                    v-if="expandedFaqId === faq.id"
+                    class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400"
+                  >
+                    {{ faq.answer }}
+                  </p>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </form>
     </div>
