@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportDeskWebApi.Dispatcher;
 using SupportDeskWebApi.Requests.Organization.ListCategories;
+using SupportDeskWebApi.Requests.Organization.ListFaqs;
 using SupportDeskWebApi.Requests.Organization.ListOrganizations;
 
 namespace SupportDeskWebApi.Controllers;
@@ -31,6 +32,14 @@ public class OrganizationController : ControllerBase
     public async Task<ActionResult<ListCategoriesResult>> ListCategories([FromRoute] Guid organizationId, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.ExecuteAsync(new ListCategoriesRequest(organizationId), cancellationToken);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Customer")]
+    [HttpGet("{organizationId:guid}/faqs")]
+    public async Task<ActionResult<ListFaqsResult>> ListFaqs([FromRoute] Guid organizationId, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.ExecuteAsync(new ListFaqsRequest(organizationId), cancellationToken);
         return Ok(result);
     }
 }
