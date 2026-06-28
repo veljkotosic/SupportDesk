@@ -10,6 +10,7 @@ import type {
 export type SettingsTab = 'faqs' | 'templates' | 'categories'
 
 export const useOrganizationSettingsStore = defineStore('organizationSettings', () => {
+  const organizationId = ref('')
   const faqs = ref<FaqSetting[]>([])
   const templateAnswers = ref<TemplateAnswerSetting[]>([])
   const categories = ref<CategorySetting[]>([])
@@ -40,6 +41,7 @@ export const useOrganizationSettingsStore = defineStore('organizationSettings', 
     error.value = null
     try {
       const result = await organizationSettingsService.getSettings()
+      organizationId.value = result.organizationId
       faqs.value = result.faqs
       templateAnswers.value = result.templateAnswers
       categories.value = result.categories
@@ -68,6 +70,7 @@ export const useOrganizationSettingsStore = defineStore('organizationSettings', 
   }
 
   function clear() {
+    organizationId.value = ''
     faqs.value = []
     templateAnswers.value = []
     categories.value = []
@@ -77,6 +80,7 @@ export const useOrganizationSettingsStore = defineStore('organizationSettings', 
   }
 
   return {
+    organizationId,
     faqs,
     templateAnswers,
     categories,

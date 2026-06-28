@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SupportDeskWebApi.Auth.Abstract;
 using SupportDeskWebApi.Data.Database;
 using SupportDeskWebApi.Requests.Abstract;
 
@@ -7,10 +8,12 @@ namespace SupportDeskWebApi.Requests.OrganizationAdmin.GetSettings;
 public class GetSettingsRequestHandler : IRequestHandler<GetSettingsRequest, GetSettingsResult>
 {
     private readonly SupportDeskDbContext _context;
+    private readonly IUserContext _userContext;
 
-    public GetSettingsRequestHandler(SupportDeskDbContext context)
+    public GetSettingsRequestHandler(SupportDeskDbContext context, IUserContext userContext)
     {
         _context = context;
+        _userContext = userContext;
     }
 
     public async Task<GetSettingsResult> HandleAsync(GetSettingsRequest request, CancellationToken cancellationToken = default)
@@ -37,6 +40,10 @@ public class GetSettingsRequestHandler : IRequestHandler<GetSettingsRequest, Get
                 category.Tickets.Count))
             .ToListAsync(cancellationToken);
 
-        return new GetSettingsResult(faqs, templateAnswers, categories);
+        return new GetSettingsResult(
+            _userContext.GetCurrentUsersOrganizationId()!.Value,
+            faqs,
+            templateAnswers,
+            categories);
     }
 }
