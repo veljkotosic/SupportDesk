@@ -18,6 +18,7 @@ export interface CategorySetting {
 }
 
 export interface OrganizationSettings {
+  organizationId: string
   faqs: FaqSetting[]
   templateAnswers: TemplateAnswerSetting[]
   categories: CategorySetting[]

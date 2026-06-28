@@ -1,14 +1,29 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, onBeforeUnmount, reactive, ref } from 'vue'
-import { Edit2, FileText, HelpCircle, Plus, Search, Tag, Trash2, X } from 'lucide-vue-next'
+import { Check, Copy, Edit2, FileText, HelpCircle, Link2, Plus, Search, Tag, Trash2, X } from 'lucide-vue-next'
 import OrganizationAdminLayout from '@/layouts/OrganizationAdminDashboardLayout.vue'
 import { type SettingsTab, useOrganizationSettingsStore } from '@/stores/organizationSettingsStore.ts'
 import ErrorBanner from '@/components/ErrorBanner.vue'
+import { useRouter } from 'vue-router'
 
 const settingsStore = useOrganizationSettingsStore()
+const router = useRouter()
 const showForm = ref(false)
 const editingId = ref<string | null>(null)
 const form = reactive({ primary: '', secondary: '' })
+const linkCopied = ref(false)
+const linkError = ref('')
+let copyFeedbackTimeout: ReturnType<typeof setTimeout> | undefined
+
+const customerTicketLink = computed(() => {
+  if (!settingsStore.organizationId) return ''
+
+  const routeLocation = router.resolve({
+    name: 'customerOpenTicket',
+    query: { organizationId: settingsStore.organizationId },
+  })
+  return new URL(routeLocation.href, window.location.origin).toString()
+})
 
 const tabs: { id: SettingsTab; label: string; icon: typeof HelpCircle }[] = [
   { id: 'faqs', label: 'FAQ Items', icon: HelpCircle },
@@ -28,7 +43,27 @@ const formTitle = computed(() => {
 })
 
 onBeforeMount(settingsStore.loadSettings)
-onBeforeUnmount(settingsStore.clear)
+onBeforeUnmount(() => {
+  if (copyFeedbackTimeout) clearTimeout(copyFeedbackTimeout)
+  settingsStore.clear()
+})
+
+async function handleCopyTicketLink() {
+  if (!customerTicketLink.value) return
+
+  linkError.value = ''
+  try {
+    await navigator.clipboard.writeText(customerTicketLink.value)
+    linkCopied.value = true
+    if (copyFeedbackTimeout) clearTimeout(copyFeedbackTimeout)
+    copyFeedbackTimeout = setTimeout(() => {
+      linkCopied.value = false
+    }, 2000)
+  } catch {
+    linkCopied.value = false
+    linkError.value = 'Could not copy the link. Select the URL and copy it manually.'
+  }
+}
 
 function handleTabChange(tab: SettingsTab) {
   settingsStore.setActiveTab(tab)
@@ -138,6 +173,42 @@ async function handleRemoveCategory(id: string) {
           <Plus :size="15" />
           {{ actionLabel }}
         </button>
+      </div>
+
+      <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 mb-6">
+        <div class="flex items-start gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+            <Link2 :size="18" class="text-blue-500" />
+          </div>
+          <div>
+            <h2 class="font-semibold text-gray-900 dark:text-white">Customer ticket link</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              Share this link with the customers.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input
+            :value="customerTicketLink"
+            type="text"
+            readonly
+            aria-label="Customer ticket link"
+            class="flex-1 min-w-0 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+            @focus="($event.target as HTMLInputElement).select()"
+          />
+          <button
+            type="button"
+            :disabled="!customerTicketLink"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium transition-all"
+            @click="handleCopyTicketLink"
+          >
+            <Check v-if="linkCopied" :size="15" />
+            <Copy v-else :size="15" />
+            {{ linkCopied ? 'Copied' : 'Copy link' }}
+          </button>
+        </div>
+        <p v-if="linkError" class="mt-2 text-xs text-red-500">{{ linkError }}</p>
       </div>
 
       <div class="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-6 w-fit max-w-full overflow-x-auto">
