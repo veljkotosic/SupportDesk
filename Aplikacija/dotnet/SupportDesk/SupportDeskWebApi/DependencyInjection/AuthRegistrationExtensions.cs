@@ -38,6 +38,7 @@ public static class AuthRegistrationExtensions
                     options.Password.RequireNonAlphanumeric = true;
 
                     options.User.RequireUniqueEmail = true;
+                    options.User.AllowedUserNameCharacters = string.Empty;
                 })
                 .AddRoles<IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<SupportDeskDbContext>()
