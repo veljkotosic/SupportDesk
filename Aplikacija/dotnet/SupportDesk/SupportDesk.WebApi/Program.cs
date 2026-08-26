@@ -1,0 +1,88 @@
+using Asp.Versioning;
+using DotNetEnv;
+using Scalar.AspNetCore;
+using SupportDesk.Infrastructure.DependencyInjection;
+using SupportDesk.WebApi.ExceptionHandlers;
+
+if (File.Exists("../../../.env"))
+{
+    Env.NoClobber().Load("../../../.env");
+}
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddLogging(config =>
+    {
+        config.AddConsole();
+        config.AddDebug();
+    })
+    .AddHttpLogging();
+
+builder.Services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+        options.ApiVersionReader = ApiVersionReader.Combine(
+            new UrlSegmentApiVersionReader(),
+            new HeaderApiVersionReader("X-Api-Version"),
+            new QueryStringApiVersionReader("api-version"));
+    })
+    .AddMvc()
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
+
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info.Title = "SupportDesk API v1";
+        document.Info.Version = "v1";
+        document.Info.Description = "SupportDesk Web API";
+        return Task.CompletedTask;
+    });
+});
+
+builder.Services.AddProblemDetails();
+
+builder.Services.AddExceptionHandler<RefreshTokenExceptionHandler>();
+builder.Services.AddExceptionHandler<PermissionExceptionHandler>();
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+builder.Services.AddExceptionHandler<InternalExceptionHandler>();
+
+builder.Services.AddSupportDeskWebApi(builder.Configuration);
+
+builder.Services.AddControllers();
+
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("SupportDesk API Documentation");
+    });
+}
+
+app.UseHttpsRedirection();
+
+app.MapHealthChecks("/health");
+
+app.UseAuthorization();
+
+app.UseExceptionHandler();
+
+app.MapControllers();
+
+app.UseHttpLogging();
+
+app.Run();
