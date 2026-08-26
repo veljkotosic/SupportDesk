@@ -39,7 +39,7 @@ public sealed class RegisterCustomerCommandHandler
         return Task.FromResult(new EmptyCommandHandlerContext());
     }
 
-    protected override async Task<RegisterCustomerCommandResult> HandleInternalAsync(RegisterCustomerCommand command, EmptyCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override async Task<RegisterCustomerCommandResult> ExecuteAsync(RegisterCustomerCommand command, EmptyCommandHandlerContext context, CancellationToken cancellationToken)
     {
         var customer = User.Create(command.Email, command.UserName, null, UserRole.Customer);
 

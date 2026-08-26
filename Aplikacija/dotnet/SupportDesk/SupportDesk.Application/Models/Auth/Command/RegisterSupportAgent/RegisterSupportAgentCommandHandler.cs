@@ -49,7 +49,7 @@ public sealed class RegisterSupportAgentCommandHandler
         return new RegisterSupportAgentCommandHandlerContext(invite, inviteCode, email);       
     }
 
-    protected override async Task<RegisterSupportAgentCommandResult> HandleInternalAsync(RegisterSupportAgentCommand command, RegisterSupportAgentCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override async Task<RegisterSupportAgentCommandResult> ExecuteAsync(RegisterSupportAgentCommand command, RegisterSupportAgentCommandHandlerContext context, CancellationToken cancellationToken)
     {
         var invite = context.SupportAgentInvite!;
         

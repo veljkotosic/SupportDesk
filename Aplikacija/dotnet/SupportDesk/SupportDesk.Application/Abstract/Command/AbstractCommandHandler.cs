@@ -41,7 +41,7 @@ public abstract class AbstractCommandHandler<TCommand, TCommandHandlerContext>
         
         (this as IStageValidatable<TCommandHandlerContext>).Validate(context);
         
-        await HandleInternalAsync(command, context, cancellationToken);
+        await ExecuteAsync(command, context, cancellationToken);
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public abstract class AbstractCommandHandler<TCommand, TCommandHandlerContext>
     /// <param name="context">The validated execution context.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous handling operation.</returns>
-    protected abstract Task HandleInternalAsync(TCommand command, TCommandHandlerContext context, CancellationToken cancellationToken);
+    protected abstract Task ExecuteAsync(TCommand command, TCommandHandlerContext context, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -108,7 +108,7 @@ public abstract class AbstractCommandHandler<TCommand, TCommandResult, TCommandH
         
         (this as IStageValidatable<TCommandHandlerContext>).Validate(context);
         
-        return await HandleInternalAsync(command, context, cancellationToken);
+        return await ExecuteAsync(command, context, cancellationToken);
     }
 
     /// <summary>
@@ -133,5 +133,5 @@ public abstract class AbstractCommandHandler<TCommand, TCommandResult, TCommandH
     /// <param name="context">The validated execution context.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="Task{TResult}"/> representing the asynchronous handling operation, containing the result.</returns>
-    protected abstract Task<TCommandResult> HandleInternalAsync(TCommand command, TCommandHandlerContext context, CancellationToken cancellationToken);
+    protected abstract Task<TCommandResult> ExecuteAsync(TCommand command, TCommandHandlerContext context, CancellationToken cancellationToken);
 }

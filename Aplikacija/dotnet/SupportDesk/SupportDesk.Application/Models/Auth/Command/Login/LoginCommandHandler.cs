@@ -33,7 +33,7 @@ public sealed class LoginCommandHandler
         return Task.FromResult(new EmptyCommandHandlerContext());
     }
 
-    protected override async Task<LoginCommandResult> HandleInternalAsync(LoginCommand command, EmptyCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override async Task<LoginCommandResult> ExecuteAsync(LoginCommand command, EmptyCommandHandlerContext context, CancellationToken cancellationToken)
     {
         var loginResult = await _authService.LoginWithEmailAndPasswordAsync(command.Email, command.Password, cancellationToken);
 

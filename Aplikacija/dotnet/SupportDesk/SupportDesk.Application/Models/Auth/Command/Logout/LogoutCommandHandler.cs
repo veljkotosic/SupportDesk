@@ -31,7 +31,7 @@ public sealed class LogoutCommandHandler
         return new LogoutCommandHandlerContext(userId, refreshToken);
     }
 
-    protected override async Task HandleInternalAsync(LogoutCommand command, LogoutCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(LogoutCommand command, LogoutCommandHandlerContext context, CancellationToken cancellationToken)
     {
         await _refreshTokenManager.RevokeAsync(command.RefreshToken, cancellationToken);
     }

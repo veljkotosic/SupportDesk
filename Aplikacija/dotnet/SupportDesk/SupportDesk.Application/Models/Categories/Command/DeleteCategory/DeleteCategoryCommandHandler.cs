@@ -33,7 +33,7 @@ public class DeleteCategoryCommandHandler
         return new DeleteCategoryCommandHandlerContext(categoryId, category);
     }
 
-    protected override async Task HandleInternalAsync(DeleteCategoryCommand command, DeleteCategoryCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(DeleteCategoryCommand command, DeleteCategoryCommandHandlerContext context, CancellationToken cancellationToken)
     {
         var category = context.Category!;
         

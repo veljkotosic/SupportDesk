@@ -40,7 +40,7 @@ public sealed class AddCategoryCommandHandler
         return new AddCategoryCommandHandlerContext(command.Name, categoryWithSameName);
     }
 
-    protected override async Task<AddCategoryCommandResult> HandleInternalAsync(AddCategoryCommand command, AddCategoryCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override async Task<AddCategoryCommandResult> ExecuteAsync(AddCategoryCommand command, AddCategoryCommandHandlerContext context, CancellationToken cancellationToken)
     {
         var organizationId = (Guid)_tenantContext.GetCurrentOrganizationId()!;
         

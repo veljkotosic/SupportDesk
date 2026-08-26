@@ -50,7 +50,7 @@ public sealed class RegisterOrganizationCommandHandler
         return new RegisterOrganizationCommandHandlerContext(organizationName, existingOrganization);
     }
 
-    protected override async Task<RegisterOrganizationCommandResult> HandleInternalAsync(RegisterOrganizationCommand command, RegisterOrganizationCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override async Task<RegisterOrganizationCommandResult> ExecuteAsync(RegisterOrganizationCommand command, RegisterOrganizationCommandHandlerContext context, CancellationToken cancellationToken)
     {
         var organization = Organization.Create(command.OrganizationName);
 

@@ -26,7 +26,7 @@ public sealed class LogoutAllCommandHandler
         return Task.FromResult(new EmptyCommandHandlerContext());
     }
 
-    protected override Task HandleInternalAsync(LogoutAllCommand command, EmptyCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override Task ExecuteAsync(LogoutAllCommand command, EmptyCommandHandlerContext context, CancellationToken cancellationToken)
     {
         var userId = _userContext.GetCurrentUserId();
         

@@ -35,7 +35,7 @@ public abstract class AbstractQueryHandler<TQuery, TQueryResult>
     {
         await _permissionChecker.CheckAsync(query.GetRequiredPermissions(), cancellationToken);
         
-        return await HandleInternalAsync(query, cancellationToken);
+        return await ExecuteAsync(query, cancellationToken);
     }
     
     /// <summary>
@@ -44,5 +44,5 @@ public abstract class AbstractQueryHandler<TQuery, TQueryResult>
     /// <param name="query">The query being handled.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="Task{TResult}"/> representing the asynchronous handling operation, containing the result.</returns>
-    protected abstract Task<TQueryResult> HandleInternalAsync(TQuery query, CancellationToken cancellationToken);
+    protected abstract Task<TQueryResult> ExecuteAsync(TQuery query, CancellationToken cancellationToken);
 }

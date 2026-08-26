@@ -24,7 +24,7 @@ public sealed class GetMeQueryHandler : AbstractQueryHandler<GetMeQuery, GetMeQu
         _applicationDbContext = applicationDbContext;
     }
 
-    protected override async Task<GetMeQueryResult> HandleInternalAsync(GetMeQuery query, CancellationToken cancellationToken)
+    protected override async Task<GetMeQueryResult> ExecuteAsync(GetMeQuery query, CancellationToken cancellationToken)
     {
         var userId = new UserId(_userContext.GetCurrentUserId());
 
