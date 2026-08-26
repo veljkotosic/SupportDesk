@@ -3,6 +3,7 @@
   <Project Path="SupportDesk.Domain/SupportDesk.Domain.csproj" />
   <Project Path="SupportDesk.Infrastructure/SupportDesk.Infrastructure.csproj" />
   <Project Path="SupportDesk.WebApi/SupportDesk.WebApi.csproj" />
+  <Project Path="SupportDesk.ArchitectureTests/SupportDesk.ArchitectureTests.csproj" />
   
   <Project Path="SupportDeskWebApi/SupportDeskWebApi.csproj" />
 </Solution>
