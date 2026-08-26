@@ -13,7 +13,7 @@ using SupportDesk.Domain.Models.User.Repository;
 
 namespace SupportDesk.Application.Models.Auth.Command.RegisterOrganization;
 
-public sealed class RegisterOrganizationCommandHandler
+internal sealed class RegisterOrganizationCommandHandler
     : AbstractCommandHandler<RegisterOrganizationCommand, RegisterOrganizationCommandResult, RegisterOrganizationCommandHandlerContext>
 {
     private readonly IAuthService _authService;

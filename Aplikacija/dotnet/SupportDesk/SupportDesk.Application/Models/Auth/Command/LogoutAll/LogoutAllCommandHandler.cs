@@ -5,7 +5,7 @@ using SupportDesk.Application.Common.Command.Context;
 
 namespace SupportDesk.Application.Models.Auth.Command.LogoutAll;
 
-public sealed class LogoutAllCommandHandler
+internal sealed class LogoutAllCommandHandler
     : AbstractCommandHandler<LogoutAllCommand, EmptyCommandHandlerContext>
 {
     private readonly IUserContext _userContext;

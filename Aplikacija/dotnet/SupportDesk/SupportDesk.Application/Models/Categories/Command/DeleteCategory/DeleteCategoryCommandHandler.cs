@@ -8,7 +8,7 @@ using SupportDesk.Domain.Models.Category.ValueObjects;
 
 namespace SupportDesk.Application.Models.Categories.Command.DeleteCategory;
 
-public class DeleteCategoryCommandHandler
+internal class DeleteCategoryCommandHandler
     : AbstractCommandHandler<DeleteCategoryCommand, DeleteCategoryCommandHandlerContext>
 {
     private readonly ICategoryRepository _categoryRepository;

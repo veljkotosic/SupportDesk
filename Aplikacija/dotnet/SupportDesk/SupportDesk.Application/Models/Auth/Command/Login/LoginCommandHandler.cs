@@ -6,7 +6,7 @@ using SupportDesk.Domain.Abstract;
 
 namespace SupportDesk.Application.Models.Auth.Command.Login;
 
-public sealed class LoginCommandHandler
+internal sealed class LoginCommandHandler
     : AbstractCommandHandler<LoginCommand, LoginCommandResult, EmptyCommandHandlerContext>
 {
     private readonly ITokenProvider _tokenProvider;

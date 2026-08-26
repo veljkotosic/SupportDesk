@@ -9,7 +9,7 @@ using SupportDesk.Domain.Models.Category.ValueObjects;
 
 namespace SupportDesk.Application.Models.Categories.Command.AddCategory;
 
-public sealed class AddCategoryCommandHandler
+internal sealed class AddCategoryCommandHandler
     : AbstractCommandHandler<AddCategoryCommand, AddCategoryCommandResult, AddCategoryCommandHandlerContext>
 {
     private readonly IUserContext _userContext;

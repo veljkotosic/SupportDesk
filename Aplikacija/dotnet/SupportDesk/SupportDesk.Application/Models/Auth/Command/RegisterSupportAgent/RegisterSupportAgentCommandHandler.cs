@@ -14,7 +14,7 @@ using SupportDesk.Domain.Models.User.Enums;
 
 namespace SupportDesk.Application.Models.Auth.Command.RegisterSupportAgent;
 
-public sealed class RegisterSupportAgentCommandHandler
+internal sealed class RegisterSupportAgentCommandHandler
     : AbstractCommandHandler<RegisterSupportAgentCommand, RegisterSupportAgentCommandResult, RegisterSupportAgentCommandHandlerContext>
 {
     private readonly IAuthService _authService;

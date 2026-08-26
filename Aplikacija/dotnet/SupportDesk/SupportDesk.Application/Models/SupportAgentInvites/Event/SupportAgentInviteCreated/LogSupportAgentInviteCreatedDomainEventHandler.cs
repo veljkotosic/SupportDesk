@@ -4,7 +4,7 @@ using SupportDesk.Domain.Models.SupportAgentInvite.Events;
 
 namespace SupportDesk.Application.Models.SupportAgentInvites.Event.SupportAgentInviteCreated;
 
-public sealed class LogSupportAgentInviteCreatedDomainEventHandler
+internal sealed class LogSupportAgentInviteCreatedDomainEventHandler
     : IDomainEventHandler<SupportAgentInviteCreatedDomainEvent>
 {
     private readonly ILogger<LogSupportAgentInviteCreatedDomainEventHandler> _logger;

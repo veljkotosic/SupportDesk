@@ -4,7 +4,7 @@ using SupportDesk.Domain.Common.Validation.Rules;
 
 namespace SupportDesk.Domain.Common.ValueObjects;
 
-public record Email : AbstractValueObject
+public sealed record Email : AbstractValueObject
 {
     public string EmailValue { get; init; }
 

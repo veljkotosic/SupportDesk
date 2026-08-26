@@ -4,7 +4,7 @@ using SupportDesk.Domain.Models.Organization.Events;
 
 namespace SupportDesk.Application.Models.Organizations.Event.OrganizationCreated;
 
-public sealed class LogOrganizationCreatedDomainEventHandler : IDomainEventHandler<OrganizationCreatedDomainEvent>
+internal sealed class LogOrganizationCreatedDomainEventHandler : IDomainEventHandler<OrganizationCreatedDomainEvent>
 {
     private readonly ILogger<LogOrganizationCreatedDomainEventHandler> _logger;
 

@@ -2,4 +2,4 @@ using SupportDesk.Domain.Abstract;
 
 namespace SupportDesk.Domain.Models.User.Events;
 
-public record UserCreatedDomainEvent(Guid UserId) : IDomainEvent;
+public sealed record UserCreatedDomainEvent(Guid UserId) : IDomainEvent;

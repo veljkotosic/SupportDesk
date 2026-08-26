@@ -4,7 +4,7 @@ using SupportDesk.Domain.Models.Category.Events;
 
 namespace SupportDesk.Application.Models.Categories.Event.CategoryDeleted;
 
-public class LogCategoryDeletedDomainEventHandler : IDomainEventHandler<CategoryDeletedDomainEvent>
+internal sealed class LogCategoryDeletedDomainEventHandler : IDomainEventHandler<CategoryDeletedDomainEvent>
 {
     private readonly ILogger<LogCategoryDeletedDomainEventHandler> _logger;
 

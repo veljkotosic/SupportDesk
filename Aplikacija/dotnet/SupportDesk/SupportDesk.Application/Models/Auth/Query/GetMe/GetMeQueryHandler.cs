@@ -9,7 +9,7 @@ using SupportDesk.Domain.Models.User.ValueObjects;
 
 namespace SupportDesk.Application.Models.Auth.Query.GetMe;
 
-public sealed class GetMeQueryHandler : AbstractQueryHandler<GetMeQuery, GetMeQueryResult>
+internal sealed class GetMeQueryHandler : AbstractQueryHandler<GetMeQuery, GetMeQueryResult>
 {
     private readonly IUserContext _userContext;
     private readonly IApplicationDbContext _applicationDbContext;

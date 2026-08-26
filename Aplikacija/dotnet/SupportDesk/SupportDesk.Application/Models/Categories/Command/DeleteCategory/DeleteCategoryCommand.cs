@@ -4,7 +4,7 @@ using SupportDesk.Application.Common.Permissions;
 
 namespace SupportDesk.Application.Models.Categories.Command.DeleteCategory;
 
-public record DeleteCategoryCommand(Guid CategoryId) : ICommand
+public sealed record DeleteCategoryCommand(Guid CategoryId) : ICommand
 {
     public ICollection<Permission> GetRequiredPermissions()
     {

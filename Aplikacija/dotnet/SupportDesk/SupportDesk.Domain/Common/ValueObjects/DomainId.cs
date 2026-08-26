@@ -3,7 +3,7 @@ using SupportDesk.Domain.Abstract.ValueObject;
 
 namespace SupportDesk.Domain.Common.ValueObjects;
 
-public record DomainId : AbstractValueObject
+public abstract record DomainId : AbstractValueObject
 {
     public Guid IdValue { get; init; }
 

@@ -6,7 +6,7 @@ using SupportDesk.Domain.Models.User.Validation.Rules;
 
 namespace SupportDesk.Application.Models.Auth.Command.Logout;
 
-public sealed class LogoutCommandHandler
+internal sealed class LogoutCommandHandler
     : AbstractCommandHandler<LogoutCommand, LogoutCommandHandlerContext>
 {
     private readonly IUserContext _userContext;

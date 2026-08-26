@@ -9,7 +9,7 @@ using SupportDesk.Domain.Models.User.Repository;
 
 namespace SupportDesk.Application.Models.Auth.Command.RegisterCustomer;
 
-public sealed class RegisterCustomerCommandHandler
+internal sealed class RegisterCustomerCommandHandler
     : AbstractCommandHandler<RegisterCustomerCommand, RegisterCustomerCommandResult, EmptyCommandHandlerContext>
 {
     private readonly IAuthService _authService;

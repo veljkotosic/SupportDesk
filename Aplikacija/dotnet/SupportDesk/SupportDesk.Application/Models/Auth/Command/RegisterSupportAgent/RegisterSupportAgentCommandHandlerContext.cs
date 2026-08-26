@@ -5,7 +5,7 @@ using SupportDesk.Domain.Models.SupportAgentInvite.ValueObjects;
 
 namespace SupportDesk.Application.Models.Auth.Command.RegisterSupportAgent;
 
-public sealed record RegisterSupportAgentCommandHandlerContext(
+internal sealed record RegisterSupportAgentCommandHandlerContext(
     SupportAgentInvite? SupportAgentInvite,
     SupportAgentInviteCode Code,
     Email Email

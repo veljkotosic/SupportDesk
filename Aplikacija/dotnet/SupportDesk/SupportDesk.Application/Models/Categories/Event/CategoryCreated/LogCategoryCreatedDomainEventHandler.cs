@@ -4,7 +4,7 @@ using SupportDesk.Domain.Models.Category.Events;
 
 namespace SupportDesk.Application.Models.Categories.Event.CategoryCreated;
 
-public sealed class LogCategoryCreatedDomainEventHandler : IDomainEventHandler<CategoryCreatedDomainEvent>
+internal sealed class LogCategoryCreatedDomainEventHandler : IDomainEventHandler<CategoryCreatedDomainEvent>
 {
     private readonly ILogger<LogCategoryCreatedDomainEventHandler> _logger;
     

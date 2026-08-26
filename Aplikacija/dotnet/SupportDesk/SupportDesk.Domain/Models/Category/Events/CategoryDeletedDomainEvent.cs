@@ -3,4 +3,4 @@ using SupportDesk.Domain.Models.Category.ValueObjects;
 
 namespace SupportDesk.Domain.Models.Category.Events;
 
-public record CategoryDeletedDomainEvent(CategoryId CategoryId) : IDomainEvent;
+public sealed record CategoryDeletedDomainEvent(CategoryId CategoryId) : IDomainEvent;
