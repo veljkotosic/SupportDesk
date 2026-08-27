@@ -20,7 +20,7 @@ public sealed class QueryDispatcher : IQueryDispatcher
         
         dynamic handler = ResolveHandler(handlerType, query);
         
-        return await handler.Handle((dynamic)query, cancellationToken);
+        return await handler.HandleAsync((dynamic)query, cancellationToken);
     }
     
     private dynamic ResolveHandler(Type handlerType, object dispatchingObject)

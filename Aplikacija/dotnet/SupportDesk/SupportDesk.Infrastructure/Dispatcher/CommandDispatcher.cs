@@ -29,7 +29,7 @@ public sealed class CommandDispatcher : ICommandDispatcher
         
         dynamic handler = ResolveHandler(handlerType, command);
         
-        return await handler.Handle((dynamic)command, cancellationToken);
+        return await handler.HandleAsync((dynamic)command, cancellationToken);
     }
     
     private dynamic ResolveHandler(Type handlerType, object dispatchingObject)

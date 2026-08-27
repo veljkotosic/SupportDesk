@@ -11,6 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="SupportDesk.Infrastructure" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Folder Include="Models\Auth\Query\" />
       <Folder Include="Models\User\" />
     </ItemGroup>
