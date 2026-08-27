@@ -12,7 +12,7 @@ public static class SupportDeskRegistrationExtensions
     {
         public IServiceCollection AddSupportDeskWebApi(IConfiguration configuration)
         {
-            services.AddSingleton<TimeProvider>();
+            services.AddSingleton(TimeProvider.System);
             
             services.AddSupportDeskHandlers(typeof(IUseCase).Assembly);
             services.AddSupportDeskDomainEventHandlers(typeof(IDomainEventHandler<>).Assembly);
