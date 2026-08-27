@@ -6,7 +6,7 @@ namespace SupportDesk.Domain.Common.ValueObjects;
 
 public sealed record CreatedAt : AbstractValueObject
 {
-    public DateTime CreatedAtValue { get; private set; }
+    public DateTime CreatedAtValue { get; init; }
 
     public CreatedAt(DateTime CreatedAtValue)
     {
@@ -16,9 +16,6 @@ public sealed record CreatedAt : AbstractValueObject
     
     public override ICollection<IRule> GetValidationRules()
     {
-        return 
-        [
-            new DateInPastRule(CreatedAtValue)
-        ];
+        return [];
     }
 }

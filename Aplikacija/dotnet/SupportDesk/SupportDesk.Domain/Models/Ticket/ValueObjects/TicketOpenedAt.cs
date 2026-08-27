@@ -16,8 +16,6 @@ public sealed record TicketOpenedAt : AbstractValueObject
 
     public override ICollection<IRule> GetValidationRules()
     {
-        return [
-            new DateInPastRule(OpenedAtValue)
-        ];
+        return [];
     }
 }

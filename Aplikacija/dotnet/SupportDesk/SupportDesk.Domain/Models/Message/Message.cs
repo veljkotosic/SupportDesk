@@ -16,6 +16,11 @@ public sealed class Message : AbstractDomainModel<MessageId>
     public MessageText Text { get; private set; }
     public CreatedAt CreatedAt { get; private set; }
 
+    internal Message()
+    {
+        
+    }
+    
     private Message(
         MessageId id,
         OrganizationId organizationId,
@@ -32,14 +37,16 @@ public sealed class Message : AbstractDomainModel<MessageId>
         CreatedAt = createdAt;
     }
 
-    public static Message Create(Guid organizationId, Guid ticketId, Guid senderId, string text)
+    public static Message Create(Guid organizationId, Guid ticketId, Guid senderId, string text, TimeProvider timeProvider)
     {
+        var now = timeProvider.GetUtcNow().UtcDateTime;     
+        
         var idVo = MessageId.NewId();
         var organizationIdVo = new OrganizationId(organizationId);
         var ticketIdVo = new TicketId(ticketId);
         var senderIdVo = new UserId(senderId);
         var textVo = new MessageText(text);
-        var createdAtVo = new CreatedAt(DateTime.UtcNow);
+        var createdAtVo = new CreatedAt(now);
 
         var createdMessage = new Message(
             idVo,

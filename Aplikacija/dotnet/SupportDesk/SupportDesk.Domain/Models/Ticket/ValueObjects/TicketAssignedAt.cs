@@ -6,9 +6,9 @@ namespace SupportDesk.Domain.Models.Ticket.ValueObjects;
 
 public sealed record TicketAssignedAt : AbstractValueObject
 {
-    public DateTime? AssignedAtValue { get; init; }
+    public DateTime AssignedAtValue { get; init; }
     
-    public TicketAssignedAt(DateTime? AssignedAtValue)
+    public TicketAssignedAt(DateTime AssignedAtValue)
     {
         this.AssignedAtValue = AssignedAtValue;
         ValidateValueObject();
@@ -16,8 +16,6 @@ public sealed record TicketAssignedAt : AbstractValueObject
 
     public override ICollection<IRule> GetValidationRules()
     {
-        return [
-            new DateInPastRule(AssignedAtValue)
-        ];
+        return [];
     }
 }

@@ -59,7 +59,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .IsRequired();
         
         builder.Property(category => category.DeletedAt)
-            .HasConversion(
+            .HasConversion<DateTime?>(
                 deletedAt => deletedAt != null ? deletedAt.DeletedAtValue : null,
                 value => value.HasValue ? new DeletedAt(value.Value) : null)
             .IsRequired(false);

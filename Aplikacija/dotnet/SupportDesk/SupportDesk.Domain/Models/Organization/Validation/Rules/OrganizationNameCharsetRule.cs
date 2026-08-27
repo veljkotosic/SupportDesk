@@ -15,8 +15,9 @@ public sealed class OrganizationNameCharsetRule : CharsetRule, IRuleMetadata
     private static char[] GetOrganizationNameCharset()
     {
         var alphanumericCharset = Charset.GetAlphanumericCharset();
+        var specialSymbolsCharset = Charset.GetSpecialSymbolsCharset();
 
-        char[] organizationNameCharset = [..alphanumericCharset, '_', ' '];
+        char[] organizationNameCharset = [..alphanumericCharset, ..specialSymbolsCharset, ' '];
 
         return organizationNameCharset;
     }

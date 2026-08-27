@@ -23,6 +23,11 @@ public sealed class SupportAgentInvite : AbstractDomainModel<SupportAgentInviteI
     public SupportAgentInviteUsedAt? UsedAt { get; private set; }
     public SupportAgentInviteRevokedAt? RevokedAt { get; private set; }
 
+    internal SupportAgentInvite()
+    {
+        
+    }
+    
     private SupportAgentInvite(
         SupportAgentInviteId id,
         SupportAgentInviteCode code,
@@ -58,15 +63,17 @@ public sealed class SupportAgentInvite : AbstractDomainModel<SupportAgentInviteI
         ];
     }
 
-    public SupportAgentInvite Create(string email, Guid organizationId)
+    public static SupportAgentInvite Create(string email, Guid organizationId, TimeProvider timeProvider)
     {
+        var now = timeProvider.GetUtcNow().UtcDateTime;      
+        
         var idVo = SupportAgentInviteId.NewId();
         var codeVo = new SupportAgentInviteCode(Guid.NewGuid());
         var emailVo = new Email(email);
         var organizationIdVo = new OrganizationId(organizationId);
         var status = SupportAgentInviteStatus.Active;
-        var createdAtVo = new CreatedAt(DateTime.UtcNow);
-        var expiresAtVo = new SupportAgentInviteExpiresAt(DateTime.UtcNow.AddDays(SupportAgentInviteOptionsDefaults.ExpirationDays));
+        var createdAtVo = new CreatedAt(now);
+        var expiresAtVo = new SupportAgentInviteExpiresAt(createdAtVo.CreatedAtValue.AddDays(SupportAgentInviteOptionsDefaults.ExpirationDays));
 
         var createdSupportAgentInvite = new SupportAgentInvite(
             idVo,
@@ -84,25 +91,27 @@ public sealed class SupportAgentInvite : AbstractDomainModel<SupportAgentInviteI
         return createdSupportAgentInvite;       
     }
 
-    private bool IsExpired()
+    private bool IsExpired(TimeProvider timeProvider)
     {
-        return ExpiresAt.ExpiresAtValue < DateTime.UtcNow;
+        return ExpiresAt.ExpiresAtValue < timeProvider.GetUtcNow().UtcDateTime;
     }
 
-    public void Use()
+    public void Use(TimeProvider timeProvider)
     {
         if (Status != SupportAgentInviteStatus.Active)
         {
             throw new ValidationException(SupportAgentInviteErrors.InvalidInviteCode(Code));
         }
 
-        if (IsExpired())
+        if (IsExpired(timeProvider))
         {
             throw new ValidationException(SupportAgentInviteErrors.ExpiredInviteCode(Code));       
         }
+        
+        var now = timeProvider.GetUtcNow().UtcDateTime;      
 
         Status = SupportAgentInviteStatus.Used;
-        UsedAt = new SupportAgentInviteUsedAt(DateTime.UtcNow);
+        UsedAt = new SupportAgentInviteUsedAt(now);
         
         RaiseDomainEvent(new SupportAgentInviteUsedDomainEvent(Id));       
     }

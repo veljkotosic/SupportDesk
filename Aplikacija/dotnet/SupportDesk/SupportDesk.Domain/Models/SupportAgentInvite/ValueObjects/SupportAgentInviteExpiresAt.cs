@@ -16,8 +16,6 @@ public sealed record SupportAgentInviteExpiresAt : AbstractValueObject
 
     public override ICollection<IRule> GetValidationRules()
     {
-        return [
-            new DateInFutureRule(ExpiresAtValue)
-        ];
+        return [];
     }
 }

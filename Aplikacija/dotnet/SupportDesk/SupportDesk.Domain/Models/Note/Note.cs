@@ -15,6 +15,11 @@ public sealed class Note : AbstractDomainModel<NoteId>
     public UserId AuthorId { get; private set; }
     public NoteText Text { get; private set; }
     public CreatedAt CreatedAt { get; private set; }
+
+    internal Note()
+    {
+        
+    }
     
     private Note(
         NoteId id,
@@ -32,14 +37,16 @@ public sealed class Note : AbstractDomainModel<NoteId>
         CreatedAt = createdAt;
     }
 
-    public static Note Create(Guid organizationId, Guid ticketId, Guid authorId, string text)
+    public static Note Create(Guid organizationId, Guid ticketId, Guid authorId, string text, TimeProvider timeProvider)
     {
+        var now = timeProvider.GetUtcNow().UtcDateTime;    
+        
         var idVo = NoteId.NewId();
         var organizationIdVo = new OrganizationId(organizationId);
         var ticketIdVo = new TicketId(ticketId);
         var authorIdVo = new UserId(authorId);
         var textVo = new NoteText(text);
-        var createdAtVo = new CreatedAt(DateTime.UtcNow);
+        var createdAtVo = new CreatedAt(now);
 
         var createdNote = new Note(idVo, organizationIdVo, ticketIdVo, authorIdVo, textVo, createdAtVo);
         

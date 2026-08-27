@@ -59,9 +59,9 @@ public class SupportAgentInviteConfiguration : IEntityTypeConfiguration<SupportA
             .IsRequired();
 
         builder.Property(supportAgentInvite => supportAgentInvite.UsedAt)
-            .HasConversion(
+            .HasConversion<DateTime?>(
                 usedAt => usedAt != null ? usedAt.UsedAtValue : null,
-                value => value != null ? new SupportAgentInviteUsedAt(value) : null)
+                value => value.HasValue ? new SupportAgentInviteUsedAt(value.Value) : null)
             .IsRequired(false);
         
         builder.Property(supportAgentInvite => supportAgentInvite.ExpiresAt)
@@ -71,9 +71,9 @@ public class SupportAgentInviteConfiguration : IEntityTypeConfiguration<SupportA
             .IsRequired();
         
         builder.Property(supportAgentInvite => supportAgentInvite.RevokedAt)
-            .HasConversion(
+            .HasConversion<DateTime?>(
                 revokedAt => revokedAt != null ? revokedAt.RevokedAtValue : null,
-                value => value != null ? new SupportAgentInviteRevokedAt(value) : null)
+                value => value.HasValue ? new SupportAgentInviteRevokedAt(value.Value) : null)
             .IsRequired(false);
         
         builder.HasOne<Organization>()

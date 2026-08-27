@@ -17,6 +17,7 @@ namespace SupportDesk.Application.Models.Auth.Command.RegisterSupportAgent;
 internal sealed class RegisterSupportAgentCommandHandler
     : AbstractCommandHandler<RegisterSupportAgentCommand, RegisterSupportAgentCommandResult, RegisterSupportAgentCommandHandlerContext>
 {
+    private readonly TimeProvider _timeProvider;
     private readonly IAuthService _authService;
     private readonly ISupportAgentInviteRepository _supportAgentInviteCodeRepository;
     private readonly ITokenProvider _tokenProvider;
@@ -25,6 +26,7 @@ internal sealed class RegisterSupportAgentCommandHandler
 
     public RegisterSupportAgentCommandHandler(
         PermissionChecker permissionChecker,
+        TimeProvider timeProvider,
         IAuthService authService,
         ISupportAgentInviteRepository supportAgentInviteCodeRepository,
         ITokenProvider tokenProvider,
@@ -32,6 +34,7 @@ internal sealed class RegisterSupportAgentCommandHandler
         IUnitOfWork unitOfWork
         ) : base(permissionChecker)
     {
+        _timeProvider = timeProvider;
         _authService = authService;
         _supportAgentInviteCodeRepository = supportAgentInviteCodeRepository;
         _tokenProvider = tokenProvider;
@@ -53,13 +56,14 @@ internal sealed class RegisterSupportAgentCommandHandler
     {
         var invite = context.SupportAgentInvite!;
         
-        invite.Use();
+        invite.Use(_timeProvider);
 
         var supportAgent = User.Create(
             command.Email,
             command.UserName,
             invite.OrganizationId.IdValue,
-            UserRole.SupportAgent);
+            UserRole.SupportAgent,
+            _timeProvider);
         
         await _authService.SignUpWithEmailAndPasswordAsync(supportAgent, command.Password, cancellationToken);
         

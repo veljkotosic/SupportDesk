@@ -41,4 +41,17 @@ public static class Charset
 
         return alphanumericCharset;
     }
+    
+    public static char[] GetSpecialSymbolsCharset()
+    {
+        char[] specialSymbols = 
+        [
+            '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+            '-', '_', '=', '+', '[', ']', '{', '}', ';', ':',
+            '\'', '"', '\\', '|', ',', '.', '<', '>', '/', '?',
+            '`', '~'
+        ];
+
+        return specialSymbols;
+    }
 }

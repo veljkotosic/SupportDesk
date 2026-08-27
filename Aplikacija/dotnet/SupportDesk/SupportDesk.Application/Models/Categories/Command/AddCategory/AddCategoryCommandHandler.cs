@@ -12,20 +12,20 @@ namespace SupportDesk.Application.Models.Categories.Command.AddCategory;
 internal sealed class AddCategoryCommandHandler
     : AbstractCommandHandler<AddCategoryCommand, AddCategoryCommandResult, AddCategoryCommandHandlerContext>
 {
-    private readonly IUserContext _userContext;
+    private readonly TimeProvider _timeProvider;
     private readonly ITenantContext _tenantContext;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public AddCategoryCommandHandler(
         PermissionChecker permissionChecker,
-        IUserContext userContext,
+        TimeProvider timeProvider,
         ITenantContext tenantContext,
         ICategoryRepository categoryRepository,
         IUnitOfWork unitOfWork)
         : base(permissionChecker)
     {
-        _userContext = userContext;
+        _timeProvider = timeProvider;
         _tenantContext = tenantContext;
         _categoryRepository = categoryRepository;
         _unitOfWork = unitOfWork;
@@ -44,7 +44,7 @@ internal sealed class AddCategoryCommandHandler
     {
         var organizationId = (Guid)_tenantContext.GetCurrentOrganizationId()!;
         
-        var category = Domain.Models.Category.Category.Create(organizationId, command.Name, command.Description);
+        var category = Domain.Models.Category.Category.Create(organizationId, command.Name, command.Description, _timeProvider);
 
         await _categoryRepository.SaveAsync(category, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

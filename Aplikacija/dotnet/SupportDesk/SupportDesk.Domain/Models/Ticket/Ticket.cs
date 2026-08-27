@@ -25,6 +25,11 @@ public sealed class Ticket : AbstractDomainModel<TicketId>
     public TicketClosedAt? ClosedAt { get; private set; }
     public TicketLastMessageAt? LastMessageAt { get; private set; }
 
+    internal Ticket()
+    {
+        
+    }
+    
     private Ticket(
         TicketId id,
         OrganizationId organizationId,
@@ -72,9 +77,12 @@ public sealed class Ticket : AbstractDomainModel<TicketId>
         Guid customerId,
         Guid categoryId,
         TicketPriority priority,
-        string subject
+        string subject,
+        TimeProvider timeProvider       
     )
     {
+        var now = timeProvider.GetUtcNow().UtcDateTime;    
+        
         var idVo = TicketId.NewId();
         var organizationIdVo = new OrganizationId(organizationId);
         var customerIdVo = new UserId(customerId);
@@ -83,7 +91,7 @@ public sealed class Ticket : AbstractDomainModel<TicketId>
         var status = TicketStatus.Open;
         var feedback = TicketFeedback.None;
         var subjectVo = new TicketSubject(subject);
-        var openedAtVo = new TicketOpenedAt(DateTime.UtcNow);
+        var openedAtVo = new TicketOpenedAt(now);
         TicketAssignedAt? assignedAtVo = null;
         TicketClosedAt? closedAtVo = null;
         TicketLastMessageAt? lastMessageAtVo = null;

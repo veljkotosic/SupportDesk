@@ -16,7 +16,7 @@ public sealed class CategoryNameCharsetRule : CharsetRule, IRuleMetadata
     {
         var alphanumericCharset = Charset.GetAlphanumericCharset();
 
-        char[] categoryNameCharsetRule = [..alphanumericCharset, '_'];
+        char[] categoryNameCharsetRule = [..alphanumericCharset, '-', '_', ' '];
 
         return categoryNameCharsetRule;
     }
@@ -26,5 +26,5 @@ public sealed class CategoryNameCharsetRule : CharsetRule, IRuleMetadata
     protected override string ErrorCode => ErrorCodeString;
 
     protected override string ErrorMessage =>
-        "Category name contains invalid characters, only alphanumeric characters and '_' are allowed";
+        "Category name contains invalid characters, only alphanumeric characters, '-' and '_' are allowed";
 }

@@ -6,9 +6,9 @@ namespace SupportDesk.Domain.Models.SupportAgentInvite.ValueObjects;
 
 public sealed record SupportAgentInviteRevokedAt : AbstractValueObject
 {
-    public DateTime? RevokedAtValue { get; init; }
+    public DateTime RevokedAtValue { get; init; }
     
-    public SupportAgentInviteRevokedAt(DateTime? RevokedAtValue)
+    public SupportAgentInviteRevokedAt(DateTime RevokedAtValue)
     {
         this.RevokedAtValue = RevokedAtValue;
         ValidateValueObject();
@@ -16,8 +16,6 @@ public sealed record SupportAgentInviteRevokedAt : AbstractValueObject
 
     public override ICollection<IRule> GetValidationRules()
     {
-        return [
-            new DateInPastRule(RevokedAtValue)
-        ];
+        return [];
     }
 }

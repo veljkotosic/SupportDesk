@@ -12,6 +12,7 @@ namespace SupportDesk.Application.Models.Auth.Command.RegisterCustomer;
 internal sealed class RegisterCustomerCommandHandler
     : AbstractCommandHandler<RegisterCustomerCommand, RegisterCustomerCommandResult, EmptyCommandHandlerContext>
 {
+    private readonly TimeProvider _timeProvider;
     private readonly IAuthService _authService;
     private readonly ITokenProvider _tokenProvider;
     private readonly IRefreshTokenManager _refreshTokenManager;
@@ -20,6 +21,7 @@ internal sealed class RegisterCustomerCommandHandler
 
     public RegisterCustomerCommandHandler(
         PermissionChecker permissionChecker,
+        TimeProvider timeProvider,
         IAuthService authService,
         ITokenProvider tokenProvider,
         IRefreshTokenManager refreshTokenManager,
@@ -27,6 +29,7 @@ internal sealed class RegisterCustomerCommandHandler
         IUnitOfWork unitOfWork)
         : base(permissionChecker)
     {
+        _timeProvider = timeProvider;
         _authService = authService;
         _tokenProvider = tokenProvider;
         _refreshTokenManager = refreshTokenManager;
@@ -41,7 +44,7 @@ internal sealed class RegisterCustomerCommandHandler
 
     protected override async Task<RegisterCustomerCommandResult> ExecuteAsync(RegisterCustomerCommand command, EmptyCommandHandlerContext context, CancellationToken cancellationToken)
     {
-        var customer = User.Create(command.Email, command.UserName, null, UserRole.Customer);
+        var customer = User.Create(command.Email, command.UserName, null, UserRole.Customer, _timeProvider);
 
         await _authService.SignUpWithEmailAndPasswordAsync(customer, command.Password, cancellationToken);
         

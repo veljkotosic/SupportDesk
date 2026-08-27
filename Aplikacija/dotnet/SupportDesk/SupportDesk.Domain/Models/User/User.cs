@@ -17,7 +17,7 @@ public sealed class User : AbstractDomainModel<UserId>
     public UserRole Role { get; private set; } 
     public CreatedAt CreatedAt { get; private set; }
 
-    private User()
+    internal User()
     {
         
     }
@@ -36,6 +36,8 @@ public sealed class User : AbstractDomainModel<UserId>
         OrganizationId = organizationId;
         Role = role;
         CreatedAt = createdAt;
+        
+        ValidateModel();       
     }
 
     public override ICollection<IRule> GetValidationRules()
@@ -45,13 +47,15 @@ public sealed class User : AbstractDomainModel<UserId>
         ];
     }
 
-    public static User Create(string email, string userName, Guid? organizationId, UserRole role)
+    public static User Create(string email, string userName, Guid? organizationId, UserRole role, TimeProvider timeProvider)
     {
+        var now = timeProvider.GetUtcNow().UtcDateTime;    
+        
         var idVo = UserId.NewId();
         var emailVo = new Email(email);
         var userNameVo = new UserName(userName);
         var organizationIdVo = organizationId == null ? null : new OrganizationId((Guid)organizationId);
-        var createdAtVo = new CreatedAt(DateTime.UtcNow);
+        var createdAtVo = new CreatedAt(now);
         
         var createdUser = new User(idVo, emailVo, userNameVo, organizationIdVo, role, createdAtVo);
         

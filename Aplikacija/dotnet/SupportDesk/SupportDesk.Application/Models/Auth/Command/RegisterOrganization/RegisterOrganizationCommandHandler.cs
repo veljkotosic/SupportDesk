@@ -16,6 +16,7 @@ namespace SupportDesk.Application.Models.Auth.Command.RegisterOrganization;
 internal sealed class RegisterOrganizationCommandHandler
     : AbstractCommandHandler<RegisterOrganizationCommand, RegisterOrganizationCommandResult, RegisterOrganizationCommandHandlerContext>
 {
+    private readonly TimeProvider _timeProvider;
     private readonly IAuthService _authService;
     private readonly IOrganizationRepository _organizationRepository;
     private readonly IUserRepository _userRepository;
@@ -25,6 +26,7 @@ internal sealed class RegisterOrganizationCommandHandler
 
     public RegisterOrganizationCommandHandler(
         PermissionChecker permissionChecker,
+        TimeProvider timeProvider,
         IAuthService authService,
         IOrganizationRepository organizationRepository,
         IUserRepository userRepository,
@@ -33,6 +35,7 @@ internal sealed class RegisterOrganizationCommandHandler
         IUnitOfWork unitOfWork
         ) : base(permissionChecker)
     {
+        _timeProvider = timeProvider;
         _authService = authService;
         _organizationRepository = organizationRepository;
         _tokenProvider = tokenProvider;
@@ -52,9 +55,9 @@ internal sealed class RegisterOrganizationCommandHandler
 
     protected override async Task<RegisterOrganizationCommandResult> ExecuteAsync(RegisterOrganizationCommand command, RegisterOrganizationCommandHandlerContext context, CancellationToken cancellationToken)
     {
-        var organization = Organization.Create(command.OrganizationName);
+        var organization = Organization.Create(command.OrganizationName, _timeProvider);
 
-        var organizationAdmin = User.Create(command.Email, command.Username, organization.Id.IdValue, UserRole.OrganizationAdmin);
+        var organizationAdmin = User.Create(command.Email, command.Username, organization.Id.IdValue, UserRole.OrganizationAdmin, _timeProvider);
         
         await _authService.SignUpWithEmailAndPasswordAsync(organizationAdmin, command.Password, cancellationToken);
         

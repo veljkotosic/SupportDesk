@@ -10,6 +10,11 @@ public sealed class TemplateAnswer : AbstractDomainModel<TemplateAnswerId>
     public OrganizationId OrganizationId { get; private set; }
     public TemplateAnswerTitle Title { get; private set; }
     public TemplateAnswerText Text { get; private set; }
+
+    internal TemplateAnswer()
+    {
+        
+    }
     
     private TemplateAnswer(
         TemplateAnswerId id,

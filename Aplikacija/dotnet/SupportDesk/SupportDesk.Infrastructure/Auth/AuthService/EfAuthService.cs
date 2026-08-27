@@ -3,7 +3,6 @@ using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Common.Auth;
 using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.User;
-using SupportDesk.Domain.Models.User.Enums;
 using SupportDesk.Domain.Models.User.Repository;
 using SupportDesk.Domain.Models.User.Validation;
 using SupportDesk.Domain.Models.User.ValueObjects;

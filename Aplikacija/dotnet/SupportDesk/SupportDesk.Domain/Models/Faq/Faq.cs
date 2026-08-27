@@ -10,6 +10,11 @@ public sealed class Faq : AbstractDomainModel<FaqId>
     public OrganizationId OrganizationId { get; private set; }
     public FaqQuestion Question { get; private set; }
     public FaqAnswer Answer { get; private set; }
+
+    internal Faq()
+    {
+        
+    }
     
     private Faq(
         FaqId id,

@@ -15,8 +15,9 @@ public sealed class CategoryDescriptionCharsetRule : CharsetRule, IRuleMetadata
     private static char[] GetCategoryDescriptionCharsetRule()
     {
         var alphanumericCharset = Charset.GetAlphanumericCharset();
+        var specialSymbolsCharset = Charset.GetSpecialSymbolsCharset();
 
-        char[] categoryDescriptionCharsetRule = [..alphanumericCharset, '_'];
+        char[] categoryDescriptionCharsetRule = [..alphanumericCharset, ..specialSymbolsCharset, ' '];
 
         return categoryDescriptionCharsetRule;
     }
@@ -26,5 +27,5 @@ public sealed class CategoryDescriptionCharsetRule : CharsetRule, IRuleMetadata
     protected override string ErrorCode => ErrorCodeString;
 
     protected override string ErrorMessage =>
-        "Category description contains invalid characters, only alphanumeric characters and '_' are allowed";
+        "Category description contains invalid characters, only alphanumeric and special characters are allowed";
 }

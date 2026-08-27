@@ -6,9 +6,9 @@ namespace SupportDesk.Domain.Models.SupportAgentInvite.ValueObjects;
 
 public sealed record SupportAgentInviteUsedAt : AbstractValueObject
 {
-    public DateTime? UsedAtValue { get; init; }
+    public DateTime UsedAtValue { get; init; }
     
-    public SupportAgentInviteUsedAt(DateTime? UsedAtValue)
+    public SupportAgentInviteUsedAt(DateTime UsedAtValue)
     {
         this.UsedAtValue = UsedAtValue;
         ValidateValueObject();
@@ -16,8 +16,6 @@ public sealed record SupportAgentInviteUsedAt : AbstractValueObject
 
     public override ICollection<IRule> GetValidationRules()
     {
-        return [
-            new DateInPastRule(UsedAtValue)
-        ];
+        return [];
     }
 }

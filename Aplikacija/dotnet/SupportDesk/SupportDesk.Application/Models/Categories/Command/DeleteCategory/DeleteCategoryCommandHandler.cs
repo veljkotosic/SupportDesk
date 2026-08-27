@@ -11,15 +11,18 @@ namespace SupportDesk.Application.Models.Categories.Command.DeleteCategory;
 internal class DeleteCategoryCommandHandler
     : AbstractCommandHandler<DeleteCategoryCommand, DeleteCategoryCommandHandlerContext>
 {
+    private readonly TimeProvider _timeProvider;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public DeleteCategoryCommandHandler(
         PermissionChecker permissionChecker, 
+        TimeProvider timeProvider,
         ICategoryRepository categoryRepository, 
         IUnitOfWork unitOfWork) 
         : base(permissionChecker)
     {
+        _timeProvider = timeProvider;
         _categoryRepository = categoryRepository;
         _unitOfWork = unitOfWork;
     }
@@ -37,7 +40,7 @@ internal class DeleteCategoryCommandHandler
     {
         var category = context.Category!;
         
-        category.Delete();
+        category.Delete(_timeProvider);
         
         await _categoryRepository.SaveAsync(category, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

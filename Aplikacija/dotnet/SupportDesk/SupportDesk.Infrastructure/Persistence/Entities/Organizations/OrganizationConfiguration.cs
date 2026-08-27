@@ -46,7 +46,7 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
             .IsRequired();
         
         builder.Property(organization => organization.DeletedAt)
-            .HasConversion(
+            .HasConversion<DateTime?>(
                 deletedAt => deletedAt != null ? deletedAt.DeletedAtValue : null,
                 value => value.HasValue ? new DeletedAt(value.Value) : null)
             .IsRequired(false);

@@ -16,6 +16,11 @@ public sealed class TicketNotification : AbstractDomainModel<TicketNotificationI
     public TicketNotificationStatus Status { get; private set; }
     public CreatedAt CreatedAt { get; private set; }
 
+    internal TicketNotification()
+    {
+        
+    }
+    
     private TicketNotification(
         TicketNotificationId id,
         OrganizationId organizationId,
@@ -29,17 +34,19 @@ public sealed class TicketNotification : AbstractDomainModel<TicketNotificationI
         TicketId = ticketId;
         Text = text;
         Status = status;
-        CreatedAt = createdAt;
+        CreatedAt = createdAt;   
     }
 
-    public TicketNotification Create(Guid organizationId, Guid ticketId, string text)
+    public static TicketNotification Create(Guid organizationId, Guid ticketId, string text, TimeProvider timeProvider)
     {
+        var now = timeProvider.GetUtcNow().UtcDateTime;    
+        
         var idVo = TicketNotificationId.NewId();
         var organizationIdVo = new OrganizationId(organizationId);
         var ticketIdVo = new TicketId(ticketId);
         var textVo = new TicketNotificationText(text);
         var status = TicketNotificationStatus.Unread;
-        var createdAtVo = new CreatedAt(DateTime.UtcNow);
+        var createdAtVo = new CreatedAt(now);
 
         var createdTicketNotification = new TicketNotification(
             idVo,

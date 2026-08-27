@@ -85,21 +85,21 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             .IsRequired();
         
         builder.Property(ticket => ticket.AssignedAt)
-            .HasConversion(
+            .HasConversion<DateTime?>(
                 assignedAt => assignedAt != null ? assignedAt.AssignedAtValue : null,
-                value => value != null ? new TicketAssignedAt(value) : null)
+                value => value.HasValue ? new TicketAssignedAt(value.Value) : null)
             .IsRequired(false);
         
         builder.Property(ticket => ticket.ClosedAt)
-            .HasConversion(
+            .HasConversion<DateTime?>(
                 closedAt => closedAt != null ? closedAt.ClosedAtValue : null,
-                value => value != null ? new TicketClosedAt(value) : null)
+                value => value.HasValue ? new TicketClosedAt(value.Value) : null)
             .IsRequired(false);
         
         builder.Property(ticket => ticket.LastMessageAt)
-            .HasConversion(
+            .HasConversion<DateTime?>(
                 lastMessageAt => lastMessageAt != null ? lastMessageAt.LastMessageAtValue : null,
-                value => value != null ? new TicketLastMessageAt(value) : null)
+                value => value.HasValue ? new TicketLastMessageAt(value.Value) : null)
             .IsRequired(false);
         
         builder.HasOne<Organization>()

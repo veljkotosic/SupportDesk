@@ -6,9 +6,9 @@ namespace SupportDesk.Domain.Models.Ticket.ValueObjects;
 
 public sealed record TicketLastMessageAt : AbstractValueObject
 {
-    public DateTime? LastMessageAtValue { get; init; }
+    public DateTime LastMessageAtValue { get; init; }
     
-    public TicketLastMessageAt(DateTime? LastMessageAtValue)
+    public TicketLastMessageAt(DateTime LastMessageAtValue)
     {
         this.LastMessageAtValue = LastMessageAtValue;
         ValidateValueObject();
@@ -16,8 +16,6 @@ public sealed record TicketLastMessageAt : AbstractValueObject
 
     public override ICollection<IRule> GetValidationRules()
     {
-        return [
-            new DateInPastRule(LastMessageAtValue)
-        ];
+        return [];
     }
 }
