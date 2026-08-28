@@ -64,7 +64,7 @@ internal sealed class RegisterOrganizationCommandHandler
         var accessToken = _tokenProvider.GenerateAccessToken(organizationAdmin);
         var refreshTokenValue = _tokenProvider.GenerateRefreshToken();
 
-        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, organizationAdmin.Id.IdValue, organizationAdmin.Role, cancellationToken);
+        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, organizationAdmin.Id.IdValue, organizationAdmin.Role, _timeProvider, cancellationToken);
 
         await _organizationRepository.SaveAsync(organization, cancellationToken);
         await _userRepository.SaveAsync(organizationAdmin, cancellationToken);

@@ -115,4 +115,19 @@ public sealed class SupportAgentInvite : AbstractDomainModel<SupportAgentInviteI
         
         RaiseDomainEvent(new SupportAgentInviteUsedDomainEvent(Id));       
     }
+
+    public void Revoke(TimeProvider timeProvider)
+    {
+        if (Status != SupportAgentInviteStatus.Active)
+        {
+            throw new ValidationException(SupportAgentInviteErrors.InvalidInviteCode(Code));
+        }
+        
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+
+        Status = SupportAgentInviteStatus.Revoked;
+        RevokedAt = new SupportAgentInviteRevokedAt(now);
+        
+        RaiseDomainEvent(new SupportAgentInviteRevokedDomainEvent(Id));      
+    }
 }

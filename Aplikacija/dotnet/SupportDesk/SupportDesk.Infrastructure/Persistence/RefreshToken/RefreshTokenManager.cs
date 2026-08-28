@@ -17,17 +17,19 @@ public class RefreshTokenManager : IRefreshTokenManager
         _jwtSettings = jwtSettings;
     }
     
-    public async Task<Application.Common.Auth.RefreshToken> AddAsync(string token, Guid userId, UserRole userRole, CancellationToken cancellationToken = default)
+    public async Task<Application.Common.Auth.RefreshToken> AddAsync(string token, Guid userId, UserRole userRole, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
-        DateTime expiresAt = DateTime.UtcNow.AddDays(7);
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+
+        DateTime expiresAt = now.AddDays(7);
 
         if (userRole is UserRole.Customer)
         {
-            expiresAt = DateTime.UtcNow.AddDays(_jwtSettings.CustomerRefreshTokenExpirationDays);
+            expiresAt = now.AddDays(_jwtSettings.CustomerRefreshTokenExpirationDays);
         } 
         else if (userRole is UserRole.SupportAgent or UserRole.OrganizationAdmin)
         {
-            expiresAt = DateTime.UtcNow.AddDays(_jwtSettings.OrganizationRefreshTokenExpirationDays);
+            expiresAt = now.AddDays(_jwtSettings.OrganizationRefreshTokenExpirationDays);
         }
         
         var refreshToken = new RefreshToken

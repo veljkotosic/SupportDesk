@@ -1,7 +1,7 @@
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Domain.Models.User.Enums;
 
-namespace SupportDesk.Application.Common.Permissions;
+namespace SupportDesk.Application.Common.Auth.Permissions;
 
 public static class RolePermissions
 {
@@ -13,7 +13,9 @@ public static class RolePermissions
         ],
         [UserRole.OrganizationAdmin] =
         [
-
+            Permissions.Categories.Add,
+            Permissions.Categories.Update,
+            Permissions.Categories.Delete
         ],
         [UserRole.SupportAgent] =
         [

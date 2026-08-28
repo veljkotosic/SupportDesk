@@ -3,7 +3,9 @@ using SupportDesk.Application.Abstract.Command;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Domain.Abstract.Validation.Rule;
 using SupportDesk.Domain.Common.Validation.Rules;
+using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Category.Repository;
+using SupportDesk.Domain.Models.Category.Validation.Rules;
 using SupportDesk.Domain.Models.Category.ValueObjects;
 
 namespace SupportDesk.Application.Models.Categories.Command.DeleteCategory;
@@ -50,7 +52,10 @@ internal class DeleteCategoryCommandHandler
     {
         return [
             [
-                new DomainModelExistsRule<Domain.Models.Category.Category, CategoryId>(context.Category, context.Id)
+                new DomainModelExistsRule<Category, CategoryId>(context.Category, context.Id)
+            ],
+            [
+                new CannotDeleteAlreadyDeletedCategoryRule(context.Category!)
             ]
         ];
     }

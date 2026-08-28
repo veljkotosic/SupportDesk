@@ -14,11 +14,12 @@ public interface IRefreshTokenManager
     /// <param name="token">The refresh token string value.</param>
     /// <param name="userId">The unique identifier of the user to whom the token is issued.</param>
     /// <param name="userRole">The role assigned to the user for the token session.</param>
+    /// <param name="timeProvider">Time provider</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> containing the created <see cref="RefreshToken"/> instance.
     /// </returns>
-    Task<RefreshToken> AddAsync(string token, Guid userId, UserRole userRole, CancellationToken cancellationToken = default);
+    Task<RefreshToken> AddAsync(string token, Guid userId, UserRole userRole, TimeProvider timeProvider, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Asynchronously retrieves a refresh token record by its string value.

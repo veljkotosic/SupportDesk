@@ -21,6 +21,8 @@ public sealed class SupportAgentInviteRepository
 
     public async Task<SupportAgentInvite?> GetByCodeAsync(SupportAgentInviteCode code, CancellationToken cancellationToken = default)
     {
-        return await Context.SupportAgentInvites.FirstOrDefaultAsync(s => s.Code == code, cancellationToken);
+        return await Context.SupportAgentInvites
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.Code == code, cancellationToken);
     }
 }

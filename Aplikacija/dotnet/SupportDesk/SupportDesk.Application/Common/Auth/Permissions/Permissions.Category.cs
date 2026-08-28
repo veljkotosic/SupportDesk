@@ -1,6 +1,6 @@
 using SupportDesk.Application.Abstract.Auth.Permission;
 
-namespace SupportDesk.Application.Common.Permissions;
+namespace SupportDesk.Application.Common.Auth.Permissions;
 
 public static partial class Permissions
 {

@@ -51,7 +51,7 @@ internal sealed class RegisterCustomerCommandHandler
         var accessToken = _tokenProvider.GenerateAccessToken(customer);
         var refreshTokenValue = _tokenProvider.GenerateRefreshToken();
 
-        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, customer.Id.IdValue, customer.Role, cancellationToken);
+        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, customer.Id.IdValue, customer.Role, _timeProvider, cancellationToken);
         await _userRepository.SaveAsync(customer, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         

@@ -9,6 +9,7 @@ namespace SupportDesk.Application.Models.Auth.Command.Login;
 internal sealed class LoginCommandHandler
     : AbstractCommandHandler<LoginCommand, LoginCommandResult, EmptyCommandHandlerContext>
 {
+    private readonly TimeProvider _timeProvider;
     private readonly ITokenProvider _tokenProvider;
     private readonly IRefreshTokenManager _refreshTokenManager;
     private readonly IAuthService _authService;
@@ -16,12 +17,14 @@ internal sealed class LoginCommandHandler
     
     public LoginCommandHandler(
         PermissionChecker permissionChecker,
+        TimeProvider timeProvider,
         ITokenProvider tokenProvider,
         IRefreshTokenManager refreshTokenManager,
         IAuthService authService,
         IUnitOfWork unitOfWork) 
         : base(permissionChecker)
     {
+        _timeProvider = timeProvider;
         _tokenProvider = tokenProvider;
         _refreshTokenManager = refreshTokenManager;
         _authService = authService;
@@ -40,7 +43,7 @@ internal sealed class LoginCommandHandler
         var accessToken = _tokenProvider.GenerateAccessToken(loginResult);
         var refreshTokenValue = _tokenProvider.GenerateRefreshToken();
         
-        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, loginResult.Id.IdValue, loginResult.Role, cancellationToken);
+        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, loginResult.Id.IdValue, loginResult.Role, _timeProvider, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new LoginCommandResult(accessToken, refreshToken);

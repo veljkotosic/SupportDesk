@@ -11,6 +11,7 @@ using SupportDesk.Domain.Models.SupportAgentInvite.Validation.Rules;
 using SupportDesk.Domain.Models.SupportAgentInvite.ValueObjects;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.Domain.Models.User.Enums;
+using SupportDesk.Domain.Models.User.Repository;
 
 namespace SupportDesk.Application.Models.Auth.Command.RegisterSupportAgent;
 
@@ -19,6 +20,7 @@ internal sealed class RegisterSupportAgentCommandHandler
 {
     private readonly TimeProvider _timeProvider;
     private readonly IAuthService _authService;
+    private readonly IUserRepository _userRepository;
     private readonly ISupportAgentInviteRepository _supportAgentInviteCodeRepository;
     private readonly ITokenProvider _tokenProvider;
     private readonly IRefreshTokenManager _refreshTokenManager;
@@ -28,6 +30,7 @@ internal sealed class RegisterSupportAgentCommandHandler
         PermissionChecker permissionChecker,
         TimeProvider timeProvider,
         IAuthService authService,
+        IUserRepository userRepository,
         ISupportAgentInviteRepository supportAgentInviteCodeRepository,
         ITokenProvider tokenProvider,
         IRefreshTokenManager refreshTokenManager,
@@ -36,6 +39,7 @@ internal sealed class RegisterSupportAgentCommandHandler
     {
         _timeProvider = timeProvider;
         _authService = authService;
+        _userRepository = userRepository;
         _supportAgentInviteCodeRepository = supportAgentInviteCodeRepository;
         _tokenProvider = tokenProvider;
         _refreshTokenManager = refreshTokenManager;
@@ -70,7 +74,8 @@ internal sealed class RegisterSupportAgentCommandHandler
         var accessToken = _tokenProvider.GenerateAccessToken(supportAgent);
         var refreshTokenValue = _tokenProvider.GenerateRefreshToken();
         
-        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, supportAgent.Id.IdValue, supportAgent.Role, cancellationToken);
+        var refreshToken = await _refreshTokenManager.AddAsync(refreshTokenValue, supportAgent.Id.IdValue, supportAgent.Role, _timeProvider, cancellationToken);
+        await _userRepository.SaveAsync(supportAgent, cancellationToken);
         await _supportAgentInviteCodeRepository.SaveAsync(invite, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
