@@ -9,7 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Respawn;
 using SupportDesk.Application.Abstract.Auth;
+using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Domain.Abstract;
+using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Organization;
 using SupportDesk.Domain.Models.Organization.Repository;
 using SupportDesk.Domain.Models.SupportAgentInvite;
@@ -115,6 +117,7 @@ internal abstract class ApiTestsBase
 
     protected SupportDeskDbContext DbContext => GetRequiredService<SupportDeskDbContext>();
     protected IUnitOfWork UnitOfWork => GetRequiredService<IUnitOfWork>();
+    protected IPermissionService PermissionService => GetRequiredService<IPermissionService>();
 
     protected async Task AuthenticateAs(User user)
     {
@@ -215,5 +218,19 @@ internal abstract class ApiTestsBase
         await DbContext.SaveChangesAsync();
         
         return invite.Entity;
+    }
+
+    protected async Task<Category> CreateCategory(
+        Guid organizationId,
+        string name,
+        string description,
+        TimeProvider? timeProvider = null)
+    {
+        var category = await DbContext.Set<Category>()
+            .AddAsync(Category.Create(organizationId, name, description, timeProvider ?? TimeProvider.System));
+        
+        await DbContext.SaveChangesAsync();
+        
+        return category.Entity;
     }
 }

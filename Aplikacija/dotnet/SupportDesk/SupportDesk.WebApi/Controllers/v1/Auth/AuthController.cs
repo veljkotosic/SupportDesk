@@ -11,8 +11,9 @@ using SupportDesk.Application.Models.Auth.Command.RegisterCustomer;
 using SupportDesk.Application.Models.Auth.Command.RegisterOrganization;
 using SupportDesk.Application.Models.Auth.Command.RegisterSupportAgent;
 using SupportDesk.Application.Models.Auth.Query.GetMe;
+using SupportDesk.WebApi.Controllers.v1.Auth.Requests;
 
-namespace SupportDesk.WebApi.Controllers.v1;
+namespace SupportDesk.WebApi.Controllers.v1.Auth;
 
 [ApiController]
 [ApiVersion("1.0")]
@@ -44,8 +45,12 @@ public sealed class AuthController : ControllerBase
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Login(LoginCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> Login(
+        [FromBody] LoginRequest request,
+        CancellationToken cancellationToken)
     {
+        var command = new LoginCommand(request.Email, request.Password);
+        
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
         SetTokenCookies(result.AccessToken, result.RefreshToken);
         
@@ -105,8 +110,15 @@ public sealed class AuthController : ControllerBase
     [HttpPost("registerCustomer")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterCustomer(RegisterCustomerCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> RegisterCustomer(
+        [FromBody] RegisterCustomerRequest request,
+        CancellationToken cancellationToken)
     {
+        var command = new RegisterCustomerCommand(
+            request.UserName,
+            request.Email,
+            request.Password);
+        
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
         SetTokenCookies(result.AccessToken, result.RefreshToken);
         
@@ -117,8 +129,16 @@ public sealed class AuthController : ControllerBase
     [HttpPost("registerSupportAgent")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterSupportAgent(RegisterSupportAgentCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> RegisterSupportAgent(
+        [FromBody] RegisterSupportAgentRequest request,
+        CancellationToken cancellationToken)
     {
+        var command = new RegisterSupportAgentCommand(
+            request.UserName,
+            request.Email,
+            request.Password,
+            request.Code);
+        
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
         SetTokenCookies(result.AccessToken, result.RefreshToken);
         
@@ -129,8 +149,16 @@ public sealed class AuthController : ControllerBase
     [HttpPost("registerOrganization")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterOrganization(RegisterOrganizationCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> RegisterOrganization(
+        [FromBody] RegisterOrganizationRequest request,
+        CancellationToken cancellationToken)
     {
+        var command = new RegisterOrganizationCommand(
+            request.UserName,
+            request.OrganizationName,
+            request.Email,
+            request.Password);
+        
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
         SetTokenCookies(result.AccessToken, result.RefreshToken);
         

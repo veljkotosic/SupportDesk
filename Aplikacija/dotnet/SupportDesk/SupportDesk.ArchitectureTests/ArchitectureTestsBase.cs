@@ -3,6 +3,7 @@ using SupportDesk.Application.Abstract;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Infrastructure.Dispatcher;
 using SupportDesk.WebApi.Controllers.v1;
+using SupportDesk.WebApi.Controllers.v1.Auth;
 
 namespace SupportDesk.ArchitectureTests;
 

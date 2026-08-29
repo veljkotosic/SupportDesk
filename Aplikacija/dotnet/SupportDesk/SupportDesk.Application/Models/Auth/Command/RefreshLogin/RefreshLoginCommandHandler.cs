@@ -10,10 +10,9 @@ using SupportDesk.Domain.Models.User.Validation.Rules;
 namespace SupportDesk.Application.Models.Auth.Command.RefreshLogin;
 
 internal sealed class RefreshLoginCommandHandler
-    : AbstractCommandHandler<RefreshLoginCommand, RefreshLoginCommandResult, RefreshLoginCommandHandlerContext>
+    : AbstractCommandHandler<RefreshLoginCommand, RefreshLoginCommandResult, EmptyCommandHandlerContext>
 {
     private readonly TimeProvider _timeProvider;
-    private readonly IUserContext _userContext;
     private readonly ITokenProvider _tokenProvider;
     private readonly IRefreshTokenManager _refreshTokenManager;
     private readonly IAuthService _authService;
@@ -22,7 +21,6 @@ internal sealed class RefreshLoginCommandHandler
     public RefreshLoginCommandHandler(
         PermissionChecker permissionChecker,
         TimeProvider timeProvider,
-        IUserContext userContext,
         ITokenProvider tokenProvider,
         IRefreshTokenManager refreshTokenManager,
         IAuthService authService,
@@ -30,23 +28,18 @@ internal sealed class RefreshLoginCommandHandler
         : base(permissionChecker)
     {
         _timeProvider = timeProvider;
-        _userContext = userContext;
         _tokenProvider = tokenProvider;
         _refreshTokenManager = refreshTokenManager;
         _authService = authService;
         _unitOfWork = unitOfWork;
     }
 
-    protected override async Task<RefreshLoginCommandHandlerContext> PrepareAsync(RefreshLoginCommand command, CancellationToken cancellationToken)
+    protected override Task<EmptyCommandHandlerContext> PrepareAsync(RefreshLoginCommand command, CancellationToken cancellationToken)
     {
-        var userId = _userContext.GetCurrentUserId();
-        
-        var refreshToken = await _refreshTokenManager.GetByValueAsync(command.RefreshToken, cancellationToken);
-        
-        return new RefreshLoginCommandHandlerContext(userId, refreshToken);
+        return Task.FromResult(new EmptyCommandHandlerContext());
     }
 
-    protected override async Task<RefreshLoginCommandResult> ExecuteAsync(RefreshLoginCommand command, RefreshLoginCommandHandlerContext context, CancellationToken cancellationToken)
+    protected override async Task<RefreshLoginCommandResult> ExecuteAsync(RefreshLoginCommand command, EmptyCommandHandlerContext context, CancellationToken cancellationToken)
     {
         var refreshToken = await _refreshTokenManager.GetByValueAsync(command.RefreshToken, cancellationToken);
         
@@ -61,15 +54,5 @@ internal sealed class RefreshLoginCommandHandler
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
         return new RefreshLoginCommandResult(newAccessToken, newRefreshToken);
-    }
-
-    public override IReadOnlyList<ICollection<IRule>> GetValidationStages(RefreshLoginCommandHandlerContext context)
-    {
-        return
-        [
-            [
-                new UserCanOnlyRefreshHisLoginRule(context.UserId, context.RefreshToken.UserId)
-            ]
-        ];
     }
 }

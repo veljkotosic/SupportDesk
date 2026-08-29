@@ -87,18 +87,4 @@ internal sealed class RefreshLoginTests : IntegrationTestsBase
         Assert.That(exception, Is.Not.Null);
         Assert.That(exception!.ErrorCode, Is.EqualTo(RefreshTokenException.InvalidTokenCode));
     }
-
-    [Test]
-    public async Task Handle_WithOtherUsersRefreshToken_ShouldBreakUserCanOnlyRefreshHisLoginRule()
-    {
-        var otherCustomer = await RegisterCustomer("other@test.com", "OtherCustomer");
-        var otherCustomerRefreshToken = await Login("other@test.com", DefaultCustomerPassword);
-
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
-        {
-            await CommandDispatcher.DispatchAsync(new RefreshLoginCommand(otherCustomerRefreshToken.Value));
-        });
-
-        AssertUtility.AssertHasBrokenExactRule<UserCanOnlyRefreshHisLoginRule>(exception);
-    }
 }
