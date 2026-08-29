@@ -1,0 +1,219 @@
+using System.Data.Common;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
+using Respawn;
+using SupportDesk.Application.Abstract.Auth;
+using SupportDesk.Domain.Abstract;
+using SupportDesk.Domain.Models.Organization;
+using SupportDesk.Domain.Models.Organization.Repository;
+using SupportDesk.Domain.Models.SupportAgentInvite;
+using SupportDesk.Domain.Models.User;
+using SupportDesk.Domain.Models.User.Enums;
+using SupportDesk.Domain.Models.User.Repository;
+using SupportDesk.Infrastructure.Persistence.Database;
+using Testcontainers.PostgreSql;
+
+namespace SupportDesk.ApiTests;
+
+internal abstract class ApiTestsBase
+{
+    protected const string DefaultCustomerEmail = "customer@test.com";
+    protected const string DefaultCustomerPassword = "Test12345!";
+    protected const string DefaultCustomerUserName = "TestCustomer";
+    
+    protected const string DefaultOrganizationName = "Test Organization";
+    protected const string DefaultOrganizationAdminEmail = "orgadmin@test.com";
+    protected const string DefaultOrganizationAdminPassword = "Test12345!";
+    protected const string DefaultOrganizationAdminUserName = "TestOrgAdmin";
+
+    protected const string DefaultSupportAgentEmail = "supportagent@test.com";
+    protected const string DefaultSupportAgentPassword = "Test12345!";
+    protected const string DefaultSupportAgentUserName = "TestSupportAgent";
+    
+    private static PostgreSqlContainer _postgresContainer = null!;
+    private static DbConnection _dbConnection = null!;
+    private static Respawner _respawner = null!;
+    
+    protected static WebApplicationFactory<Program> Factory = null!;
+    protected HttpClient Client = null!;
+    private IServiceScope? _scope;
+
+    [OneTimeSetUp]
+    public async Task GlobalOneTimeSetUp()
+    {
+        _postgresContainer = new PostgreSqlBuilder("postgres:latest")
+            .WithName("SupportDeskApiTestPostgres")
+            .WithDatabase("SupportDeskApiTestDatabase")
+            .WithUsername("SupportDeskApiTestUser")
+            .WithPassword("SupportDeskApiTestPassword")
+            .Build();
+
+        await _postgresContainer.StartAsync();
+
+        Environment.SetEnvironmentVariable("DB_CONN_STRING", _postgresContainer.GetConnectionString());
+        Environment.SetEnvironmentVariable("JWT_ISSUER", "SupportDeskApiTest");
+        Environment.SetEnvironmentVariable("JWT_AUDIENCE", "SupportDeskApiTest");
+        Environment.SetEnvironmentVariable("JWT_KEY", "SuperSecretApiTestKey12345678901234567890!");
+        Environment.SetEnvironmentVariable("JWT_EXPIRATION_MINUTES", "60");
+        Environment.SetEnvironmentVariable("JWT_CUSTOMER_REFRESH_TOKEN_EXPIRATION_DAYS", "5");
+        Environment.SetEnvironmentVariable("JWT_ORGANIZATION_REFRESH_TOKEN_EXPIRATION_DAYS", "180");
+        
+        Factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.UseEnvironment("Development");
+            });
+
+        using var migrationScope = Factory.Services.CreateScope();
+        var dbContext = migrationScope.ServiceProvider.GetRequiredService<SupportDeskDbContext>();
+        await dbContext.Database.MigrateAsync();
+
+        _dbConnection = new NpgsqlConnection(_postgresContainer.GetConnectionString());
+        await _dbConnection.OpenAsync();
+        
+        _respawner = await Respawner.CreateAsync(_dbConnection, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.Postgres,
+            TablesToIgnore = ["__EFMigrationsHistory"]
+        });
+    }
+
+    [OneTimeTearDown]
+    public async Task GlobalOneTimeTearDown()
+    {
+        await _dbConnection.DisposeAsync();
+        await Factory.DisposeAsync();
+        await _postgresContainer.DisposeAsync();
+    }
+
+    [SetUp]
+    public async Task SetUp()
+    {
+        await _respawner.ResetAsync(_dbConnection);
+        _scope = Factory.Services.CreateScope();
+        Client = Factory.CreateClient();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _scope?.Dispose();
+        Client.Dispose();
+    }
+
+    protected IServiceScope Scope => _scope ?? throw new InvalidOperationException("Service scope has not been initialized.");
+    protected IServiceProvider Services => Scope.ServiceProvider;
+
+    protected T GetRequiredService<T>() where T : notnull => Services.GetRequiredService<T>();
+    protected T? GetService<T>() => Services.GetService<T>();
+
+    protected SupportDeskDbContext DbContext => GetRequiredService<SupportDeskDbContext>();
+    protected IUnitOfWork UnitOfWork => GetRequiredService<IUnitOfWork>();
+
+    protected async Task AuthenticateAs(User user)
+    {
+        var tokenProvider = GetRequiredService<ITokenProvider>();
+        var refreshTokenManager = GetRequiredService<IRefreshTokenManager>();
+        
+        var accessToken = tokenProvider.GenerateAccessToken(user);
+        var refreshTokenValue = tokenProvider.GenerateRefreshToken();
+        
+        var refreshToken = await refreshTokenManager.AddAsync(refreshTokenValue, user.Id.IdValue, user.Role, TimeProvider.System);
+        await UnitOfWork.SaveChangesAsync();
+        
+        Client.DefaultRequestHeaders.Add("Cookie", $"accessToken={accessToken.Value}");
+        Client.DefaultRequestHeaders.Add("Cookie", $"refreshToken={refreshToken.Value}");
+    }
+    
+    protected static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
+    
+    protected async Task<User> SeedCustomerAsync(
+        string email = DefaultCustomerEmail,
+        string password = DefaultCustomerPassword,
+        string userName = DefaultCustomerUserName)
+    {
+        var authService = GetRequiredService<IAuthService>();
+        var userRepo = GetRequiredService<IUserRepository>();
+        var user = User.Create(email, userName, null, UserRole.Customer, TimeProvider.System);
+        
+        await userRepo.SaveAsync(user);
+        await authService.SignUpWithEmailAndPasswordAsync(user, password);
+        await UnitOfWork.SaveChangesAsync();
+        return user;
+    }
+
+    protected async Task<User> SeedOrganizationAdmin(
+        string organizationName = DefaultOrganizationName,
+        string email = DefaultOrganizationAdminEmail,
+        string username = DefaultOrganizationAdminUserName,
+        string password = DefaultOrganizationAdminPassword)
+    {
+        var authService = GetRequiredService<IAuthService>();
+        var userRepository = GetRequiredService<IUserRepository>();
+        var organizationRepository = GetRequiredService<IOrganizationRepository>();
+        
+        var organization = Organization.Create(organizationName, TimeProvider.System);
+        
+        var user = User.Create(
+            email,
+            username,
+            organization.Id.IdValue,
+            UserRole.OrganizationAdmin,
+            TimeProvider.System);
+        
+        await userRepository.SaveAsync(user);
+        await organizationRepository.SaveAsync(organization);
+        await authService.SignUpWithEmailAndPasswordAsync(user, password);
+        
+        await UnitOfWork.SaveChangesAsync();   
+        
+        return user;
+    }
+
+    protected async Task<User> SeedSupportAgent(
+        Guid organizationId,
+        string username = DefaultSupportAgentUserName,
+        string email = DefaultSupportAgentEmail,
+        string password = DefaultSupportAgentPassword)
+    {
+        var authService = GetRequiredService<IAuthService>();
+        var userRepository = GetRequiredService<IUserRepository>();
+        
+        var user = User.Create(
+            email,
+            username,
+            organizationId,
+            UserRole.SupportAgent,
+            TimeProvider.System);
+        
+        await userRepository.SaveAsync(user);
+        await authService.SignUpWithEmailAndPasswordAsync(user, password);
+        
+        await UnitOfWork.SaveChangesAsync();
+        
+        return user;  
+    }
+
+    protected async Task<SupportAgentInvite> CreateSupportAgentInvite(
+        string email, 
+        Guid organizationId, 
+        TimeProvider? timeProvider = null)
+    {
+        var invite = await DbContext.Set<SupportAgentInvite>()
+            .AddAsync(SupportAgentInvite.Create(email, organizationId, timeProvider ?? TimeProvider.System));
+        
+        await DbContext.SaveChangesAsync();
+        
+        return invite.Entity;
+    }
+}

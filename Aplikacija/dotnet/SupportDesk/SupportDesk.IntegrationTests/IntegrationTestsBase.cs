@@ -52,7 +52,7 @@ internal abstract class IntegrationTestsBase
     public async Task GlobalOneTimeSetUp()
     {
         _postgresSqlContainer = new PostgreSqlBuilder("postgres:latest")
-            .WithName("SupportDeskPostgresTestContainer")
+            .WithName("SupportDeskPostgresIntegrationTestsContainer")
             .WithDatabase("SupportDeskTestDatabase")
             .WithUsername("SupportDeskTestUser")
             .WithPassword("SupportDeskTestPassword")

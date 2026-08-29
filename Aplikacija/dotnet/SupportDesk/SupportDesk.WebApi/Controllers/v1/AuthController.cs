@@ -6,6 +6,7 @@ using SupportDesk.Application.Common.Auth;
 using SupportDesk.Application.Models.Auth.Command.Login;
 using SupportDesk.Application.Models.Auth.Command.Logout;
 using SupportDesk.Application.Models.Auth.Command.LogoutAll;
+using SupportDesk.Application.Models.Auth.Command.RefreshLogin;
 using SupportDesk.Application.Models.Auth.Command.RegisterCustomer;
 using SupportDesk.Application.Models.Auth.Command.RegisterOrganization;
 using SupportDesk.Application.Models.Auth.Command.RegisterSupportAgent;
@@ -46,6 +47,24 @@ public sealed class AuthController : ControllerBase
     public async Task<IActionResult> Login(LoginCommand command, CancellationToken cancellationToken)
     {
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
+        SetTokenCookies(result.AccessToken, result.RefreshToken);
+        
+        return NoContent();
+    }
+    
+    [AllowAnonymous]
+    [HttpPost("refreshLogin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> RefreshLogin(CancellationToken cancellationToken)
+    {
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+        {
+            return Unauthorized();
+        }
+        
+        var result = await _commandDispatcher.DispatchAsync(new RefreshLoginCommand(refreshToken), cancellationToken);
         SetTokenCookies(result.AccessToken, result.RefreshToken);
         
         return NoContent();
