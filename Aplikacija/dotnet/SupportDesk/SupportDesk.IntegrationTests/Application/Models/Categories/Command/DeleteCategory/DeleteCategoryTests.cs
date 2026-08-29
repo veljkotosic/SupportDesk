@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Common.Auth.Permissions;
-using SupportDesk.Application.Models.Categories.Command.AddCategory;
 using SupportDesk.Application.Models.Categories.Command.DeleteCategory;
 using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.Category.Validation;

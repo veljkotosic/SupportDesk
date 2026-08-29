@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using SupportDesk.Application.Models.Auth.Command.Login;
 using SupportDesk.Application.Models.Auth.Command.LogoutAll;
 using SupportDesk.Domain.Models.User;
 

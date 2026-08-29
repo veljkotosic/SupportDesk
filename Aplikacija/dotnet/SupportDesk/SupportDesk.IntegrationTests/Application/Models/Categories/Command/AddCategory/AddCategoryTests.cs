@@ -3,7 +3,6 @@ using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Common.Auth.Permissions;
 using SupportDesk.Application.Models.Categories.Command.AddCategory;
 using SupportDesk.Domain.Abstract.Validation;
-using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Category.Validation.Rules;
 using SupportDesk.Domain.Models.Category.ValueObjects;
 using SupportDesk.Domain.Models.User;
