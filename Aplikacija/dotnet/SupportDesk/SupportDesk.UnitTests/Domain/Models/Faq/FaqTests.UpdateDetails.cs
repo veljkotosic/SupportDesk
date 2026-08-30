@@ -30,17 +30,17 @@ internal sealed partial class FaqTests
     {
         var timeProvider = TimeProvider.System;
         
-        var category = FaqModel.Create(Guid.NewGuid(), ValidQuestion, ValidAnswer, timeProvider);
+        var faq = FaqModel.Create(Guid.NewGuid(), ValidQuestion, ValidAnswer, timeProvider);
         
         var newAnswer = "Test Faq Answer 2";
         
-        category.UpdateDetails(null, newAnswer);
+        faq.UpdateDetails(null, newAnswer);
         
         Assert.Multiple(() =>
         {
-            Assert.That(category.Question.QuestionValue, Is.EqualTo(ValidQuestion));
-            Assert.That(category.Answer.AnswerValue, Is.EqualTo(newAnswer));
-            Assert.That(category.GetDomainEvents(), Has.Some.TypeOf<FaqDetailsUpdatedDomainEvent>());
+            Assert.That(faq.Question.QuestionValue, Is.EqualTo(ValidQuestion));
+            Assert.That(faq.Answer.AnswerValue, Is.EqualTo(newAnswer));
+            Assert.That(faq.GetDomainEvents(), Has.Some.TypeOf<FaqDetailsUpdatedDomainEvent>());
         });
     }
     
@@ -49,18 +49,18 @@ internal sealed partial class FaqTests
     {
         var timeProvider = TimeProvider.System;
         
-        var category = FaqModel.Create(Guid.NewGuid(), ValidQuestion, ValidAnswer, timeProvider);
+        var faq = FaqModel.Create(Guid.NewGuid(), ValidQuestion, ValidAnswer, timeProvider);
         
         var newQuestion = "Test Faq Question 2";
         var newAnswer = "Test Faq Answer 2";
         
-        category.UpdateDetails(newQuestion, newAnswer);
+        faq.UpdateDetails(newQuestion, newAnswer);
         
         Assert.Multiple(() =>
         {
-            Assert.That(category.Question.QuestionValue, Is.EqualTo(newQuestion));
-            Assert.That(category.Answer.AnswerValue, Is.EqualTo(newAnswer));
-            Assert.That(category.GetDomainEvents(), Has.Some.TypeOf<FaqDetailsUpdatedDomainEvent>());
+            Assert.That(faq.Question.QuestionValue, Is.EqualTo(newQuestion));
+            Assert.That(faq.Answer.AnswerValue, Is.EqualTo(newAnswer));
+            Assert.That(faq.GetDomainEvents(), Has.Some.TypeOf<FaqDetailsUpdatedDomainEvent>());
         });
     }
     
@@ -72,15 +72,15 @@ internal sealed partial class FaqTests
     {
         var timeProvider = TimeProvider.System;
         
-        var category = FaqModel.Create(Guid.NewGuid(), ValidQuestion, ValidAnswer, timeProvider);
+        var faq = FaqModel.Create(Guid.NewGuid(), ValidQuestion, ValidAnswer, timeProvider);
         
-        category.UpdateDetails(name, description);
+        faq.UpdateDetails(name, description);
         
         Assert.Multiple(() =>
         {
-            Assert.That(category.Question.QuestionValue, Is.EqualTo(ValidQuestion));
-            Assert.That(category.Answer.AnswerValue, Is.EqualTo(ValidAnswer));
-            Assert.That(category.GetDomainEvents(), Has.None.TypeOf<FaqDetailsUpdatedDomainEvent>());
+            Assert.That(faq.Question.QuestionValue, Is.EqualTo(ValidQuestion));
+            Assert.That(faq.Answer.AnswerValue, Is.EqualTo(ValidAnswer));
+            Assert.That(faq.GetDomainEvents(), Has.None.TypeOf<FaqDetailsUpdatedDomainEvent>());
         });
     }
 }
