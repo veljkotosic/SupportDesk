@@ -8,7 +8,7 @@ public sealed class FaqErrors : AbstractErrors<Faq, FaqId>
     public static ValidationError AlreadyDeleted(FaqId faqId)
     {
         string code = "already_deleted";
-        string message = $"Category '{faqId}' already deleted.";
+        string message = $"Faq '{faqId}' already deleted.";
         
         return CreateValidationError(code, message);
     }
