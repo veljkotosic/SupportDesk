@@ -2,29 +2,29 @@ using System.Net;
 using SupportDesk.ApiTests.Utility;
 using SupportDesk.Application.Common.Auth.Permissions;
 
-namespace SupportDesk.ApiTests.Controllers.v1.CategoryController;
+namespace SupportDesk.ApiTests.Controllers.v1.FaqController;
 
 [TestFixture]
-internal sealed class DeleteCategoryEndpointTests : ApiTestsBase
+internal sealed class DeleteFaqEndpointTests : ApiTestsBase
 {
-    private const string EndpointUrl = "/api/v1/category";
+    private const string EndpointUrl = "/api/v1/faq";
     
     [Test]
-    public async Task Delete_Authorized_WithValidCategoryId_ShouldReturn204NoContent()
+    public async Task Delete_Authorized_WithValidFaqId_ShouldReturn204NoContent()
     {
         var organizationAdmin = await SeedOrganizationAdmin();
 
         await AuthenticateAs(organizationAdmin);
 
-        var category = await CreateCategory(organizationAdmin.OrganizationId!.IdValue, "Test", "Test");
+        var faq = await CreateFaq(organizationAdmin.OrganizationId!.IdValue, "Test", "Test");
 
-        var response = await Client.DeleteAsync($"{EndpointUrl}/{category.Id.IdValue}");
+        var response = await Client.DeleteAsync($"{EndpointUrl}/{faq.Id.IdValue}");
         
         AssertResponse.HasStatusCode(response, HttpStatusCode.NoContent);
     }
     
     [Test]
-    public async Task Delete_Authorized_WithInvalidCategoryId_ShouldReturn400BadRequest()
+    public async Task Delete_Authorized_WithInvalidFaqId_ShouldReturn400BadRequest()
     {
         var organizationAdmin = await SeedOrganizationAdmin();
         
@@ -33,7 +33,7 @@ internal sealed class DeleteCategoryEndpointTests : ApiTestsBase
         var response = await Client.DeleteAsync($"{EndpointUrl}/{Guid.NewGuid()}");
         
         AssertResponse.HasStatusCode(response, HttpStatusCode.BadRequest);
-        await AssertProblemDetails.ExistsWithStatus(response, HttpStatusCode.BadRequest);
+        await AssertProblemDetails.ExistsWithStatus(response, HttpStatusCode.BadRequest);      
     }
     
     [Test]
@@ -43,13 +43,14 @@ internal sealed class DeleteCategoryEndpointTests : ApiTestsBase
         
         await AuthenticateAs(organizationAdmin);
         
-        var category = await CreateCategory(organizationAdmin.OrganizationId!.IdValue, "Test", "Test");
-        category.Delete(TimeProvider.System);
+        var faq = await CreateFaq(organizationAdmin.OrganizationId!.IdValue, "Test", "Test");
+        faq.Delete(TimeProvider.System);
         await UnitOfWork.SaveChangesAsync();
         
-        var response = await Client.DeleteAsync($"{EndpointUrl}/{category.Id.IdValue}");
+        var response = await Client.DeleteAsync($"{EndpointUrl}/{faq.Id.IdValue}");
         
         AssertResponse.HasStatusCode(response, HttpStatusCode.BadRequest);   
+        await AssertProblemDetails.ExistsWithStatus(response, HttpStatusCode.BadRequest);      
     }
     
     [Test]
@@ -67,11 +68,11 @@ internal sealed class DeleteCategoryEndpointTests : ApiTestsBase
         
         await AuthenticateAs(organizationAdmin);
 
-        await PermissionService.RevokePermissionAsync(organizationAdmin.Id.IdValue, Permissions.Categories.Delete);
+        await PermissionService.RevokePermissionAsync(organizationAdmin.Id.IdValue, Permissions.Faqs.Delete);
         
         var response = await Client.DeleteAsync($"{EndpointUrl}/{Guid.NewGuid()}");
         
         AssertResponse.HasStatusCode(response, HttpStatusCode.Forbidden);  
-        await AssertProblemDetails.ExistsWithStatus(response, HttpStatusCode.Forbidden);  
+        await AssertProblemDetails.ExistsWithStatus(response, HttpStatusCode.Forbidden);     
     }
 }

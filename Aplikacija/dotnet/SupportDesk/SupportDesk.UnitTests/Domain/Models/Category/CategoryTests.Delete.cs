@@ -1,4 +1,5 @@
 using SupportDesk.Domain.Abstract.Validation;
+using SupportDesk.Domain.Models.Category.Events;
 using SupportDesk.Domain.Models.Category.Validation;
 using SupportDesk.TestsUtility;
 using CategoryModel = SupportDesk.Domain.Models.Category.Category;
@@ -9,7 +10,7 @@ namespace SupportDesk.UnitTests.Domain.Models.Category;
 internal sealed partial class CategoryTests
 {
     [Test]
-    public void Delete_WithValidData_ShouldMarkCategoryAsDeleted()
+    public void Delete_WithValidData_ShouldMarkCategoryAsDeleted_AndRaiseDomainEvent()
     {
         var timeProvider = TimeProvider.System;
         
@@ -18,10 +19,11 @@ internal sealed partial class CategoryTests
         category.Delete(timeProvider);
         
         Assert.That(category.DeletedAt, Is.Not.Null);
+        Assert.That(category.GetDomainEvents(), Has.Some.TypeOf<CategoryDeletedDomainEvent>());
     }
 
     [Test]
-    public void Delete_WithCategoryAlreadyDeleted_ShouldThrowValidationException()
+    public void Delete_WithCategoryAlreadyDeleted_ShouldProduceAlreadyDeletedError()
     {
         var timeProvider = TimeProvider.System;
         

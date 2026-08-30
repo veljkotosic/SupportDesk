@@ -12,6 +12,7 @@ using SupportDesk.Application.Abstract.Dispatcher;
 using SupportDesk.Application.Common.Auth;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Domain.Models.Category;
+using SupportDesk.Domain.Models.Faq;
 using SupportDesk.Domain.Models.Organization;
 using SupportDesk.Domain.Models.Organization.Repository;
 using SupportDesk.Domain.Models.SupportAgentInvite;
@@ -251,6 +252,16 @@ internal abstract class IntegrationTestsBase
         await DbContext.SaveChangesAsync();
         
         return category.Entity;
+    }
+
+    protected async Task<Faq> CreateFaq(Guid organizationId, string question, string answer, TimeProvider timeProvider)
+    {
+        var faq = await DbContext.Set<Faq>()
+            .AddAsync(Faq.Create(organizationId, question, answer, timeProvider));
+        
+        await DbContext.SaveChangesAsync();
+        
+        return faq.Entity;   
     }
 
     protected async Task<SupportAgentInvite> CreateSupportAgentInvite(string email, Guid organizationId, TimeProvider timeProvider)

@@ -57,18 +57,19 @@ internal sealed class DeleteCategoryTests : IntegrationTestsBase
     }
 
     [Test]
-    public async Task Handle_WithPermissions_WithDeletedCategory_ShouldBreakCannotDeleteAlreadyDeletedCategoryRule()
+    public async Task Handle_WithPermissions_WithDeletedCategory_ShouldBreakDomainModelExistsRule()
     {
         var addedCategory = await CreateCategory(_user.OrganizationId!.IdValue, "Test Category", "Test Description", TimeProvider.System);
         addedCategory.Delete(TimeProvider.System);
-        await DbContext.SaveChangesAsync();
+        await DbContext.SaveChangesAsync(); 
+        DbContext.ChangeTracker.Clear();
         
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteCategoryCommand(addedCategory.Id.IdValue));
         });
         
-        AssertUtility.AssertHasBrokenExactRule<CannotDeleteAlreadyDeletedCategoryRule>(exception);
+        AssertUtility.AssertHasProducedExactError(exception, CategoryErrors.NotFound(addedCategory.Id));
     }
 
     [Test]

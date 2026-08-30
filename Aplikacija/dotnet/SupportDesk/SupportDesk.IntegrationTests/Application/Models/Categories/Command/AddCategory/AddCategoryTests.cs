@@ -53,7 +53,7 @@ internal sealed class AddCategoryTests : IntegrationTestsBase
         Assert.That(persistedCategory, Is.Not.Null);
         Assert.That(persistedCategory!.Name.NameValue, Is.EqualTo(ValidName));
         Assert.That(persistedCategory.Description.DescriptionValue, Is.EqualTo(ValidDescription));
-        Assert.That(persistedCategory.OrganizationId.IdValue, Is.EqualTo(TenantContextMock.Object.GetCurrentOrganizationId()));
+        Assert.That(persistedCategory.OrganizationId, Is.EqualTo(_user.OrganizationId));
     }
 
     [Test]

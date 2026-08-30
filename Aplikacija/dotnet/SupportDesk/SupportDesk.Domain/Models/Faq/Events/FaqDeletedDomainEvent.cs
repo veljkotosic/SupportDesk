@@ -3,4 +3,4 @@ using SupportDesk.Domain.Models.Faq.ValueObjects;
 
 namespace SupportDesk.Domain.Models.Faq.Events;
 
-public sealed record FaqCreatedDomainEvent(FaqId FaqId) : IDomainEvent;
+public sealed record FaqDeletedDomainEvent(FaqId FaqId) : IDomainEvent;

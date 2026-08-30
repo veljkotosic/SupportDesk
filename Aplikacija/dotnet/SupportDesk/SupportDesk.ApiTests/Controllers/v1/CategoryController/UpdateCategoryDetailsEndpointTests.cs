@@ -20,14 +20,16 @@ internal sealed class UpdateCategoryDetailsEndpointTests : ApiTestsBase
         _user = await SeedOrganizationAdmin();
     }
     
-    [Test]
-    public async Task Patch_WithValidData_ShouldReturn204NoContent()
+    [TestCase("Test 2", "Test 2")]
+    [TestCase(null, "Test 2")]
+    [TestCase("Test 2", null)]
+    public async Task Patch_WithValidData_ShouldReturn204NoContent(string? newName, string? newDescription)
     {
         await AuthenticateAs(_user);
         
         var category = await CreateCategory(_user.OrganizationId!.IdValue, "Test", "Test");
 
-        var request = new UpdateCategoryDetailsRequest("Test 2", "Test 2");
+        var request = new UpdateCategoryDetailsRequest(newName, newDescription);
         
         var response = await Client.PatchAsJsonAsync($"{EndpointUrl}/{category.Id.IdValue}", request);
         

@@ -2,21 +2,21 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportDesk.Application.Abstract.Dispatcher;
-using SupportDesk.Application.Models.Categories.Command.AddCategory;
-using SupportDesk.Application.Models.Categories.Command.DeleteCategory;
-using SupportDesk.Application.Models.Categories.Command.UpdateCategoryDetails;
-using SupportDesk.WebApi.Controllers.v1.Category.Requests;
+using SupportDesk.Application.Models.Faqs.Command.AddFaq;
+using SupportDesk.Application.Models.Faqs.Command.DeleteFaq;
+using SupportDesk.Application.Models.Faqs.Command.UpdateFaqDetails;
+using SupportDesk.WebApi.Controllers.v1.Faq.Requests;
 
-namespace SupportDesk.WebApi.Controllers.v1.Category;
+namespace SupportDesk.WebApi.Controllers.v1.Faq;
 
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
-public sealed class CategoryController : ControllerBase
+public sealed class FaqController : ControllerBase
 {
     private readonly ICommandDispatcher _commandDispatcher;
 
-    public CategoryController(ICommandDispatcher commandDispatcher)
+    public FaqController(ICommandDispatcher commandDispatcher)
     {
         _commandDispatcher = commandDispatcher;
     }
@@ -27,46 +27,49 @@ public sealed class CategoryController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<AddCategoryCommandResult>> AddCategory(
-        [FromBody] AddCategoryRequest request,
+    public async Task<ActionResult<AddFaqCommandResult>> AddFaq(
+        [FromBody] AddFaqRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new AddCategoryCommand(request.Name, request.Description);
-        
-        var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
+        var command = new AddFaqCommand(request.Question, request.Answer);
 
-        return StatusCode(StatusCodes.Status201Created, result);
+        var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
+        
+        return StatusCode(StatusCodes.Status201Created, result);       
     }
 
     [Authorize]
-    [HttpDelete("{categoryId:guid}")]
+    [HttpDelete("{faqId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> DeleteCategory([FromRoute] Guid categoryId, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteFaq(
+        [FromRoute] Guid faqId,
+        CancellationToken cancellationToken)
     {
-        await _commandDispatcher.DispatchAsync(new DeleteCategoryCommand(categoryId), cancellationToken);
+        var command = new DeleteFaqCommand(faqId);
         
+        await _commandDispatcher.DispatchAsync(command, cancellationToken);
+
         return NoContent();
     }
 
     [Authorize]
-    [HttpPatch("{categoryId:guid}")]
+    [HttpPatch("{faqId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateCategoryDetails(
-        [FromRoute] Guid categoryId,
-        [FromBody] UpdateCategoryDetailsRequest request,
+    public async Task<IActionResult> UpdateFaqDetails(
+        [FromRoute] Guid faqId,
+        [FromBody] UpdateFaqDetailsRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateCategoryDetailsCommand(categoryId, request.Name, request.Description);
+        var command = new UpdateFaqDetailsCommand(faqId, request.Question, request.Answer);
         
         await _commandDispatcher.DispatchAsync(command, cancellationToken);
         
-        return NoContent();
+        return NoContent();       
     }
-    
 }

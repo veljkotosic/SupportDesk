@@ -12,6 +12,7 @@ using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Domain.Models.Category;
+using SupportDesk.Domain.Models.Faq;
 using SupportDesk.Domain.Models.Organization;
 using SupportDesk.Domain.Models.Organization.Repository;
 using SupportDesk.Domain.Models.SupportAgentInvite;
@@ -232,5 +233,19 @@ internal abstract class ApiTestsBase
         await DbContext.SaveChangesAsync();
         
         return category.Entity;
+    }
+    
+    protected async Task<Faq> CreateFaq(
+        Guid organizationId,
+        string question,
+        string answer,
+        TimeProvider? timeProvider = null)
+    {
+        var faq = await DbContext.Set<Faq>()
+            .AddAsync(Faq.Create(organizationId, question, answer, timeProvider ?? TimeProvider.System));
+        
+        await DbContext.SaveChangesAsync();
+        
+        return faq.Entity;
     }
 }

@@ -3,6 +3,7 @@ using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Command;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Domain.Abstract.Validation.Rule;
+using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Category.Repository;
 using SupportDesk.Domain.Models.Category.Validation.Rules;
 using SupportDesk.Domain.Models.Category.ValueObjects;
@@ -44,7 +45,7 @@ internal sealed class AddCategoryCommandHandler
     {
         var organizationId = (Guid)_tenantContext.GetCurrentOrganizationId()!;
         
-        var category = Domain.Models.Category.Category.Create(organizationId, command.Name, command.Description, _timeProvider);
+        var category = Category.Create(organizationId, command.Name, command.Description, _timeProvider);
 
         await _categoryRepository.SaveAsync(category, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

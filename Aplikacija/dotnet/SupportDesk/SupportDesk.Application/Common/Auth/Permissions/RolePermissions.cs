@@ -15,7 +15,11 @@ public static class RolePermissions
         [
             Permissions.Categories.Add,
             Permissions.Categories.Update,
-            Permissions.Categories.Delete
+            Permissions.Categories.Delete,
+            
+            Permissions.Faqs.Add,
+            Permissions.Faqs.Update,
+            Permissions.Faqs.Delete,
         ],
         [UserRole.SupportAgent] =
         [

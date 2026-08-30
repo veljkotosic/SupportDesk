@@ -53,9 +53,6 @@ internal class DeleteCategoryCommandHandler
         return [
             [
                 new DomainModelExistsRule<Category, CategoryId>(context.Category, context.Id)
-            ],
-            [
-                new CannotDeleteAlreadyDeletedCategoryRule(context.Category!)
             ]
         ];
     }

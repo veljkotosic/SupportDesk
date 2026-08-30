@@ -1,4 +1,5 @@
 using SupportDesk.Domain.Abstract.Validation;
+using SupportDesk.Domain.Models.Category.Events;
 using CategoryModel = SupportDesk.Domain.Models.Category.Category;
 
 namespace SupportDesk.UnitTests.Domain.Models.Category;
@@ -23,6 +24,7 @@ internal sealed partial class CategoryTests
             Assert.That(category.Description.DescriptionValue, Is.EqualTo(validDescription)); 
             Assert.That(category.CreatedAt.CreatedAtValue, Is.Not.EqualTo(default(DateTime)));
             Assert.That(category.DeletedAt, Is.Null);
+            Assert.That(category.GetDomainEvents(), Has.Some.TypeOf<CategoryCreatedDomainEvent>());
         });
     }
 
