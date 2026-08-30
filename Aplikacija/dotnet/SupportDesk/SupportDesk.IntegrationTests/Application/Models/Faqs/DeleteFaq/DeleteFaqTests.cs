@@ -6,6 +6,7 @@ using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.Faq.Validation;
 using SupportDesk.Domain.Models.Faq.ValueObjects;
 using SupportDesk.Domain.Models.User;
+using SupportDesk.Infrastructure.Persistence.Database;
 using SupportDesk.TestsUtility;
 
 namespace SupportDesk.IntegrationTests.Application.Models.Faqs.DeleteFaq;
@@ -36,7 +37,7 @@ internal sealed class DeleteFaqTests : IntegrationTestsBase
         
         var persistedFaq = await DbContext.Faqs
             .AsNoTracking()
-            .IgnoreQueryFilters(["SoftDeleteFilter"])
+            .IgnoreQueryFilters([QueryFilterKeys.SoftDeleteFilter])
             .FirstOrDefaultAsync(f => f.Id == addedFaq.Id);
         
         Assert.That(persistedFaq, Is.Not.Null);

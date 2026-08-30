@@ -7,6 +7,7 @@ using SupportDesk.Domain.Models.Category.Validation;
 using SupportDesk.Domain.Models.Category.Validation.Rules;
 using SupportDesk.Domain.Models.Category.ValueObjects;
 using SupportDesk.Domain.Models.User;
+using SupportDesk.Infrastructure.Persistence.Database;
 using SupportDesk.TestsUtility;
 
 namespace SupportDesk.IntegrationTests.Application.Models.Categories.Command.DeleteCategory;
@@ -36,7 +37,7 @@ internal sealed class DeleteCategoryTests : IntegrationTestsBase
 
         var persistedCategory = await DbContext.Categories
             .AsNoTracking()
-            .IgnoreQueryFilters(["SoftDeleteFilter"])
+            .IgnoreQueryFilters([QueryFilterKeys.SoftDeleteFilter])
             .FirstOrDefaultAsync(c => c.Id == addedCategory.Id);
         
         Assert.That(persistedCategory, Is.Not.Null);

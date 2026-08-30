@@ -70,12 +70,10 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
         
-        builder.HasQueryFilter(
-            "TenantIsolationFilter", 
+        builder.HasQueryFilter(QueryFilterKeys.TenantIsolationFilter, 
             category => category.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
         
-        builder.HasQueryFilter(
-            "SoftDeleteFilter",
+        builder.HasQueryFilter(QueryFilterKeys.SoftDeleteFilter,
             category => category.DeletedAt == null);
     }
 }

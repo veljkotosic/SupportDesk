@@ -70,12 +70,10 @@ public class FaqConfiguration : IEntityTypeConfiguration<Faq>
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasQueryFilter(
-            "TenantIsolationFilter", 
+        builder.HasQueryFilter(QueryFilterKeys.TenantIsolationFilter, 
             faq => faq.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
         
-        builder.HasQueryFilter(
-            "SoftDeleteFilter",
+        builder.HasQueryFilter(QueryFilterKeys.SoftDeleteFilter,
             faq => faq.DeletedAt == null);
     }
 }
