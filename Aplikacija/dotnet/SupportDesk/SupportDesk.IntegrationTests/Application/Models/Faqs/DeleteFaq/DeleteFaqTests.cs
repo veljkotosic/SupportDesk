@@ -36,7 +36,7 @@ internal sealed class DeleteFaqTests : IntegrationTestsBase
         
         var persistedFaq = await DbContext.Faqs
             .AsNoTracking()
-            .IgnoreQueryFilters()
+            .IgnoreQueryFilters(["SoftDeleteFilter"])
             .FirstOrDefaultAsync(f => f.Id == addedFaq.Id);
         
         Assert.That(persistedFaq, Is.Not.Null);

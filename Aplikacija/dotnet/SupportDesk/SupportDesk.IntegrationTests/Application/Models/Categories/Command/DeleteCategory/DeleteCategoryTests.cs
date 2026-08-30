@@ -36,7 +36,7 @@ internal sealed class DeleteCategoryTests : IntegrationTestsBase
 
         var persistedCategory = await DbContext.Categories
             .AsNoTracking()
-            .IgnoreQueryFilters()
+            .IgnoreQueryFilters(["SoftDeleteFilter"])
             .FirstOrDefaultAsync(c => c.Id == addedCategory.Id);
         
         Assert.That(persistedCategory, Is.Not.Null);
