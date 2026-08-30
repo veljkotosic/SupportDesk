@@ -58,7 +58,7 @@ public abstract class AbstractErrors<TModel, TId>
     public static ValidationError NotFound(TId id)
     {
         const string code = "not_found";
-        string message = $"{GetModelName()} with id '{id}' was not found!";
+        string message = $"{GetModelName()} with id '{id.IdValue}' was not found!";
         
         return CreateValidationError(code,message);
     }

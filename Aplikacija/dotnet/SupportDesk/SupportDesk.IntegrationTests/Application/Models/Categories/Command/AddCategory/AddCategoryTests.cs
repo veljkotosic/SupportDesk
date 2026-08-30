@@ -20,7 +20,7 @@ internal sealed class AddCategoryTests : IntegrationTestsBase
     private const string InvalidDescription = "";
 
     private User _user;
-    private TimeProvider TimeProvider;
+    private TimeProvider _timeProvider = null!;
 
     [SetUp]
     public async Task Setup()
@@ -59,9 +59,9 @@ internal sealed class AddCategoryTests : IntegrationTestsBase
     [Test]
     public async Task Handle_WithPermissions_WithExistingName_ShouldBreakCannotCreateCategoryWithExistingNameRule()
     {
-        TimeProvider = TimeProvider.System;
+        _timeProvider = TimeProvider.System;
         
-        _ = await CreateCategory(_user.OrganizationId!.IdValue, ValidName, ValidDescription, TimeProvider);
+        _ = await CreateCategory(_user.OrganizationId!.IdValue, ValidName, ValidDescription, _timeProvider);
         
         var exception = Assert.ThrowsAsync<ValidationException>(async () =>
         {

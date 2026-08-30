@@ -67,4 +67,34 @@ public sealed class Category : AbstractDomainModel<CategoryId>
         
         RaiseDomainEvent(new CategoryDeletedDomainEvent(Id));
     }
+
+    public void UpdateDetails(string? name, string? description)
+    {
+        var hasChanged = false;
+
+        if (name is not null)
+        {
+            var newName = new CategoryName(name);
+            if (newName != Name) 
+            {
+                Name = newName;
+                hasChanged = true;
+            }
+        }
+
+        if (description is not null)
+        {
+            var newDescription = new CategoryDescription(description);
+            if (newDescription != Description) 
+            {
+                Description = newDescription;
+                hasChanged = true;
+            }
+        }
+
+        if (hasChanged)
+        {
+            RaiseDomainEvent(new CategoryDetailsUpdatedDomainEvent(Id, Name, Description));
+        }
+    }
 }

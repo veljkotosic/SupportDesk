@@ -3,6 +3,7 @@ using DotNetEnv;
 using Scalar.AspNetCore;
 using SupportDesk.Infrastructure.DependencyInjection;
 using SupportDesk.WebApi.ExceptionHandlers;
+using SupportDesk.WebApi.Filters;
 
 if (File.Exists("../../../.env"))
 {
@@ -55,7 +56,10 @@ builder.Services.AddExceptionHandler<InternalExceptionHandler>();
 
 builder.Services.AddSupportDeskWebApi(builder.Configuration);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<AtLeastOneFieldRequiredRequestFilter>();
+});
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
