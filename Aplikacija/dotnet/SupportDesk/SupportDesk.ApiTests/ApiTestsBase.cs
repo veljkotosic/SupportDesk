@@ -16,6 +16,7 @@ using SupportDesk.Domain.Models.Faq;
 using SupportDesk.Domain.Models.Organization;
 using SupportDesk.Domain.Models.Organization.Repository;
 using SupportDesk.Domain.Models.SupportAgentInvite;
+using SupportDesk.Domain.Models.TemplateAnswer;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.Domain.Models.User.Enums;
 using SupportDesk.Domain.Models.User.Repository;
@@ -247,5 +248,19 @@ internal abstract class ApiTestsBase
         await DbContext.SaveChangesAsync();
         
         return faq.Entity;
+    }
+    
+    protected async Task<TemplateAnswer> CreateTemplateAnswer(
+        Guid organizationId,
+        string title,
+        string text,
+        TimeProvider? timeProvider = null)
+    {
+        var templateAnswer = await DbContext.Set<TemplateAnswer>()
+            .AddAsync(TemplateAnswer.Create(organizationId, title, text, timeProvider ?? TimeProvider.System));
+        
+        await DbContext.SaveChangesAsync();
+        
+        return templateAnswer.Entity;
     }
 }

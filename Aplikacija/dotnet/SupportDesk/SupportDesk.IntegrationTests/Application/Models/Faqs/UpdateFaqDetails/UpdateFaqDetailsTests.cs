@@ -79,7 +79,7 @@ internal sealed class UpdateFaqDetailsTests : IntegrationTestsBase
     }
     
     [Test]
-    public async Task Handle_WithInvalidCategoryId_ShouldThrowProduceFaqNotFoundError()
+    public async Task Handle_WithInvalidFaqId_ShouldThrowProduceFaqNotFoundError()
     {
         var faqId = Guid.NewGuid();
         

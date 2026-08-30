@@ -9,7 +9,7 @@ public static class RolePermissions
     {
         [UserRole.Customer] =
         [
-
+            
         ],
         [UserRole.OrganizationAdmin] =
         [
@@ -20,10 +20,14 @@ public static class RolePermissions
             Permissions.Faqs.Add,
             Permissions.Faqs.Update,
             Permissions.Faqs.Delete,
+            
+            Permissions.TemplateAnswers.Add,
+            Permissions.TemplateAnswers.Update,
+            Permissions.TemplateAnswers.Delete
         ],
         [UserRole.SupportAgent] =
         [
-
+            
         ]
     };
 

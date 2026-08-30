@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SupportDesk.Domain.Common.ValueObjects;
 using SupportDesk.Domain.Models.Organization;
 using SupportDesk.Domain.Models.Organization.ValueObjects;
 using SupportDesk.Domain.Models.TemplateAnswer;
@@ -51,13 +52,28 @@ public class TemplateAnswerConfiguration : IEntityTypeConfiguration<TemplateAnsw
             .HasMaxLength(TemplateAnswerOptionsDefaults.TextMaximumLength)
             .IsRequired();
         
+        builder.Property(templateAnswer => templateAnswer.CreatedAt)
+            .HasConversion(
+                createdAt => createdAt.CreatedAtValue,
+                value => new CreatedAt(value))
+            .IsRequired();       
+        
+        builder.Property(templateAnswer => templateAnswer.DeletedAt)
+            .HasConversion<DateTime?>(
+                deletedAt => deletedAt != null ? deletedAt.DeletedAtValue : null,
+                value => value.HasValue ? new DeletedAt(value.Value) : null)
+            .IsRequired(false);      
+        
         builder.HasOne<Organization>()
             .WithMany()
             .HasForeignKey(templateAnswer => templateAnswer.OrganizationId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasQueryFilter(templateAnswer => 
-            templateAnswer.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
+        builder.HasQueryFilter(QueryFilterKeys.TenantIsolationFilter, 
+            templateAnswer => templateAnswer.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
+        
+        builder.HasQueryFilter(QueryFilterKeys.SoftDeleteFilter,
+            templateAnswer => templateAnswer.DeletedAt == null);
     }
 }
