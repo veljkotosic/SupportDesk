@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Domain.Models.User.Options;
+using SupportDesk.Infrastructure.Auth;
 using SupportDesk.Infrastructure.Auth.AuthService;
 using SupportDesk.Infrastructure.Auth.Identity;
 using SupportDesk.Infrastructure.Auth.Jwt;
@@ -87,7 +88,13 @@ public static class AuthRegistrationExtensions
                     };
                 });
 
-            services.AddAuthorization();
+            services.AddAuthorizationBuilder()
+                .AddPolicy(Policies.OrganizationMemberOnly, policy =>
+                    policy.RequireAuthenticatedUser()
+                        .RequireClaim("organizationId"))
+                .AddPolicy(Policies.CustomerOnly, policy =>
+                    policy.RequireAuthenticatedUser()
+                        .RequireAssertion(context => !context.User.HasClaim(c => c.Type == "organizationId")));
         
             services.AddScoped<ITokenProvider, JwtTokenProvider>();
             services.AddScoped<IAuthService, EfAuthService>();

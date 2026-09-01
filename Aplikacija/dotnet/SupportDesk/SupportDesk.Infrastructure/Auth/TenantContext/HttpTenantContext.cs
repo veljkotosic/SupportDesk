@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Http;
-using SupportDesk.Application.Abstract.Auth;
+using SupportDesk.Application.Abstract.Auth.TenantContext;
 
 namespace SupportDesk.Infrastructure.Auth.TenantContext;
 

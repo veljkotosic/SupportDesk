@@ -10,13 +10,47 @@ public static class HandlerRegistrationExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddSupportDeskHandlers(Assembly assembly)
+        public IServiceCollection AddSupportDeskCommandHandlers(Assembly assembly)
         {
             var handlerInterfaces = new[]
             {
                 typeof(ICommandHandler<>),
-                typeof(ICommandHandler<,>),
-                typeof(IQueryHandler<,>),
+                typeof(ICommandHandler<,>)
+            };
+            
+            var types = assembly.GetTypes()
+                .Where(t => t is { IsAbstract: false, IsInterface: false });
+            
+            foreach (var type in types)
+            {
+                var interfaces = type.GetInterfaces();
+
+                foreach (var @interface in interfaces)
+                {
+                    if (!@interface.IsGenericType)
+                    {
+                        continue;
+                    }
+
+                    var genericDef = @interface.GetGenericTypeDefinition();
+
+                    if (!handlerInterfaces.Contains(genericDef))
+                    {
+                        continue;
+                    }
+                
+                    services.AddTransient(@interface, type);
+                }
+            }
+
+            return services;
+        }
+
+        public IServiceCollection AddSupportDeskQueryHandlers(Assembly assembly)
+        {
+            var handlerInterfaces = new[]
+            {
+                typeof(IQueryHandler<,>)
             };
             
             var types = assembly.GetTypes()
@@ -49,6 +83,11 @@ public static class HandlerRegistrationExtensions
 
         public IServiceCollection AddSupportDeskDomainEventHandlers(Assembly assembly)
         {
+            var handlerInterfaces = new[]
+            {
+                typeof(IDomainEventHandler<>),
+            };
+            
             var types = assembly.GetTypes()
                 .Where(t => t is { IsAbstract: false, IsInterface: false });
             
@@ -65,12 +104,14 @@ public static class HandlerRegistrationExtensions
 
                     var genericDef = @interface.GetGenericTypeDefinition();
 
-                    if (genericDef != typeof(IDomainEventHandler<>))
+                    if (!handlerInterfaces.Contains(genericDef))
                     {
                         continue;
                     }
                 
                     services.AddTransient(@interface, type);
+                    
+                    services.AddTransient(type);
                 }
             }
 

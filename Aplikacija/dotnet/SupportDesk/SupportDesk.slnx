@@ -5,8 +5,10 @@
   <Project Path="SupportDesk.Infrastructure/SupportDesk.Infrastructure.csproj" />
   <Project Path="SupportDesk.WebApi/SupportDesk.WebApi.csproj" />
   <Project Path="SupportDesk.ArchitectureTests/SupportDesk.ArchitectureTests.csproj" />
+  <Project Path="SupportDesk.OutboxProcessor/SupportDesk.OutboxProcessor.csproj" />
   <Project Path="SupportDesk.TestsUtility/SupportDesk.TestsUtility.csproj" />
   <Project Path="SupportDesk.UnitTests/SupportDesk.UnitTests.csproj" />
   <Project Path="SupportDesk.IntegrationTests/SupportDesk.IntegrationTests.csproj" />
+  <Project Path="SupportDesk.Worker/SupportDesk.Worker.csproj" />
   <Project Path="SupportDeskWebApi/SupportDeskWebApi.csproj" />
 </Solution>

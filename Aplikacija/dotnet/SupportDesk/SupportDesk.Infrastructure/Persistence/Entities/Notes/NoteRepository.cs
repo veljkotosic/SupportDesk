@@ -1,4 +1,5 @@
-using SupportDesk.Application.Abstract.Event;
+using SupportDesk.Application.Abstract.Auth.TenantContext;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 using SupportDesk.Domain.Models.Note;
 using SupportDesk.Domain.Models.Note.Repository;
 using SupportDesk.Domain.Models.Note.ValueObjects;
@@ -12,8 +13,10 @@ public sealed class NoteRepository
 {
     public NoteRepository(
         SupportDeskDbContext context,
-        IDomainEventCollector domainEventCollector) 
-        : base(context, domainEventCollector)
+        IServiceProvider serviceProvider,
+        IUserContext userContext,
+        ITenantContext tenantContext)
+        : base(context, serviceProvider, userContext, tenantContext)
     {
         
     }

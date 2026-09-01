@@ -1,4 +1,5 @@
-using SupportDesk.Application.Abstract.Event;
+using SupportDesk.Application.Abstract.Auth.TenantContext;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 using SupportDesk.Domain.Models.Faq;
 using SupportDesk.Domain.Models.Faq.Repository;
 using SupportDesk.Domain.Models.Faq.ValueObjects;
@@ -12,9 +13,11 @@ public sealed class FaqRepository
 {
     public FaqRepository(
         SupportDeskDbContext context,
-        IDomainEventCollector domainEventCollector) 
-        : base(context, domainEventCollector)
+        IServiceProvider serviceProvider,
+        IUserContext userContext,
+        ITenantContext tenantContext)
+        : base(context, serviceProvider, userContext, tenantContext)
     {
-        
+
     }
 }

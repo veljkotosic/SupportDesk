@@ -2,13 +2,12 @@ using Asp.Versioning;
 using DotNetEnv;
 using Scalar.AspNetCore;
 using SupportDesk.Infrastructure.DependencyInjection;
+using SupportDesk.WebApi.BackgroundServices.RealtimeUpdates;
 using SupportDesk.WebApi.ExceptionHandlers;
 using SupportDesk.WebApi.Filters;
+using SupportDesk.WebApi.Hubs;
 
-if (File.Exists("../../../.env"))
-{
-    Env.NoClobber().Load("../../../.env");
-}
+Env.TraversePath().NoClobber().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +55,10 @@ builder.Services.AddExceptionHandler<InternalExceptionHandler>();
 
 builder.Services.AddSupportDeskWebApi(builder.Configuration);
 
+builder.Services.AddSignalR();
+
+builder.Services.AddHostedService<RabbitMqRealtimeUpdateConsumerService>();
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<AtLeastOneFieldRequiredRequestFilter>();
@@ -86,6 +89,10 @@ app.UseAuthorization();
 app.UseExceptionHandler();
 
 app.MapControllers();
+    
+app.MapHub<CustomerDashboardHub>("hubs/customerDashboardHub");
+app.MapHub<OrganizationDashboardHub>("hubs/organizationDashboardHub");
+app.MapHub<TicketHub>("hubs/ticketHub");
 
 app.UseHttpLogging();
 

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using SupportDesk.Application.Abstract.Auth;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 
 namespace SupportDesk.Infrastructure.Auth.UserContext;
 

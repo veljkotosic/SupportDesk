@@ -1,4 +1,4 @@
-namespace SupportDesk.Application.Abstract.Auth;
+namespace SupportDesk.Application.Abstract.Auth.TenantContext;
 
 /// <summary>
 /// Provides access to the current tenant context and organization identity for multi-tenant operations.

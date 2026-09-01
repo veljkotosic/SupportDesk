@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using SupportDesk.Application.Abstract.Event;
+using SupportDesk.Application.Abstract.Auth.TenantContext;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 using SupportDesk.Domain.Models.Organization;
 using SupportDesk.Domain.Models.Organization.Repository;
 using SupportDesk.Domain.Models.Organization.ValueObjects;
@@ -13,8 +14,10 @@ public sealed class OrganizationRepository
 {
     public OrganizationRepository(
         SupportDeskDbContext context,
-        IDomainEventCollector domainEventCollector) 
-        : base(context, domainEventCollector)
+        IServiceProvider serviceProvider,
+        IUserContext userContext,
+        ITenantContext tenantContext)
+        : base(context, serviceProvider, userContext, tenantContext)
     {
         
     }

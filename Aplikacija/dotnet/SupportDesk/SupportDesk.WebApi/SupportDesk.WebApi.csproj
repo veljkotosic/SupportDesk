@@ -22,8 +22,4 @@
       <ProjectReference Include="..\SupportDesk.Infrastructure\SupportDesk.Infrastructure.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Controllers\v1\Ticket\Requests\" />
-    </ItemGroup>
-
 </Project>

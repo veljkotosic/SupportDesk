@@ -1,4 +1,4 @@
-namespace SupportDesk.Application.Abstract.Auth;
+namespace SupportDesk.Application.Abstract.Auth.UserContext;
 
 /// <summary>
 /// Provides access to the authenticated user identity and context for the current request.

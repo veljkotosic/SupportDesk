@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using SupportDesk.Application.Abstract.Auth;
+using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Faq;
@@ -14,6 +14,8 @@ using SupportDesk.Domain.Models.Ticket;
 using SupportDesk.Domain.Models.TicketNotification;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.Infrastructure.Auth.Identity;
+using SupportDesk.Infrastructure.Messaging.Inbox;
+using SupportDesk.Infrastructure.Messaging.Outbox;
 using SupportDesk.Infrastructure.Persistence.Entities.Categories;
 using SupportDesk.Infrastructure.Persistence.Entities.Faqs;
 using SupportDesk.Infrastructure.Persistence.Entities.Messages;
@@ -24,7 +26,6 @@ using SupportDesk.Infrastructure.Persistence.Entities.TemplateAnswers;
 using SupportDesk.Infrastructure.Persistence.Entities.TicketNotifications;
 using SupportDesk.Infrastructure.Persistence.Entities.Tickets;
 using SupportDesk.Infrastructure.Persistence.Entities.Users;
-using SupportDesk.Infrastructure.Persistence.RefreshToken;
 
 namespace SupportDesk.Infrastructure.Persistence.Database;
 
@@ -52,9 +53,11 @@ public sealed class SupportDeskDbContext
     public IQueryable<TicketNotification> TicketNotifications => Set<TicketNotification>();
     
     public IQueryable<User> DomainUsers => Set<User>();
-
-
+    
     public DbSet<RefreshToken.RefreshToken> RefreshTokens { get; set; }
+    
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
+    public DbSet<InboxMessage> InboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -71,7 +74,9 @@ public sealed class SupportDeskDbContext
         builder.ApplyConfiguration(new TicketNotificationConfiguration(this));
 
         builder.ApplyConfiguration(new UserConfiguration(this));
-    }
+        
+        builder.ApplyConfiguration(new OutboxMessageConfiguration());
+        builder.ApplyConfiguration(new InboxMessageConfiguration());
 
-    
+    }
 }

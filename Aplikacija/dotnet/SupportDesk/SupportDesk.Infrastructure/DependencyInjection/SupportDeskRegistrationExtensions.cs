@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SupportDesk.Application.Abstract;
-using SupportDesk.Application.Abstract.Dispatcher;
+using SupportDesk.Application.Abstract.Command;
 using SupportDesk.Application.Abstract.Event;
+using SupportDesk.Application.Abstract.Query;
 
 namespace SupportDesk.Infrastructure.DependencyInjection;
 
@@ -14,19 +14,52 @@ public static class SupportDeskRegistrationExtensions
         {
             services.AddSingleton(TimeProvider.System);
             
-            services.AddSupportDeskHandlers(typeof(IUseCase).Assembly);
+            services.AddSupportDeskCommandHandlers(typeof(ICommand).Assembly);
+            services.AddSupportDeskQueryHandlers(typeof(IQuery<>).Assembly);
             services.AddSupportDeskDomainEventHandlers(typeof(IDomainEventHandler<>).Assembly);
             
-            services.AddCommandDispatcher();
-            services.AddQueryDispatcher();
-            services.AddDomainEventDispatcher();
+            services.AddSupportDeskCommandDispatcher();
+            services.AddSupportDeskQueryDispatcher();
             
             services.AddSupportDeskPersistence(configuration);
+            
+            services.AddRabbitMqConnection();
 
             services.AddSupportDeskHealthChecks();
             
             services.AddSupportDeskAuth(configuration);
-            services.AddHttpUserContext();
+            services.AddHttpExecutionContext();
+            
+            return services;
+        }
+
+        public IServiceCollection AddSupportDeskWorker(IConfiguration configuration)
+        {
+            services.AddSingleton(TimeProvider.System);
+            
+            services.AddSupportDeskCommandHandlers(typeof(ICommand).Assembly);
+            services.AddSupportDeskDomainEventHandlers(typeof(IDomainEventHandler<>).Assembly);
+
+            services.AddSupportDeskCommandDispatcher();
+
+            services.AddSupportDeskPersistence(configuration);
+
+            services.AddWorkerExecutionContext();
+
+            services.AddRabbitMqRealtimePublisher();
+            
+            return services;
+        }
+
+        public IServiceCollection AddSupportDeskOutboxProcessor(IConfiguration configuration)
+        {
+            services.AddSingleton(TimeProvider.System);
+
+            services.AddSupportDeskPersistence(configuration);
+
+            services.AddWorkerExecutionContext();
+            
+            services.AddDomainEventPublisher();
             
             return services;
         }
