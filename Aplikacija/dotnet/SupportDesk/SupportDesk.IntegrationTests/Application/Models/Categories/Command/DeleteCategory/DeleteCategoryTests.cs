@@ -4,7 +4,6 @@ using SupportDesk.Application.Common.Auth.Permissions;
 using SupportDesk.Application.Models.Categories.Command.DeleteCategory;
 using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.Category.Validation;
-using SupportDesk.Domain.Models.Category.Validation.Rules;
 using SupportDesk.Domain.Models.Category.ValueObjects;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.Infrastructure.Persistence.Database;

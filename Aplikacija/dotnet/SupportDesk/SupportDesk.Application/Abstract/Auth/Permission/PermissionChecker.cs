@@ -1,3 +1,5 @@
+using SupportDesk.Application.Abstract.Auth.UserContext;
+
 namespace SupportDesk.Application.Abstract.Auth.Permission;
 
 public sealed class PermissionChecker

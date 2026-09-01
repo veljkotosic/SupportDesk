@@ -5,7 +5,6 @@ using SupportDesk.Domain.Abstract.Validation.Rule;
 using SupportDesk.Domain.Common.Validation.Rules;
 using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Category.Repository;
-using SupportDesk.Domain.Models.Category.Validation.Rules;
 using SupportDesk.Domain.Models.Category.ValueObjects;
 
 namespace SupportDesk.Application.Models.Categories.Command.DeleteCategory;

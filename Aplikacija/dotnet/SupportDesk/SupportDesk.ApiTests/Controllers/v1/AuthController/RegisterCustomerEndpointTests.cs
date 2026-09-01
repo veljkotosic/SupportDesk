@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using SupportDesk.ApiTests.Utility;
-using SupportDesk.Application.Models.Auth.Command.RegisterCustomer;
 using SupportDesk.WebApi.Controllers.v1.Auth.Requests;
 
 namespace SupportDesk.ApiTests.Controllers.v1.AuthController;

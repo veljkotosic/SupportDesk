@@ -8,6 +8,8 @@ using Npgsql;
 using Respawn;
 using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
+using SupportDesk.Application.Abstract.Auth.TenantContext;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 using SupportDesk.Application.Abstract.Dispatcher;
 using SupportDesk.Application.Common.Auth;
 using SupportDesk.Domain.Abstract;

@@ -1,6 +1,5 @@
 using SupportDesk.Domain.Abstract.Validation.Rule;
 using SupportDesk.Domain.Common.ValueObjects;
-using SupportDesk.Domain.Models.SupportAgentInvite.ValueObjects;
 
 namespace SupportDesk.Domain.Models.SupportAgentInvite.Validation.Rules;
 

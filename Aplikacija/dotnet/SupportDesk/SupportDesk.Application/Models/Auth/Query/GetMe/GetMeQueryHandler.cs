@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Query;
 using SupportDesk.Domain.Abstract.Validation;

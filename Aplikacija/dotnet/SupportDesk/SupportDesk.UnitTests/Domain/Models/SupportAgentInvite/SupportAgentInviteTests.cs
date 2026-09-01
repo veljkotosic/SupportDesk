@@ -4,7 +4,6 @@ using SupportDesk.Domain.Models.SupportAgentInvite.Enums;
 using SupportDesk.Domain.Models.SupportAgentInvite.Events;
 using SupportDesk.Domain.Models.SupportAgentInvite.Options;
 using SupportDesk.Domain.Models.SupportAgentInvite.Validation;
-using SupportDesk.Domain.Models.SupportAgentInvite.ValueObjects;
 using SupportDesk.TestsUtility;
 using SupportAgentInviteModel = SupportDesk.Domain.Models.SupportAgentInvite.SupportAgentInvite;
 

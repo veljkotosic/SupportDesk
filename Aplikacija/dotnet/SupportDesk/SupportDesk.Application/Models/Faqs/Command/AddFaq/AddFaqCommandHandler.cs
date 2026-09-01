@@ -1,11 +1,10 @@
-using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
+using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Command;
 using SupportDesk.Application.Common.Command.Context;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Domain.Models.Faq;
 using SupportDesk.Domain.Models.Faq.Repository;
-using SupportDesk.Domain.Models.Organization.ValueObjects;
 
 namespace SupportDesk.Application.Models.Faqs.Command.AddFaq;
 

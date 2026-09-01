@@ -1,5 +1,5 @@
-using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
+using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Command;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Domain.Abstract.Validation.Rule;

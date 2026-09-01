@@ -1,5 +1,6 @@
 using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 using SupportDesk.Application.Abstract.Command;
 using SupportDesk.Application.Common.Command.Context;
 

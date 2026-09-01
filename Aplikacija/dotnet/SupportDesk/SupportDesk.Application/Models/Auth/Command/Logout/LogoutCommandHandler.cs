@@ -1,5 +1,6 @@
 using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 using SupportDesk.Application.Abstract.Command;
 using SupportDesk.Domain.Abstract.Validation.Rule;
 using SupportDesk.Domain.Models.User.Validation.Rules;

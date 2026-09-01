@@ -1,6 +1,5 @@
 using SupportDesk.Domain.Abstract.Validation.Rule;
 using SupportDesk.Domain.Abstract.ValueObject;
-using SupportDesk.Domain.Common.Validation.Rules;
 
 namespace SupportDesk.Domain.Models.Ticket.ValueObjects;
 

@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using SupportDesk.ApiTests.Utility;
-using SupportDesk.Application.Models.Auth.Command.RegisterSupportAgent;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.WebApi.Controllers.v1.Auth.Requests;
 

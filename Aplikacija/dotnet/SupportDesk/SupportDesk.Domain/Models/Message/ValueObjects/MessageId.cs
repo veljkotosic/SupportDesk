@@ -1,4 +1,3 @@
-using SupportDesk.Domain.Abstract.ValueObject;
 using SupportDesk.Domain.Common.ValueObjects;
 
 namespace SupportDesk.Domain.Models.Message.ValueObjects;

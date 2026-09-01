@@ -1,10 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SupportDesk.Application.Models.Auth.Command.RefreshLogin;
-using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.User;
-using SupportDesk.Domain.Models.User.Validation.Rules;
 using SupportDesk.Infrastructure.Persistence.RefreshToken;
-using SupportDesk.TestsUtility;
 
 namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command.RefreshLogin;
 

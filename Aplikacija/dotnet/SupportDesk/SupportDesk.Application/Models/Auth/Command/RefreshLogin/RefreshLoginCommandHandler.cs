@@ -2,10 +2,7 @@ using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Command;
 using SupportDesk.Application.Common.Command.Context;
-using SupportDesk.Application.Models.Auth.Command.Logout;
 using SupportDesk.Domain.Abstract;
-using SupportDesk.Domain.Abstract.Validation.Rule;
-using SupportDesk.Domain.Models.User.Validation.Rules;
 
 namespace SupportDesk.Application.Models.Auth.Command.RefreshLogin;
 
