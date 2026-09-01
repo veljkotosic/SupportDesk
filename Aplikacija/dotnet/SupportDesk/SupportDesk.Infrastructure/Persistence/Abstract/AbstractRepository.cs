@@ -83,7 +83,7 @@ public abstract class AbstractRepository<TDomainModel, TId> : IAbstractRepositor
                         HandlerType = handlerType.AssemblyQualifiedName ?? handlerType.FullName!,
                         EventType = eventType.AssemblyQualifiedName ?? eventType.FullName!,
                         Payload = JsonSerializer.Serialize(domainEvent, eventType),
-                        UserId = _userContext.GetCurrentUserId(),
+                        UserId = _userContext.TryGetCurrentUserId(),
                         OrganizationId = _tenantContext.GetCurrentOrganizationId(),
                         OccurredOnUtc = DateTime.UtcNow,
                         ProcessedOnUtc = null,

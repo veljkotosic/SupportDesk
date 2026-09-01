@@ -31,4 +31,23 @@ public sealed class HttpUserContext : IUserContext
         
         return Guid.Parse(userIdClaim.Value);
     }
+
+    public Guid? TryGetCurrentUserId()
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        
+        if (user is null || !user.Identity!.IsAuthenticated)
+        {
+            return null;
+        }
+        
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        
+        if (userIdClaim is null)
+        {
+            return null;
+        }
+        
+        return Guid.Parse(userIdClaim.Value);
+    }
 }

@@ -16,6 +16,11 @@ public sealed class WorkerUserContext : IUserContext, IUserContextSetter
         return _userId.Value;
     }
 
+    public Guid? TryGetCurrentUserId()
+    {
+        return _userId;
+    }
+
     public void SetCurrentUserId(Guid? userId)
     {
         _userId = userId;

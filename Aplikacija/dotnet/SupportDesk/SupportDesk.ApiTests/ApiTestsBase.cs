@@ -148,12 +148,13 @@ internal abstract class ApiTestsBase
         string userName = DefaultCustomerUserName)
     {
         var authService = GetRequiredService<IAuthService>();
-        var userRepo = GetRequiredService<IUserRepository>();
         var user = User.Create(email, userName, null, UserRole.Customer, TimeProvider.System);
-        
-        await userRepo.SaveAsync(user);
+    
+        await DbContext.Set<User>().AddAsync(user);
         await authService.SignUpWithEmailAndPasswordAsync(user, password);
-        await UnitOfWork.SaveChangesAsync();
+        await DbContext.SaveChangesAsync();
+    
+        DbContext.ChangeTracker.Clear();
         return user;
     }
 
@@ -164,11 +165,8 @@ internal abstract class ApiTestsBase
         string password = DefaultOrganizationAdminPassword)
     {
         var authService = GetRequiredService<IAuthService>();
-        var userRepository = GetRequiredService<IUserRepository>();
-        var organizationRepository = GetRequiredService<IOrganizationRepository>();
-        
         var organization = Organization.Create(organizationName, TimeProvider.System);
-        
+    
         var user = User.Create(
             email,
             username,
@@ -176,12 +174,12 @@ internal abstract class ApiTestsBase
             UserRole.OrganizationAdmin,
             TimeProvider.System);
         
-        await userRepository.SaveAsync(user);
-        await organizationRepository.SaveAsync(organization);
+        await DbContext.Set<Organization>().AddAsync(organization);
+        await DbContext.Set<User>().AddAsync(user);
         await authService.SignUpWithEmailAndPasswordAsync(user, password);
-        
-        await UnitOfWork.SaveChangesAsync();   
-        
+        await DbContext.SaveChangesAsync();
+    
+        DbContext.ChangeTracker.Clear();
         return user;
     }
 
@@ -192,21 +190,20 @@ internal abstract class ApiTestsBase
         string password = DefaultSupportAgentPassword)
     {
         var authService = GetRequiredService<IAuthService>();
-        var userRepository = GetRequiredService<IUserRepository>();
-        
+    
         var user = User.Create(
             email,
             username,
             organizationId,
             UserRole.SupportAgent,
             TimeProvider.System);
-        
-        await userRepository.SaveAsync(user);
+    
+        await DbContext.Set<User>().AddAsync(user);
         await authService.SignUpWithEmailAndPasswordAsync(user, password);
-        
-        await UnitOfWork.SaveChangesAsync();
-        
-        return user;  
+        await DbContext.SaveChangesAsync();
+    
+        DbContext.ChangeTracker.Clear();
+        return user;
     }
 
     protected async Task<SupportAgentInvite> CreateSupportAgentInvite(
