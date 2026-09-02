@@ -111,7 +111,10 @@ public class RabbitMqRealtimeUpdateConsumerService : BackgroundService
             RealtimeHubType.Ticket => _ticketHub.Clients.Group(message.TargetGroup),
             _ => throw new ArgumentOutOfRangeException(nameof(message.HubType), $"Unknown hub type {message.HubType}")
         };
+        
+        using var document = JsonDocument.Parse(message.PayloadJson);
+        var payloadObject = document.RootElement.Clone();
 
-        await clientProxy.SendAsync(message.Action, message.PayloadJson, cancellationToken);
+        await clientProxy.SendAsync(message.Action, payloadObject, cancellationToken);
     }
 }

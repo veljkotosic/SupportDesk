@@ -5,13 +5,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using SupportDesk.Application.Abstract.Auth;
-using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Domain.Models.User.Options;
 using SupportDesk.Infrastructure.Auth;
 using SupportDesk.Infrastructure.Auth.AuthService;
 using SupportDesk.Infrastructure.Auth.Identity;
 using SupportDesk.Infrastructure.Auth.Jwt;
-using SupportDesk.Infrastructure.Auth.Permission;
 using SupportDesk.Infrastructure.DependencyInjection.Configuration;
 using SupportDesk.Infrastructure.Persistence.Database;
 
@@ -98,9 +96,6 @@ public static class AuthRegistrationExtensions
         
             services.AddScoped<ITokenProvider, JwtTokenProvider>();
             services.AddScoped<IAuthService, EfAuthService>();
-
-            services.AddScoped<IPermissionService, DbPermissionService>();
-            services.AddScoped<PermissionChecker>();
             
             return services;
         }

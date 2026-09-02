@@ -11,10 +11,6 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
         
         builder.HasKey(outboxMessage => outboxMessage.Id);
 
-        builder.Property(outboxMessage => outboxMessage.HandlerType)
-            .IsRequired()
-            .HasMaxLength(500);
-
         builder.Property(outboxMessage => outboxMessage.EventType)
             .IsRequired()
             .HasMaxLength(500);

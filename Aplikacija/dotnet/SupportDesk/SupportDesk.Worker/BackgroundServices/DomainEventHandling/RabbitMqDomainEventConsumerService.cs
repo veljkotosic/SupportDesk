@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Auth.UserContext;
+using SupportDesk.Application.Abstract.Event;
 using SupportDesk.Infrastructure.Messaging.Inbox;
 using SupportDesk.Infrastructure.Messaging.Outbox;
 using SupportDesk.Infrastructure.Messaging.RabbitMq;
@@ -115,57 +117,72 @@ public sealed class RabbitMqDomainEventConsumerService : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SupportDeskDbContext>();
         
-        var inboxMessage = await dbContext.InboxMessages.FindAsync([outboxMessage.Id], cancellationToken);
+        var eventType = Type.GetType(outboxMessage.EventType)!;
+        var domainEvent = JsonSerializer.Deserialize(outboxMessage.Payload, eventType)!;
+        
+        var handlerInterfaceType = typeof(IDomainEventHandler<>).MakeGenericType(eventType);
+        var handlers = scope.ServiceProvider.GetServices(handlerInterfaceType);
+        
+        var userSetter = scope.ServiceProvider.GetRequiredService<IUserContextSetter>();
+        userSetter.SetCurrentUserId(outboxMessage.UserId);
 
-        if (inboxMessage is not null && inboxMessage.ProcessedOnUtc is not null)
-        {
-            _logger.LogInformation("Message {OutboxInboxMessageId} already processed by Inbox. Skipping duplicate.", outboxMessage.Id);
-            return;
-        }
+        var tenantSetter = scope.ServiceProvider.GetRequiredService<ITenantContextSetter>();
+        tenantSetter.SetCurrentOrganizationId(outboxMessage.OrganizationId);
 
-        if (inboxMessage is null)
+        foreach (var handler in handlers)
         {
-            inboxMessage = new InboxMessage
+            if (handler is null)
             {
-                Id = outboxMessage.Id,
-                HandlerType = outboxMessage.HandlerType,
-                Payload = outboxMessage.Payload,
-                UserId = outboxMessage.UserId,
-                OrganizationId = outboxMessage.OrganizationId,
-                ReceivedOnUtc = DateTime.UtcNow,
-                ProcessedOnUtc = null,
-                Error = null
-            };
+                continue;
+            }
+
+            var handlerType = handler.GetType();
+            var handlerTypeName = handlerType.AssemblyQualifiedName ?? handlerType.FullName!;
             
-            await dbContext.InboxMessages.AddAsync(inboxMessage, cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
+            var inboxMessage = await dbContext.InboxMessages
+                .FirstOrDefaultAsync(m => m.OutboxMessageId == outboxMessage.Id && m.HandlerType == handlerTypeName, cancellationToken);
 
-        try
-        {
-            var userSetter = scope.ServiceProvider.GetRequiredService<IUserContextSetter>();
-            userSetter.SetCurrentUserId(outboxMessage.UserId);
-
-            var tenantSetter = scope.ServiceProvider.GetRequiredService<ITenantContextSetter>();
-            tenantSetter.SetCurrentOrganizationId(outboxMessage.OrganizationId);
-
-            var handlerType = Type.GetType(outboxMessage.HandlerType)!;
-            var eventType = Type.GetType(outboxMessage.EventType)!;
-            var domainEvent = JsonSerializer.Deserialize(outboxMessage.Payload, eventType)!;
-
-            var handler = scope.ServiceProvider.GetRequiredService(handlerType);
-            var handleMethod = handlerType.GetMethod("HandleAsync", [eventType, typeof(CancellationToken)])!;
-
-            await (Task)handleMethod.Invoke(handler, [domainEvent, cancellationToken])!;
+            if (inboxMessage is not null && inboxMessage.ProcessedOnUtc is not null)
+            {
+                continue;
+            }
             
-            inboxMessage.ProcessedOnUtc = DateTime.UtcNow;
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
-        catch (Exception e)
-        {
-            inboxMessage.Error = e.ToString();
-            await dbContext.SaveChangesAsync(cancellationToken);
-            throw;
+            if (inboxMessage is null)
+            {
+                inboxMessage = new InboxMessage
+                {
+                    OutboxMessageId = outboxMessage.Id,
+                    HandlerType = handlerTypeName,
+                    Payload = outboxMessage.Payload,
+                    UserId = outboxMessage.UserId,
+                    OrganizationId = outboxMessage.OrganizationId,
+                    ReceivedOnUtc = DateTime.UtcNow,
+                    ProcessedOnUtc = null,
+                    Error = null
+                };
+                
+                await dbContext.InboxMessages.AddAsync(inboxMessage, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            try
+            {
+                var handleMethod = handlerType.GetMethod("HandleAsync", [eventType, typeof(CancellationToken)])!;
+                await (Task)handleMethod.Invoke(handler, [domainEvent, cancellationToken])!;
+
+                inboxMessage.ProcessedOnUtc = DateTime.UtcNow;
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                inboxMessage.Error = ex.ToString();
+                
+                await dbContext.SaveChangesAsync(cancellationToken);
+                
+                _logger.LogError(ex, "Domain event handler '{DomainEventHandler}' failed to handle event with id '{DomainEventId}'", handlerTypeName, outboxMessage.Id);
+                
+                throw; 
+            }
         }
     }
 }

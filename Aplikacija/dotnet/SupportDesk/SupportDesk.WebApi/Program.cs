@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Asp.Versioning;
 using DotNetEnv;
 using Scalar.AspNetCore;
@@ -56,7 +57,11 @@ builder.Services.AddExceptionHandler<InternalExceptionHandler>();
 builder.Services.AddSupportDeskObservability("SupportDesk.WebApi", builder.Configuration);
 builder.Services.AddSupportDeskWebApi(builder.Configuration);
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 builder.Services.AddHostedService<RabbitMqRealtimeUpdateConsumerService>();
 

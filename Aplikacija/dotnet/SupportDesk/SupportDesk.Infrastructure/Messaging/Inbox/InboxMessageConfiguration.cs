@@ -11,6 +11,9 @@ public sealed class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMe
         
         builder.HasKey(inboxMessage => inboxMessage.Id);
 
+        builder.Property(inboxMessage => inboxMessage.OutboxMessageId)
+            .IsRequired();       
+        
         builder.Property(inboxMessage => inboxMessage.HandlerType)
             .IsRequired()
             .HasMaxLength(500);

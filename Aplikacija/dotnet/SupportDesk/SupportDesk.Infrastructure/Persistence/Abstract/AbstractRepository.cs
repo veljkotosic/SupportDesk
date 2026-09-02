@@ -64,36 +64,22 @@ public abstract class AbstractRepository<TDomainModel, TId> : IAbstractRepositor
             foreach (var domainEvent in domainEvents)
             {
                 var eventType = domainEvent.GetType();
-                var handlerInterfaceType = typeof(IDomainEventHandler<>).MakeGenericType(eventType);
 
-                var handlers = _serviceProvider.GetServices(handlerInterfaceType);
-
-                foreach (var handler in handlers)
+                var outboxMessage = new OutboxMessage
                 {
-                    if (handler is null)
-                    {
-                        continue;
-                    }
+                    Id = Guid.NewGuid(),
+                    EventType = eventType.AssemblyQualifiedName ?? eventType.FullName!,
+                    Payload = JsonSerializer.Serialize(domainEvent, eventType),
+                    UserId = _userContext.TryGetCurrentUserId(),
+                    OrganizationId = _tenantContext.GetCurrentOrganizationId(),
+                    OccurredOnUtc = DateTime.UtcNow,
+                    ProcessedOnUtc = null,
+                    Error = null
+                };
 
-                    var handlerType = handler.GetType();
-
-                    var outboxMessage = new OutboxMessage
-                    {
-                        Id = Guid.NewGuid(),
-                        HandlerType = handlerType.AssemblyQualifiedName ?? handlerType.FullName!,
-                        EventType = eventType.AssemblyQualifiedName ?? eventType.FullName!,
-                        Payload = JsonSerializer.Serialize(domainEvent, eventType),
-                        UserId = _userContext.TryGetCurrentUserId(),
-                        OrganizationId = _tenantContext.GetCurrentOrganizationId(),
-                        OccurredOnUtc = DateTime.UtcNow,
-                        ProcessedOnUtc = null,
-                        Error = null
-                    };
-                    
-                    await Context.OutboxMessages.AddAsync(outboxMessage, cancellationToken);
-                }
+                await Context.OutboxMessages.AddAsync(outboxMessage, cancellationToken);
             }
-            
+
             model.ClearDomainEvents();
         }
     }

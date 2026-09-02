@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Auth.UserContext;
+using SupportDesk.Infrastructure.Auth.Permission;
 using SupportDesk.Infrastructure.Auth.TenantContext;
 using SupportDesk.Infrastructure.Auth.UserContext;
 
@@ -16,6 +18,9 @@ public static class ExecutionContextRegistrationExtensions
 
             services.AddScoped<IUserContext, HttpUserContext>();
             services.AddScoped<ITenantContext, HttpTenantContext>();
+            
+            services.AddScoped<IPermissionService, DbPermissionService>();
+            services.AddScoped<PermissionChecker>();
         
             return services;
         }
@@ -29,6 +34,9 @@ public static class ExecutionContextRegistrationExtensions
             services.AddScoped<WorkerTenantContext>();
             services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<WorkerTenantContext>());
             services.AddScoped<ITenantContextSetter>(sp => sp.GetRequiredService<WorkerTenantContext>());
+            
+            services.AddScoped<IPermissionService, DbPermissionService>();
+            services.AddScoped<PermissionChecker>();
             
             return services;
         }

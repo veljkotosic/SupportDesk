@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SupportDesk.Infrastructure.Persistence.Database;
@@ -11,9 +12,11 @@ using SupportDesk.Infrastructure.Persistence.Database;
 namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 {
     [DbContext(typeof(SupportDeskDbContext))]
-    partial class SupportDeskDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260902164411_RevisedOutboxInboxPattern")]
+    partial class RevisedOutboxInboxPattern
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
