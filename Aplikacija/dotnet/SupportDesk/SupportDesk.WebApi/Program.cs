@@ -53,6 +53,7 @@ builder.Services.AddExceptionHandler<PermissionExceptionHandler>();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<InternalExceptionHandler>();
 
+builder.Services.AddSupportDeskObservability("SupportDesk.WebApi", builder.Configuration);
 builder.Services.AddSupportDeskWebApi(builder.Configuration);
 
 builder.Services.AddSignalR();
@@ -84,6 +85,7 @@ app.UseHttpsRedirection();
 
 app.MapHealthChecks("/health");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseExceptionHandler();

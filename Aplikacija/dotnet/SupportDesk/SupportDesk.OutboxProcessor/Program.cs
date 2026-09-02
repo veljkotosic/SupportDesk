@@ -8,6 +8,7 @@ Env.TraversePath().NoClobber().Load();
 
 var builder = Host.CreateApplicationBuilder(args);
 
+builder.Services.AddSupportDeskObservability("SupportDesk.OutboxProcessor", builder.Configuration);
 builder.Services.AddSupportDeskOutboxProcessor(builder.Configuration);
 
 builder.Services.AddHostedService<OutboxProcessorService>();

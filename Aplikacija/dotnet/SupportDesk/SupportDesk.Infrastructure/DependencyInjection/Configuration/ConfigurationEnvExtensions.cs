@@ -5,8 +5,10 @@ namespace SupportDesk.Infrastructure.DependencyInjection.Configuration;
 public static class ConfigurationEnvExtensions
 {
     private const string DbConnStringKey = "DB_CONN_STRING";
-    
+
     private const string RabbitMqAmqpUriKey = "RABBITMQ_AMQP_URI";
+    
+    private const string OtelExporterOtlpEndpointKey = "OTEL_EXPORTER_OTLP_ENDPOINT";
     
     private const string JwtIssuer = "JWT_ISSUER";
     private const string JwtAudience = "JWT_AUDIENCE";
@@ -25,6 +27,11 @@ public static class ConfigurationEnvExtensions
         public string GetEnvRabbitMqAmqpUri()
         {
             return configuration.GetEnvForSure(RabbitMqAmqpUriKey);
+        }
+
+        public string GetEnvOtelExporterOtlpEndpoint()
+        {
+            return configuration.GetEnvForSure(OtelExporterOtlpEndpointKey);
         }
 
         public string GetEnvJwtIssuer()
