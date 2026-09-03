@@ -3,7 +3,7 @@ using SupportDesk.Application.Models.Auth.Command.RefreshLogin;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.Infrastructure.Persistence.RefreshToken;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command.RefreshLogin;
+namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command;
 
 [TestFixture]
 internal sealed class RefreshLoginTests : IntegrationTestsBase

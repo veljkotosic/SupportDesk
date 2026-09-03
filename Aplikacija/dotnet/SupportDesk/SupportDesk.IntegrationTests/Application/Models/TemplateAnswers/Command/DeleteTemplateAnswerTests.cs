@@ -9,7 +9,7 @@ using SupportDesk.Domain.Models.User;
 using SupportDesk.Infrastructure.Persistence.Database;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.TemplateAnswers.DeleteTemplateAnswer;
+namespace SupportDesk.IntegrationTests.Application.Models.TemplateAnswers.Command;
 
 [TestFixture]
 internal sealed class DeleteTemplateAnswerTests : IntegrationTestsBase

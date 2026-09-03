@@ -11,7 +11,7 @@ using SupportDesk.Domain.Models.User.Enums;
 using SupportDesk.Domain.Models.User.ValueObjects;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command.RegisterSupportAgent;
+namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command;
 
 [TestFixture]
 internal sealed class RegisterSupportAgentTests : IntegrationTestsBase

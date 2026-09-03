@@ -8,7 +8,7 @@ using SupportDesk.Domain.Models.TemplateAnswer.ValueObjects;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.TemplateAnswers.UpdateTemplateAnswerDetails;
+namespace SupportDesk.IntegrationTests.Application.Models.TemplateAnswers.Command;
 
 [TestFixture]
 internal sealed class UpdateTemplateAnswerDetailsTests : IntegrationTestsBase

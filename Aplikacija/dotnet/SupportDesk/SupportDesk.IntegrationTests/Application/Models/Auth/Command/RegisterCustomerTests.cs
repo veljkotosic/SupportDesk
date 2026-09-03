@@ -4,7 +4,7 @@ using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.User.Enums;
 using SupportDesk.Domain.Models.User.ValueObjects;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command.RegisterCustomer;
+namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command;
 
 [TestFixture]
 internal sealed class RegisterCustomerTests : IntegrationTestsBase

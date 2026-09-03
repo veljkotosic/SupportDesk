@@ -8,7 +8,7 @@ using SupportDesk.Domain.Models.Faq.ValueObjects;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Faqs.UpdateFaqDetails;
+namespace SupportDesk.IntegrationTests.Application.Models.Faqs.Command;
 
 [TestFixture]
 internal sealed class UpdateFaqDetailsTests : IntegrationTestsBase

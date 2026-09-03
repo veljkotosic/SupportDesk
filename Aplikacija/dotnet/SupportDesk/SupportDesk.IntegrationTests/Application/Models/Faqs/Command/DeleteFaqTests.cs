@@ -9,7 +9,7 @@ using SupportDesk.Domain.Models.User;
 using SupportDesk.Infrastructure.Persistence.Database;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Faqs.DeleteFaq;
+namespace SupportDesk.IntegrationTests.Application.Models.Faqs.Command;
 
 internal sealed class DeleteFaqTests : IntegrationTestsBase
 {

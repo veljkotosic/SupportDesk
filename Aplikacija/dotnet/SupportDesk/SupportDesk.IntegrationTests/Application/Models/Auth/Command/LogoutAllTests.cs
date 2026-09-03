@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SupportDesk.Application.Models.Auth.Command.LogoutAll;
 using SupportDesk.Domain.Models.User;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command.LogoutAll;
+namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command;
 
 [TestFixture]
 internal sealed class LogoutAllTests : IntegrationTestsBase

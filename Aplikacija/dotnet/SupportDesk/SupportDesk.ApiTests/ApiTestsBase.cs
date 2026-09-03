@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 using Respawn;
 using SupportDesk.Application.Abstract.Auth;
@@ -68,10 +69,19 @@ internal abstract class ApiTestsBase
         Environment.SetEnvironmentVariable("JWT_CUSTOMER_REFRESH_TOKEN_EXPIRATION_DAYS", "5");
         Environment.SetEnvironmentVariable("JWT_ORGANIZATION_REFRESH_TOKEN_EXPIRATION_DAYS", "180");
         
+        Environment.SetEnvironmentVariable("OTEL_SDK_DISABLED", "true");
+        Environment.SetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318");
+        
         Factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
-                builder.UseEnvironment("Development");
+                builder.UseEnvironment("Testing");
+                
+                builder.ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders();
+                    logging.SetMinimumLevel(LogLevel.Warning); // Or LogLevel.None to silence completely
+                });
             });
 
         using var migrationScope = Factory.Services.CreateScope();

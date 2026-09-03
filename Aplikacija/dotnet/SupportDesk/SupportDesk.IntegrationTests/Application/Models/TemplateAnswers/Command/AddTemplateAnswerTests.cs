@@ -6,7 +6,7 @@ using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.TemplateAnswer.ValueObjects;
 using SupportDesk.Domain.Models.User;
 
-namespace SupportDesk.IntegrationTests.Application.Models.TemplateAnswers.AddTemplateAnswer;
+namespace SupportDesk.IntegrationTests.Application.Models.TemplateAnswers.Command;
 
 [TestFixture]
 internal sealed class AddTemplateAnswerTests : IntegrationTestsBase

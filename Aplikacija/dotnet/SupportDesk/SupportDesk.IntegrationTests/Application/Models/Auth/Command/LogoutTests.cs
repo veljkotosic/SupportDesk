@@ -5,7 +5,7 @@ using SupportDesk.Domain.Models.User;
 using SupportDesk.Domain.Models.User.Validation.Rules;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command.Logout;
+namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command;
 
 [TestFixture]
 internal sealed class LogoutTests : IntegrationTestsBase

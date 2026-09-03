@@ -9,7 +9,7 @@ using SupportDesk.Domain.Models.Category.ValueObjects;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Categories.Command.UpdateCategoryDetails;
+namespace SupportDesk.IntegrationTests.Application.Models.Categories.Command;
 
 [TestFixture]
 internal sealed class UpdateCategoryDetailsTests : IntegrationTestsBase

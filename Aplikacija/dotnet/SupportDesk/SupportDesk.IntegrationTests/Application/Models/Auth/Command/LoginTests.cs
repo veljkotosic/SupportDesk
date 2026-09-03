@@ -4,7 +4,7 @@ using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.User.Validation;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command.Login;
+namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command;
 
 [TestFixture]
 internal sealed class LoginTests : IntegrationTestsBase

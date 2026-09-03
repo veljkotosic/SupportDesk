@@ -6,7 +6,7 @@ using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.Faq.ValueObjects;
 using SupportDesk.Domain.Models.User;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Faqs.AddFaq;
+namespace SupportDesk.IntegrationTests.Application.Models.Faqs.Command;
 
 [TestFixture]
 internal sealed class AddFaqTests : IntegrationTestsBase

@@ -5,7 +5,7 @@ using SupportDesk.Domain.Models.Organization.Enums;
 using SupportDesk.Domain.Models.User.Enums;
 using SupportDesk.Domain.Models.User.ValueObjects;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command.RegisterOrganization;
+namespace SupportDesk.IntegrationTests.Application.Models.Auth.Command;
 
 [TestFixture]
 internal sealed class RegisterOrganizationTests : IntegrationTestsBase

@@ -9,7 +9,7 @@ using SupportDesk.Domain.Models.User;
 using SupportDesk.Infrastructure.Persistence.Database;
 using SupportDesk.TestsUtility;
 
-namespace SupportDesk.IntegrationTests.Application.Models.Categories.Command.DeleteCategory;
+namespace SupportDesk.IntegrationTests.Application.Models.Categories.Command;
 
 [TestFixture]
 internal sealed class DeleteCategoryTests : IntegrationTestsBase
