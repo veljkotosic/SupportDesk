@@ -5,6 +5,7 @@ using SupportDesk.Domain.Models.Ticket.ValueObjects;
 using SupportDesk.Domain.Models.TicketNotification.Enums;
 using SupportDesk.Domain.Models.TicketNotification.Events;
 using SupportDesk.Domain.Models.TicketNotification.ValueObjects;
+using SupportDesk.Domain.Models.User.ValueObjects;
 
 namespace SupportDesk.Domain.Models.TicketNotification;
 
@@ -37,7 +38,7 @@ public sealed class TicketNotification : AbstractDomainModel<TicketNotificationI
         CreatedAt = createdAt;   
     }
 
-    public static TicketNotification Create(Guid organizationId, Guid ticketId, string text, TimeProvider timeProvider)
+    public static TicketNotification Create(Guid organizationId, Guid ticketId, string text, Guid customerId, TimeProvider timeProvider)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;    
         
@@ -56,7 +57,9 @@ public sealed class TicketNotification : AbstractDomainModel<TicketNotificationI
             status,
             createdAtVo);
         
-        createdTicketNotification.RaiseDomainEvent(new TicketNotificationCreatedDomainEvent(createdTicketNotification.Id.IdValue));
+        var customerIdVo = new UserId(customerId);
+        
+        createdTicketNotification.RaiseDomainEvent(new TicketNotificationCreatedDomainEvent(createdTicketNotification.Id, customerIdVo));
         
         return createdTicketNotification;       
     }

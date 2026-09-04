@@ -1,3 +1,4 @@
+using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.Ticket.Enums;
 using SupportDesk.Domain.Models.Ticket.Events;
 using TicketModel = SupportDesk.Domain.Models.Ticket.Ticket;
@@ -5,19 +6,19 @@ using TicketModel = SupportDesk.Domain.Models.Ticket.Ticket;
 namespace SupportDesk.UnitTests.Domain.Models.Ticket;
 
 [TestFixture]
-internal sealed class TicketTests
+internal sealed partial class TicketTests
 {
     [TestCase(TicketPriority.Low, "Test Ticket")]
     [TestCase(TicketPriority.High, "Test Ticket")]
     [TestCase(TicketPriority.Medium, "Test Ticket")]
-    public void Create_WithValidData_ShouldCreateTicket(TicketPriority priority, string validSubject)
+    public void Open_WithValidData_ShouldCreateTicket(TicketPriority priority, string validSubject)
     {
         var organizationId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var categoryId = Guid.NewGuid();
         var timeProvider = TimeProvider.System;
 
-        var ticket = TicketModel.Create(
+        var ticket = TicketModel.Open(
             organizationId,
             customerId,
             categoryId,
@@ -40,7 +41,27 @@ internal sealed class TicketTests
             Assert.That(ticket.AssignedAt, Is.Null);
             Assert.That(ticket.ClosedAt, Is.Null);
             Assert.That(ticket.LastMessageAt, Is.Null);
-            Assert.That(ticket.GetDomainEvents(), Has.Some.TypeOf<TicketCreatedDomainEvent>());
+            Assert.That(ticket.GetDomainEvents(), Has.Some.TypeOf<TicketOpenedDomainEvent>());
+        });
+    }
+    
+    [TestCase(TicketPriority.Low, "")]
+    public void Open_WithInvalidData_ShouldThrowValidationException(TicketPriority priority, string invalidSubject)
+    {
+        var organizationId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+        var timeProvider = TimeProvider.System;
+
+        Assert.Throws<ValidationException>(() =>
+        {
+            _ = TicketModel.Open(
+                organizationId,
+                customerId,
+                categoryId,
+                priority,
+                invalidSubject,
+                timeProvider);
         });
     }
 }

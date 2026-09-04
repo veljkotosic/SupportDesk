@@ -56,7 +56,7 @@ public sealed class Message : AbstractDomainModel<MessageId>
             textVo,
             createdAtVo);
         
-        createdMessage.RaiseDomainEvent(new MessageCreatedDomainEvent(createdMessage.Id.IdValue));
+        createdMessage.RaiseDomainEvent(new MessageCreatedDomainEvent(createdMessage.Id));
         
         return createdMessage;      
     }

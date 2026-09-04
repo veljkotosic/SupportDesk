@@ -1,9 +1,11 @@
 using SupportDesk.Domain.Abstract;
+using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Abstract.Validation.Rule;
 using SupportDesk.Domain.Models.Category.ValueObjects;
 using SupportDesk.Domain.Models.Organization.ValueObjects;
 using SupportDesk.Domain.Models.Ticket.Enums;
 using SupportDesk.Domain.Models.Ticket.Events;
+using SupportDesk.Domain.Models.Ticket.Validation;
 using SupportDesk.Domain.Models.Ticket.Validation.Rules;
 using SupportDesk.Domain.Models.Ticket.ValueObjects;
 using SupportDesk.Domain.Models.User.ValueObjects;
@@ -72,7 +74,7 @@ public sealed class Ticket : AbstractDomainModel<TicketId>
         ];
     }
 
-    public static Ticket Create(
+    public static Ticket Open(
         Guid organizationId,
         Guid customerId,
         Guid categoryId,
@@ -111,8 +113,39 @@ public sealed class Ticket : AbstractDomainModel<TicketId>
             closedAtVo,
             lastMessageAtVo);
         
-        createdTicket.RaiseDomainEvent(new TicketCreatedDomainEvent(createdTicket.Id.IdValue));
+        createdTicket.RaiseDomainEvent(new TicketOpenedDomainEvent(createdTicket.Id));
         
         return createdTicket;       
+    }
+
+    public void Assign(Guid supportAgentId, TimeProvider timeProvider)
+    {
+        if (Status != TicketStatus.Open)
+        {
+            throw new ValidationException(TicketErrors.CannotAssign());
+        }
+        
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        
+        SupportAgentId = new UserId(supportAgentId);
+        AssignedAt = new TicketAssignedAt(now);
+        Status = TicketStatus.Assigned;      
+        
+        RaiseDomainEvent(new TicketAssignedDomainEvent(Id, OrganizationId, SupportAgentId, CustomerId));
+    }
+
+    public void Close(TimeProvider timeProvider)
+    {
+        if (Status != TicketStatus.Assigned)
+        {
+            throw new ValidationException(TicketErrors.CannotClose());
+        }
+
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+
+        ClosedAt = new TicketClosedAt(now);
+        Status = TicketStatus.Closed;
+        
+        RaiseDomainEvent(new TicketClosedDomainEvent(Id, OrganizationId, SupportAgentId!, CustomerId, ClosedAt));       
     }
 }

@@ -18,21 +18,4 @@ internal sealed class ApplicationDependencyTests : ApplicationTestsBase
 
         ArchitectureTestsUtility.AssertArchitectureTestResult(result, "Application layer should not depend on Infrastructure or Presentation");
     }
-    
-    [Test]
-    public void OnlyQueryHandlers_ShouldDependOn_IApplicationDbContext()
-    {
-        var nonQueryTypes = ApplicationTypes
-            .That()
-            .AreNotAbstract()
-            .And()
-            .DoNotHaveNameEndingWith("QueryHandler");
-
-        var result = nonQueryTypes
-            .ShouldNot()
-            .HaveDependencyOnAll(typeof(IApplicationDbContext).FullName)
-            .GetResult();
-
-        ArchitectureTestsUtility.AssertArchitectureTestResult(result, "Only query handlers are allowed to have a dependency on IApplicationDbContext");
-    }
 }

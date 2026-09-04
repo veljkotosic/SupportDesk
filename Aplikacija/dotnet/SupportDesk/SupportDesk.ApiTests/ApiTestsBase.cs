@@ -13,13 +13,14 @@ using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Faq;
+using SupportDesk.Domain.Models.Message;
 using SupportDesk.Domain.Models.Organization;
-using SupportDesk.Domain.Models.Organization.Repository;
 using SupportDesk.Domain.Models.SupportAgentInvite;
 using SupportDesk.Domain.Models.TemplateAnswer;
+using SupportDesk.Domain.Models.Ticket;
+using SupportDesk.Domain.Models.Ticket.Enums;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.Domain.Models.User.Enums;
-using SupportDesk.Domain.Models.User.Repository;
 using SupportDesk.Infrastructure.Persistence.Database;
 using Testcontainers.PostgreSql;
 
@@ -269,5 +270,18 @@ internal abstract class ApiTestsBase
         await DbContext.SaveChangesAsync();
         
         return templateAnswer.Entity;
+    }
+    
+    protected async Task<Ticket> CreateTicket(Guid organizationId, Guid categoryId, Guid customerId, TicketPriority priority, string subject, string initialMessage, TimeProvider timeProvider)
+    {
+        var ticket = await DbContext.Set<Ticket>()
+            .AddAsync(Ticket.Open(organizationId, customerId, categoryId, priority, subject, timeProvider));
+        
+        _ = await DbContext.Set<Message>()
+            .AddAsync(Message.Create(organizationId, ticket.Entity.Id.IdValue, customerId, initialMessage, timeProvider));
+        
+        await DbContext.SaveChangesAsync();
+        
+        return ticket.Entity;   
     }
 }

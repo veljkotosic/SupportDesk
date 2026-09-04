@@ -36,8 +36,4 @@
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Application\Models\Ticket\" />
-    </ItemGroup>
-
 </Project>

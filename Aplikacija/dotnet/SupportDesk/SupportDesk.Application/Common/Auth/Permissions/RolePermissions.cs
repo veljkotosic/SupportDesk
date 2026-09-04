@@ -9,7 +9,10 @@ public static class RolePermissions
     {
         [UserRole.Customer] =
         [
+            Permissions.Tickets.Open,
             
+            Permissions.Messages.Send,
+            Permissions.Messages.Get
         ],
         [UserRole.OrganizationAdmin] =
         [
@@ -23,11 +26,21 @@ public static class RolePermissions
             
             Permissions.TemplateAnswers.Add,
             Permissions.TemplateAnswers.Update,
-            Permissions.TemplateAnswers.Delete
+            Permissions.TemplateAnswers.Delete,
+            
+            Permissions.Tickets.View,
+            
+            Permissions.Messages.Send,
+            Permissions.Messages.Get
         ],
         [UserRole.SupportAgent] =
         [
+            Permissions.Tickets.View,
+            Permissions.Tickets.Assign,
+            Permissions.Tickets.Close,
             
+            Permissions.Messages.Send,
+            Permissions.Messages.Get
         ]
     };
 

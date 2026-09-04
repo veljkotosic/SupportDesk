@@ -36,12 +36,7 @@ public static class SupportDeskRegistrationExtensions
         {
             services.AddSingleton(TimeProvider.System);
             
-            services.AddSupportDeskCommandHandlers(typeof(ICommand).Assembly);
-            services.AddSupportDeskQueryHandlers(typeof(IQuery<>).Assembly);
             services.AddSupportDeskDomainEventHandlers(typeof(IDomainEventHandler<>).Assembly);
-
-            services.AddSupportDeskCommandDispatcher();
-            services.AddSupportDeskQueryDispatcher();
 
             services.AddSupportDeskPersistence(configuration);
 

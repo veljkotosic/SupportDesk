@@ -1,9 +1,10 @@
+using SupportDesk.Domain.Abstract.Validation;
 using MessageModel = SupportDesk.Domain.Models.Message.Message;
 
 namespace SupportDesk.UnitTests.Domain.Models.Message;
 
 [TestFixture]
-internal sealed class MessageTests
+internal sealed partial class MessageTests
 {
     [TestCase("Test Message")]
     public void Create_WithValidData_ShouldCreateMessage(string validText)
@@ -24,6 +25,21 @@ internal sealed class MessageTests
             Assert.That(message.SenderId.IdValue, Is.EqualTo(senderId));
             Assert.That(message.Text.TextValue, Is.EqualTo(validText));
             Assert.That(message.CreatedAt.CreatedAtValue, Is.Not.EqualTo(default(DateTime)));
+        });
+    }
+
+    [TestCase("")]
+    public void Create_WithInvalidData_ShouldThrowValidationException(string invalidText)
+    {
+        var timeProvider = TimeProvider.System;
+        
+        var organizationId = Guid.NewGuid();
+        var ticketId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+
+        Assert.Throws<ValidationException>(() =>
+        {
+            _ = MessageModel.Create(organizationId, ticketId, senderId, invalidText, timeProvider);
         });
     }
 }

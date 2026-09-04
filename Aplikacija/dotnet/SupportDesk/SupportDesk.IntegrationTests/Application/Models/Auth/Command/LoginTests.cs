@@ -35,7 +35,8 @@ internal sealed class LoginTests : IntegrationTestsBase
     [Test]
     public async Task Handle_AsSupportAgent_WithValidInput_ShouldReturnTokens()
     {
-        var supportAgent = await RegisterDefaultSupportAgent();
+        var organizationAdmin = await RegisterOrganizationAdmin();
+        var supportAgent = await RegisterSupportAgent(organizationAdmin.OrganizationId!.IdValue);
         
         LoginCommandResult? result = null;
         
