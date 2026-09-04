@@ -10,6 +10,7 @@ public static class RolePermissions
         [UserRole.Customer] =
         [
             Permissions.Tickets.Open,
+            Permissions.Tickets.View,
             
             Permissions.Messages.Send,
             Permissions.Messages.Get
