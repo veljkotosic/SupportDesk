@@ -48,7 +48,8 @@ internal sealed class SendMessageTests : IntegrationTestsBase
     {
         UserContextMock.Setup(context => context.GetCurrentUserId()).Returns(_customer.Id.IdValue);
         TenantContextMock.Setup(context => context.GetCurrentOrganizationId()).Returns(_customer.OrganizationId?.IdValue);
-
+        DbContext.ChangeTracker.Clear();
+        
         var command = new SendMessageCommand(_ticket.Id.IdValue, ValidMessage);
         
         SendMessageCommandResult? result = null;

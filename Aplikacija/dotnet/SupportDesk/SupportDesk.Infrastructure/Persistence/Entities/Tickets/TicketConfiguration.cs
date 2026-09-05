@@ -145,6 +145,7 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             .OnDelete(DeleteBehavior.Restrict);
                 
         builder.HasQueryFilter(ticket => 
+            _context.OrganizationId == null || 
             ticket.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
     }
 }

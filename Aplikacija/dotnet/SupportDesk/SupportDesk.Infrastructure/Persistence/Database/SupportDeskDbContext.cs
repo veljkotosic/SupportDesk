@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
+using SupportDesk.Application.Abstract.Auth.UserContext;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Faq;
@@ -32,14 +33,20 @@ namespace SupportDesk.Infrastructure.Persistence.Database;
 public sealed class SupportDeskDbContext
     : IdentityDbContext<AppIdentityUser, IdentityRole<Guid>, Guid>, IApplicationDbContext
 {
+    private readonly IUserContext _userContext;
     private readonly ITenantContext _tenantContext;
     
-    public SupportDeskDbContext(DbContextOptions<SupportDeskDbContext> options, ITenantContext tenantContext) 
+    public SupportDeskDbContext(
+        DbContextOptions<SupportDeskDbContext> options, 
+        IUserContext userContext,
+        ITenantContext tenantContext) 
         : base(options)
     {
+        _userContext = userContext;
         _tenantContext = tenantContext;
     }
-    
+
+    public Guid? UserId => _userContext.TryGetCurrentUserId();
     public Guid? OrganizationId => _tenantContext.GetCurrentOrganizationId();
     
     public IQueryable<Category> Categories => Set<Category>();
