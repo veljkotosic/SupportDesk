@@ -58,6 +58,9 @@ internal sealed class SendMessageCommandHandler
 
     protected override async Task<SendMessageCommandResult> ExecuteAsync(SendMessageCommand command, SendMessageCommandHandlerContext context, CancellationToken cancellationToken)
     {
+        var ticket = context.Ticket!;
+        ticket.SetLastMessage(_timeProvider);
+        
         var message = Message.Create(
             context.Ticket!.OrganizationId.IdValue,
             context.TicketId.IdValue,
@@ -65,6 +68,7 @@ internal sealed class SendMessageCommandHandler
             command.Text,
             _timeProvider);
         
+        await _ticketRepository.SaveAsync(ticket, cancellationToken);       
         await _messageRepository.SaveAsync(message, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         

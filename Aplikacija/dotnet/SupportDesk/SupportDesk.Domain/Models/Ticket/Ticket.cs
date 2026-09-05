@@ -148,4 +148,11 @@ public sealed class Ticket : AbstractDomainModel<TicketId>
         
         RaiseDomainEvent(new TicketClosedDomainEvent(Id, OrganizationId, SupportAgentId!, CustomerId, ClosedAt));       
     }
+
+    public void SetLastMessage(TimeProvider timeProvider)
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        
+        LastMessageAt = new TicketLastMessageAt(now);      
+    }
 }
