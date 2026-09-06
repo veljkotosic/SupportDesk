@@ -32,7 +32,9 @@ public static class RolePermissions
             Permissions.Tickets.View,
             
             Permissions.Messages.Send,
-            Permissions.Messages.Get
+            Permissions.Messages.Get,
+            
+            Permissions.Notes.Add
         ],
         [UserRole.SupportAgent] =
         [
@@ -41,7 +43,9 @@ public static class RolePermissions
             Permissions.Tickets.Close,
             
             Permissions.Messages.Send,
-            Permissions.Messages.Get
+            Permissions.Messages.Get,
+            
+            Permissions.Notes.Add
         ]
     };
 

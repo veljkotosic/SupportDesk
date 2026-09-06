@@ -50,7 +50,7 @@ public sealed class Note : AbstractDomainModel<NoteId>
 
         var createdNote = new Note(idVo, organizationIdVo, ticketIdVo, authorIdVo, textVo, createdAtVo);
         
-        createdNote.RaiseDomainEvent(new NoteCreatedDomainEvent(createdNote.Id.IdValue));
+        createdNote.RaiseDomainEvent(new NoteCreatedDomainEvent(createdNote.Id));
         
         return createdNote;
     }
