@@ -34,7 +34,10 @@ public static class RolePermissions
             Permissions.Messages.Send,
             Permissions.Messages.Get,
             
-            Permissions.Notes.Add
+            Permissions.Notes.Add,
+            
+            Permissions.SupportAgentInvites.Create,
+            Permissions.SupportAgentInvites.Revoke
         ],
         [UserRole.SupportAgent] =
         [
@@ -53,5 +56,4 @@ public static class RolePermissions
     {
         return DefaultPermissions.TryGetValue(role, out var permissions) ? permissions : [];
     }
-        
 }

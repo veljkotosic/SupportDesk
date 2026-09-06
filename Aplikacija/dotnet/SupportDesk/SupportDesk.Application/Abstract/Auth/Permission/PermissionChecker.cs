@@ -13,7 +13,7 @@ public sealed class PermissionChecker
         _permissionService = permissionService;
     }
     
-    public async Task CheckAsync(ICollection<Auth.Permission.Permission> requiredPermissions, CancellationToken cancellationToken = default)
+    public async Task CheckAsync(ICollection<Permission> requiredPermissions, CancellationToken cancellationToken = default)
     {
         if (requiredPermissions.Count == 0)
         {

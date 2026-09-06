@@ -120,7 +120,7 @@ public sealed class SupportAgentInvite : AbstractDomainModel<SupportAgentInviteI
     {
         if (Status != SupportAgentInviteStatus.Active)
         {
-            throw new ValidationException(SupportAgentInviteErrors.InvalidInviteCode(Code));
+            throw new ValidationException(SupportAgentInviteErrors.CannotRevoke());
         }
         
         var now = timeProvider.GetUtcNow().UtcDateTime;

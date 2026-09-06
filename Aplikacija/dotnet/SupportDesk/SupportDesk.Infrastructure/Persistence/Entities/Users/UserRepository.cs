@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Auth.UserContext;
+using SupportDesk.Domain.Common.ValueObjects;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.Domain.Models.User.Repository;
 using SupportDesk.Domain.Models.User.ValueObjects;
@@ -19,5 +21,12 @@ public sealed class UserRepository
         : base(context, serviceProvider, userContext, tenantContext)
     {
         
+    }
+
+    public async Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
+    {
+        return await Context.DomainUsers
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(user => user.Email == email, cancellationToken);
     }
 }
