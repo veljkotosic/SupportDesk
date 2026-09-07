@@ -5,6 +5,7 @@ using SupportDesk.Application.Abstract.Dispatcher;
 using SupportDesk.Application.Models.Organizations.Query.GetAllOrganizations;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationAdminDashboard;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationCategories;
+using SupportDesk.Application.Models.Organizations.Query.GetOrganizationFaqs;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationKnowledgeBase;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationSupportAgentsSummary;
 
@@ -81,12 +82,29 @@ public sealed class OrganizationController : ControllerBase
     [Authorize]
     [HttpGet("{organizationId:guid}/categories")]
     [ProducesResponseType(typeof(GetOrganizationCategoriesQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<GetOrganizationCategoriesQueryResult>> GetAllOrganizations(
+    public async Task<ActionResult<GetOrganizationCategoriesQueryResult>> GetAllOrganizationCategories(
         [FromRoute] Guid organizationId,
         CancellationToken cancellationToken)
     {
         var query = new GetOrganizationCategoriesQuery(organizationId);
+
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        
+        return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("{organizationId:guid}/faqs")]
+    [ProducesResponseType(typeof(GetOrganizationFaqsQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<GetOrganizationFaqsQueryResult>> GetAllOrganizationFaqs(
+        [FromRoute] Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetOrganizationFaqsQuery(organizationId);
 
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         
