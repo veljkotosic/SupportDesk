@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Event;
 using SupportDesk.Application.Abstract.Messaging;
+using SupportDesk.Application.Common.Dtos;
 using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.Ticket.Enums;
 using SupportDesk.Domain.Models.Ticket.Events;
@@ -42,7 +43,7 @@ internal sealed class PublishTicketOpenedRealtimeUpdateDomainEventHandler
             cancellationToken);
     }
     
-    private IQueryable<GetOrganizationDashboardTicketDetailsQueryResult> GetQuery(TicketId ticketId)
+    private IQueryable<DashboardTicketDetailsDto> GetQuery(TicketId ticketId)
     {
         var queryable =
             from ticket in _applicationDbContext.Tickets.IgnoreQueryFilters().AsNoTracking()
@@ -61,7 +62,7 @@ internal sealed class PublishTicketOpenedRealtimeUpdateDomainEventHandler
                 on ticket.SupportAgentId equals supportAgent.Id into agentGroup
             from supportAgent in agentGroup.DefaultIfEmpty()
 
-            select new GetOrganizationDashboardTicketDetailsQueryResult(
+            select new DashboardTicketDetailsDto(
                 ticket.Id.IdValue,
                 organization.Id.IdValue,
                 organization.Name.NameValue,
@@ -82,7 +83,7 @@ internal sealed class PublishTicketOpenedRealtimeUpdateDomainEventHandler
                 (from notification in _applicationDbContext.TicketNotifications.IgnoreQueryFilters().AsNoTracking()
                     where notification.TicketId == ticketId && notification.Status == TicketNotificationStatus.Unread
                     
-                    select new GetOrganizationDashboardTicketDetailsQueryResult.TicketNotificationDetailsDto(
+                    select new TicketNotificationDetailsDto(
                         notification.Id.IdValue,
                         notification.OrganizationId.IdValue,
                         notification.TicketId.IdValue,
@@ -94,33 +95,4 @@ internal sealed class PublishTicketOpenedRealtimeUpdateDomainEventHandler
         
         return queryable;
     }   
-}
-
-internal sealed record GetOrganizationDashboardTicketDetailsQueryResult(
-    Guid Id,
-    Guid OrganizationId,
-    string OrganizationName,
-    Guid CategoryId,
-    string CategoryName,
-    Guid CustomerId,
-    string CustomerUsername,
-    Guid? SupportAgentId,
-    string? SupportAgentUsername,
-    TicketStatus Status,
-    TicketPriority Priority,
-    string Subject,
-    DateTime OpenedAt,
-    DateTime? AssignedAt,
-    DateTime? ClosedAt,
-    TicketFeedback Feedback,
-    DateTime? LastMessageAt,
-    List<GetOrganizationDashboardTicketDetailsQueryResult.TicketNotificationDetailsDto> UnreadNotifications)
-{
-    internal sealed record TicketNotificationDetailsDto(
-        Guid Id,
-        Guid OrganizationId,
-        Guid TicketId,
-        string Text,
-        TicketNotificationStatus Status,
-        DateTime CreatedAt);
 }

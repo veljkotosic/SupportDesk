@@ -22,4 +22,8 @@
       <ProjectReference Include="..\SupportDesk.Infrastructure\SupportDesk.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Controllers\v1\Organization\" />
+    </ItemGroup>
+
 </Project>

@@ -17,4 +17,7 @@ public sealed record TicketClosedAt : AbstractValueObject
     {
         return [];
     }
+    
+    public static bool operator >=(TicketClosedAt left, TicketClosedAt right) => left.ClosedAtValue >= right.ClosedAtValue;
+    public static bool operator <=(TicketClosedAt left, TicketClosedAt right) => left.ClosedAtValue <= right.ClosedAtValue;
 }
