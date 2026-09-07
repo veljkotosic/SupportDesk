@@ -3,7 +3,7 @@ using SupportDesk.Application.Models.Organizations.Query.GetOrganizationKnowledg
 
 namespace SupportDesk.Application.Models.Organizations.Query.GetOrganizationKnowledgeBase;
 
-public record GetOrganizationKnowledgeBaseQueryResult(
+public sealed record GetOrganizationKnowledgeBaseQueryResult(
     Guid OrganizationId,
     List<KnowledgeBaseFaqDto> Faqs,
     List<KnowledgeBaseTemplateAnswerDto> TemplateAnswers,

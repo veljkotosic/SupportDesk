@@ -4,7 +4,7 @@ using SupportDesk.Application.Common.Auth.Permissions;
 
 namespace SupportDesk.Application.Models.Organizations.Query.GetOrganizationAdminDashboard;
 
-public record GetOrganizationAdminDashboardQuery : IQuery<GetOrganizationAdminDashboardQueryResult>
+public sealed record GetOrganizationAdminDashboardQuery : IQuery<GetOrganizationAdminDashboardQueryResult>
 {
     public ICollection<Permission> GetRequiredPermissions()
     {

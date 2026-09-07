@@ -40,7 +40,8 @@ public static class RolePermissions
             Permissions.SupportAgentInvites.Revoke,
             
             Permissions.Organizations.ViewAdminDashboard,
-            Permissions.Organizations.ViewKnowledgeBase
+            Permissions.Organizations.ViewKnowledgeBase,
+            Permissions.Organizations.ViewSupportAgentsSummary
         ],
         [UserRole.SupportAgent] =
         [
