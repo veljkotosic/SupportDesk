@@ -13,7 +13,9 @@ public static class RolePermissions
             Permissions.Tickets.View,
             
             Permissions.Messages.Send,
-            Permissions.Messages.Get
+            Permissions.Messages.Get,
+            
+            Permissions.Organizations.ViewAll
         ],
         [UserRole.OrganizationAdmin] =
         [
