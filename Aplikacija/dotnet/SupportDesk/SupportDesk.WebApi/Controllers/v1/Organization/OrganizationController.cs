@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SupportDesk.Application.Abstract.Dispatcher;
 using SupportDesk.Application.Models.Organizations.Query.GetAllOrganizations;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationAdminDashboard;
+using SupportDesk.Application.Models.Organizations.Query.GetOrganizationCategories;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationKnowledgeBase;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationSupportAgentsSummary;
 
@@ -71,6 +72,21 @@ public sealed class OrganizationController : ControllerBase
     public async Task<ActionResult<GetAllOrganizationsQueryResult>> GetAllOrganizations(CancellationToken cancellationToken)
     {
         var query = new GetAllOrganizationsQuery();
+
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        
+        return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("{organizationId:guid}/categories")]
+    [ProducesResponseType(typeof(GetOrganizationCategoriesQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<GetOrganizationCategoriesQueryResult>> GetAllOrganizations(
+        [FromRoute] Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetOrganizationCategoriesQuery(organizationId);
 
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         
