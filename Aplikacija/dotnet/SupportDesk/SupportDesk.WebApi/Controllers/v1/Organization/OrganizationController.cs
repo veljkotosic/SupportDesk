@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportDesk.Application.Abstract.Dispatcher;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationAdminDashboard;
+using SupportDesk.Application.Models.Organizations.Query.GetOrganizationKnowledgeBase;
 
 namespace SupportDesk.WebApi.Controllers.v1.Organization;
 
@@ -26,6 +27,20 @@ public sealed class OrganizationController : ControllerBase
     public async Task<ActionResult<GetOrganizationAdminDashboardQueryResult>> GetOrganizationAdminDashboard(CancellationToken cancellationToken)
     {
         var query = new GetOrganizationAdminDashboardQuery();
+
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        
+        return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("knowledgeBase")]
+    [ProducesResponseType(typeof(GetOrganizationKnowledgeBaseQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<GetOrganizationKnowledgeBaseQueryResult>> GetOrganizationKnowledgeBase(CancellationToken cancellationToken)
+    {
+        var query = new GetOrganizationKnowledgeBaseQuery();
 
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         
