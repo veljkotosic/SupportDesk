@@ -5,7 +5,7 @@ using SupportDesk.Domain.Models.Ticket.Events;
 
 namespace SupportDesk.Application.Models.Tickets.Event.TicketFeedbackGiven;
 
-public class PublishTicketFeedbackGivenRealtimeUpdateDomainEventHandler
+internal sealed class PublishTicketFeedbackGivenRealtimeUpdateDomainEventHandler
     : IDomainEventHandler<TicketFeedbackGivenDomainEvent>
 {
     private readonly IRealtimePublisher _realtimePublisher;

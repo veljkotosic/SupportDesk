@@ -6,6 +6,7 @@ using SupportDesk.Application.Models.Tickets.Command.AssignTicket;
 using SupportDesk.Application.Models.Tickets.Command.CloseTicket;
 using SupportDesk.Application.Models.Tickets.Command.GiveFeedback;
 using SupportDesk.Application.Models.Tickets.Command.OpenTicket;
+using SupportDesk.Application.Models.Tickets.Command.ReadAllNotifications;
 using SupportDesk.WebApi.Controllers.v1.Ticket.Requests;
 
 namespace SupportDesk.WebApi.Controllers.v1.Ticket;
@@ -90,6 +91,23 @@ public class TicketController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new GiveFeedbackCommand(ticketId, request.Feedback);
+        
+        await _commandDispatcher.DispatchAsync(command, cancellationToken);
+        
+        return NoContent();     
+    }
+    
+    [Authorize]
+    [HttpPatch("{ticketId:guid}/readAllNotifications")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ReadAllNotifications(
+        [FromRoute] Guid ticketId,
+        CancellationToken cancellationToken)
+    {
+        var command = new ReadAllNotificationsCommand(ticketId);
         
         await _commandDispatcher.DispatchAsync(command, cancellationToken);
         

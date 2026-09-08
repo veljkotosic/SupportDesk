@@ -1,9 +1,11 @@
 using SupportDesk.Domain.Abstract;
+using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Common.ValueObjects;
 using SupportDesk.Domain.Models.Organization.ValueObjects;
 using SupportDesk.Domain.Models.Ticket.ValueObjects;
 using SupportDesk.Domain.Models.TicketNotification.Enums;
 using SupportDesk.Domain.Models.TicketNotification.Events;
+using SupportDesk.Domain.Models.TicketNotification.Validation;
 using SupportDesk.Domain.Models.TicketNotification.ValueObjects;
 using SupportDesk.Domain.Models.User.ValueObjects;
 
@@ -62,5 +64,17 @@ public sealed class TicketNotification : AbstractDomainModel<TicketNotificationI
         createdTicketNotification.RaiseDomainEvent(new TicketNotificationCreatedDomainEvent(createdTicketNotification.Id, customerIdVo));
         
         return createdTicketNotification;       
+    }
+
+    public void Read()
+    {
+        if (Status == TicketNotificationStatus.Read)
+        {
+            throw new ValidationException(TicketNotificationErrors.AlreadyRead(Id));
+        }
+        
+        Status = TicketNotificationStatus.Read;      
+        
+        RaiseDomainEvent(new TicketNotificationReadDomainEvent(Id));       
     }
 }

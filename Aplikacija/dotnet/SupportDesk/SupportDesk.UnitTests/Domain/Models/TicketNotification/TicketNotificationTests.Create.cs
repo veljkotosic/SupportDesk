@@ -7,7 +7,7 @@ using TicketNotificationModel = SupportDesk.Domain.Models.TicketNotification.Tic
 namespace SupportDesk.UnitTests.Domain.Models.TicketNotification;
 
 [TestFixture]
-internal sealed class TicketNotificationTests
+internal sealed partial class TicketNotificationTests
 {
     [TestCase("Test Notification")]
     public void Create_WithValidData_ShouldCreateTicketNotification(string validText)

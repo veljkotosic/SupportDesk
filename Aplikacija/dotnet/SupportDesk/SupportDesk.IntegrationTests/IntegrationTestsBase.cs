@@ -22,6 +22,7 @@ using SupportDesk.Domain.Models.SupportAgentInvite;
 using SupportDesk.Domain.Models.TemplateAnswer;
 using SupportDesk.Domain.Models.Ticket;
 using SupportDesk.Domain.Models.Ticket.Enums;
+using SupportDesk.Domain.Models.TicketNotification;
 using SupportDesk.Domain.Models.User;
 using SupportDesk.Domain.Models.User.Enums;
 using SupportDesk.Domain.Models.User.Repository;
@@ -290,6 +291,21 @@ internal abstract class IntegrationTestsBase
         await DbContext.SaveChangesAsync();
         
         return ticket.Entity;   
+    }
+    
+    protected async Task<TicketNotification> CreateTicketNotification(
+        Guid organizationId,
+        Guid ticketId,
+        Guid customerId,
+        string text = "Test notification",
+        TimeProvider? timeProvider = null)
+    {
+        var notification = await DbContext.Set<TicketNotification>()
+            .AddAsync(TicketNotification.Create(organizationId, ticketId, text, customerId, timeProvider ?? TimeProvider.System));
+
+        await DbContext.SaveChangesAsync();
+
+        return notification.Entity;
     }
 
     protected async Task<SupportAgentInvite> CreateSupportAgentInvite(string email, Guid organizationId, TimeProvider timeProvider)
