@@ -96,7 +96,7 @@ public sealed class Ticket : AbstractDomainModel<TicketId>
         var openedAtVo = new TicketOpenedAt(now);
         TicketAssignedAt? assignedAtVo = null;
         TicketClosedAt? closedAtVo = null;
-        TicketLastMessageAt? lastMessageAtVo = null;
+        var lastMessageAtVo = new TicketLastMessageAt(now);
 
         var createdTicket = new Ticket(
             idVo,
@@ -154,5 +154,27 @@ public sealed class Ticket : AbstractDomainModel<TicketId>
         var now = timeProvider.GetUtcNow().UtcDateTime;
         
         LastMessageAt = new TicketLastMessageAt(now);      
+    }
+    
+    public void GiveFeedback(TicketFeedback feedback)
+    {
+        if (Status != TicketStatus.Closed)
+        {
+            throw new ValidationException(TicketErrors.CannotGiveFeedbackIfTicketIsNotClosed());       
+        }
+        
+        if (Feedback != TicketFeedback.None)
+        {
+            throw new ValidationException(TicketErrors.FeedbackAlreadyGiven());
+        }
+        
+        if (feedback == TicketFeedback.None || !Enum.IsDefined(feedback))
+        {
+            throw new ValidationException(TicketErrors.InvalidFeedback());
+        }
+        
+        Feedback = feedback;
+        
+        RaiseDomainEvent(new TicketFeedbackGivenDomainEvent(Id, OrganizationId, Feedback));
     }
 }

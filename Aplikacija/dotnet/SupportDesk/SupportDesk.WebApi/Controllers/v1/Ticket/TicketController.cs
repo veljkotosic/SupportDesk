@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SupportDesk.Application.Abstract.Dispatcher;
 using SupportDesk.Application.Models.Tickets.Command.AssignTicket;
 using SupportDesk.Application.Models.Tickets.Command.CloseTicket;
+using SupportDesk.Application.Models.Tickets.Command.GiveFeedback;
 using SupportDesk.Application.Models.Tickets.Command.OpenTicket;
 using SupportDesk.WebApi.Controllers.v1.Ticket.Requests;
 
@@ -71,6 +72,24 @@ public class TicketController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new CloseTicketCommand(ticketId);
+        
+        await _commandDispatcher.DispatchAsync(command, cancellationToken);
+        
+        return NoContent();     
+    }
+    
+    [Authorize]
+    [HttpPatch("{ticketId:guid}/giveFeedback")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GiveFeedback(
+        [FromRoute] Guid ticketId,
+        [FromBody] GiveFeedbackRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new GiveFeedbackCommand(ticketId, request.Feedback);
         
         await _commandDispatcher.DispatchAsync(command, cancellationToken);
         

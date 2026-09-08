@@ -11,6 +11,7 @@ public static class RolePermissions
         [
             Permissions.Tickets.Open,
             Permissions.Tickets.View,
+            Permissions.Tickets.GiveFeedback,
             
             Permissions.Messages.Send,
             Permissions.Messages.Get,

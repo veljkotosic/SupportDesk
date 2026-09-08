@@ -20,4 +20,27 @@ public sealed class TicketErrors : AbstractErrors<Ticket, TicketId>
         
         return CreateValidationError(errorCode, message);
     }
+
+    public static ValidationError CannotGiveFeedbackIfTicketIsNotClosed()
+    {
+        var errorCode = "cannot_give_feedback";
+        var message = "Feedback cannot be given if ticket is not closed.";
+        
+        return CreateValidationError(errorCode, message);
+    }
+
+    public static ValidationError FeedbackAlreadyGiven()
+    {
+        var errorCode = "feedback_already_given";
+        var message = "Feedback has already been given to this ticket.";
+        
+        return CreateValidationError(errorCode, message);   
+    }
+    
+    public static ValidationError InvalidFeedback()
+    {
+        var errorCode = "invalid_ticket_feedback";
+        var message = "Ticket feedback must be either 'Helpful' or 'Unhelpful'.";
+        return CreateValidationError(errorCode, message);
+    }
 }
