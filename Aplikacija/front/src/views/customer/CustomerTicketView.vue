@@ -68,7 +68,7 @@ const groupedMessages = computed(() => {
 
   const groups: {
     senderId: string;
-    senderUsername: string;
+    senderUserName: string;
     createdAt: Date;
     messages: MessageDetails[]
   }[] = []
@@ -86,7 +86,7 @@ const groupedMessages = computed(() => {
     } else {
       groups.push({
         senderId: message.senderId,
-        senderUsername: message.senderUsername,
+        senderUserName: message.senderUserName,
         createdAt: message.createdAt,
         messages: [message]
       })
@@ -144,7 +144,7 @@ function isCustomerMessage(message: MessageDetails): boolean {
 const {ticket} = storeToRefs(ticketViewStore)
 
 const isClosed = computed(
-  () => ticket!.value!.status === TicketStatus.Closed || ticket!.value!.status === TicketStatus.Archived,
+  () => ticket!.value!.status === TicketStatus.Closed
 )
 
 const canSendMessage = computed(
@@ -215,14 +215,14 @@ async function handleSubmitFeedback(ticketFeedback: TicketFeedback) {
             {{ formatMessageDate(ticket!.openedAt) }}
           </span>
           <span
-            v-if="ticket!.supportAgentUsername"
+            v-if="ticket!.supportAgentUserName"
             class="text-xs text-blue-600 dark:text-blue-400"
           >
             <span class="text-blue-400 dark:text-blue-500">Agent:</span>
-            {{ ticket!.supportAgentUsername }}
+            {{ ticket!.supportAgentUserName }}
           </span>
           <span
-            v-if="!ticket!.supportAgentUsername && !isClosed"
+            v-if="!ticket!.supportAgentUserName && !isClosed"
             class="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1"
           >
             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -251,7 +251,7 @@ async function handleSubmitFeedback(ticketFeedback: TicketFeedback) {
               :class="{ 'flex-row-reverse': isCustomerMessage(group.messages[0]!) }"
             >
               <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                {{ isCustomerMessage(group.messages[0]!) ? 'You' : group.senderUsername }}
+                {{ isCustomerMessage(group.messages[0]!) ? 'You' : group.senderUserName }}
               </span>
               <span
                 v-if="!isCustomerMessage(group.messages[0]!)"

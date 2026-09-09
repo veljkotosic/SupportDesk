@@ -16,16 +16,8 @@ export const organizationDashboardHubService = {
     await client.stop();
   },
 
-  async startLiveUpdates(): Promise<void> {
-    await client.invoke("StartLiveUpdates");
-  },
-
-  async stopLiveUpdates(): Promise<void> {
-    await client.invoke("StopLiveUpdates");
-  },
-
   onNewTicket(callback: (ticket: Ticket) => void): void {
-    client.on<Ticket>("NewTicket", callback);
+    client.on<Ticket>("TicketOpened", callback);
   },
 
   onGivenFeedback(callback: (ticketFeedbackInfo: TicketFeedbackInfo) => void): void {
@@ -45,7 +37,7 @@ export const organizationDashboardHubService = {
   },
 
   offAll(): void {
-    client.off("NewTicket");
+    client.off("TicketOpened");
     client.off("TicketAssigned");
     client.off("TicketClosed");
     client.off("TicketFeedback");

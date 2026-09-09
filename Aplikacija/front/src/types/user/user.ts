@@ -1,8 +1,8 @@
-import type {UserType} from "@/types/user/userType.ts";
+import type {UserRole} from "@/types/user/userRole.ts";
 
 export interface User {
   userId: string;
   userName: string;
   email: string;
-  type: UserType;
+  role: UserRole;
 }

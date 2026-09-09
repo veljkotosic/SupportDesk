@@ -4,7 +4,7 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from "@/views/auth/LoginView.vue";
 import RegisterView from "@/views/auth/RegisterView.vue";
 import CustomerDashboardView from "@/views/customer/CustomerDashboardView.vue";
-import {UserType} from "@/types/user/userType.ts"
+import {UserRole} from "@/types/user/userRole.ts"
 import OpenTicketView from "@/views/customer/OpenTicketView.vue";
 import CustomerTicketView from "@/views/customer/CustomerTicketView.vue";
 import OrganizationAdminDashboardView from "@/views/organization/OrganizationAdminDashboardView.vue";
@@ -19,7 +19,7 @@ declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean;
     guestOnly?: boolean;
-    allowedUsers?: UserType[];
+    allowedUsers?: UserRole[];
   }
 }
 
@@ -56,7 +56,7 @@ const router = createRouter({
       component: CustomerDashboardView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.Customer]
+        allowedUsers: [UserRole.Customer]
       },
     },
     {
@@ -65,7 +65,7 @@ const router = createRouter({
       component: OpenTicketView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.Customer]
+        allowedUsers: [UserRole.Customer]
       }
     },
     {
@@ -74,7 +74,7 @@ const router = createRouter({
       component: CustomerTicketView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.Customer]
+        allowedUsers: [UserRole.Customer]
       }
     },
     {
@@ -83,7 +83,7 @@ const router = createRouter({
       component: OrganizationAdminDashboardView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.OrganizationAdmin]
+        allowedUsers: [UserRole.OrganizationAdmin]
       }
     },
     {
@@ -92,7 +92,7 @@ const router = createRouter({
       component: OrganizationAdminAgentsView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.OrganizationAdmin]
+        allowedUsers: [UserRole.OrganizationAdmin]
       }
     },
     {
@@ -101,7 +101,7 @@ const router = createRouter({
       component: OrganizationAdminTicketsView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.OrganizationAdmin]
+        allowedUsers: [UserRole.OrganizationAdmin]
       }
     },
     {
@@ -110,7 +110,7 @@ const router = createRouter({
       component: OrganizationAdminTicketDetailView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.OrganizationAdmin]
+        allowedUsers: [UserRole.OrganizationAdmin]
       }
     },
     {
@@ -119,7 +119,7 @@ const router = createRouter({
       component: OrganizationAdminSettingsView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.OrganizationAdmin]
+        allowedUsers: [UserRole.OrganizationAdmin]
       }
     },
     {
@@ -128,7 +128,7 @@ const router = createRouter({
       component: SupportAgentDashboardView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.SupportAgent]
+        allowedUsers: [UserRole.SupportAgent]
       }
     },
     {
@@ -137,7 +137,7 @@ const router = createRouter({
       component: SupportAgentTicketDetailView,
       meta: {
         requiresAuth: true,
-        allowedUsers: [UserType.SupportAgent]
+        allowedUsers: [UserRole.SupportAgent]
       }
     },
   ],
@@ -150,11 +150,11 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.guestOnly && auth.isAuthenticated) {
-    if (auth.user?.type === UserType.Customer) {
+    if (auth.user?.role === UserRole.Customer) {
       return '/customer/dashboard'
-    } else if (auth.user?.type === UserType.SupportAgent) {
+    } else if (auth.user?.role === UserRole.SupportAgent) {
       return '/supportAgent/dashboard'
-    } else if (auth.user?.type === UserType.OrganizationAdmin) {
+    } else if (auth.user?.role === UserRole.OrganizationAdmin) {
       return '/organization/dashboard'
     }
     return '/'
@@ -167,12 +167,12 @@ router.beforeEach(async (to) => {
     }
   }
 
-  if (to.meta.allowedUsers && !to.meta.allowedUsers!.includes(auth.user?.type as UserType)) {
-    if (auth.user?.type === UserType.Customer) {
+  if (to.meta.allowedUsers && !to.meta.allowedUsers!.includes(auth.user?.role as UserRole)) {
+    if (auth.user?.role === UserRole.Customer) {
       return '/customer/dashboard'
-    } else if (auth.user?.type === UserType.SupportAgent) {
+    } else if (auth.user?.role === UserRole.SupportAgent) {
       return '/supportAgent/dashboard'
-    } else if (auth.user?.type === UserType.OrganizationAdmin) {
+    } else if (auth.user?.role === UserRole.OrganizationAdmin) {
       return '/organization/dashboard'
     }
   }

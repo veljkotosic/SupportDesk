@@ -5,7 +5,7 @@ import type {RegisterOrganizationInput} from "@/types/auth/registerOrganizationI
 import type {RegisterSupportAgentInput} from "@/types/auth/registerSupportAgentInput.ts";
 import type {User} from "@/types/user/user.ts";
 
-const BASE_URL: string = '/api/Auth'
+const BASE_URL: string = '/api/v1/auth'
 
 export const authService = {
   async login(loginInput: LoginInput): Promise<void> {

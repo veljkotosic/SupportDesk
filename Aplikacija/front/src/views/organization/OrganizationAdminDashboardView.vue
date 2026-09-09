@@ -322,13 +322,13 @@ async function handleViewTicket(ticketId: string) {
                 </td>
                 <td class="px-5 py-3.5 whitespace-nowrap">
                   <div class="flex items-center gap-2">
-                    <UserAvatar :user-name="ticket.customerUsername" size="sm" />
-                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ ticket.customerUsername }}</span>
+                    <UserAvatar :user-name="ticket.customerUserName" size="sm" />
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ ticket.customerUserName }}</span>
                   </div>
                 </td>
                 <td class="px-5 py-3.5 whitespace-nowrap">
-                  <span v-if="ticket.supportAgentUsername" class="text-sm text-gray-700 dark:text-gray-300">
-                    {{ ticket.supportAgentUsername }}
+                  <span v-if="ticket.supportAgentUserName" class="text-sm text-gray-700 dark:text-gray-300">
+                    {{ ticket.supportAgentUserName }}
                   </span>
                   <span v-else class="text-sm text-gray-400">Unassigned</span>
                 </td>

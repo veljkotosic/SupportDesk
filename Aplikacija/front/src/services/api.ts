@@ -42,7 +42,7 @@ function extractErrorMessages(errorBody: any): string[] {
 
 async function refreshTokens(): Promise<boolean> {
   try {
-    const res = await fetch(`/api/Auth/refreshLogin`, {
+    const res = await fetch(`/api/v1/auth/refreshLogin`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -104,5 +104,6 @@ export const api = {
   get: <T = any>(url: string) => request<T>('GET', url),
   post: <T = any>(url: string, body?: any) => request<T>('POST', url, body),
   put: <T = any>(url: string, body?: any) => request<T>('PUT', url, body),
+  patch: <T = any>(url: string, body?: any) => request<T>('PATCH', url, body),
   delete: <T = any>(url: string, body?: any) => request<T>('DELETE', url, body),
 }

@@ -1,0 +1,20 @@
+using SupportDesk.Domain.Abstract.Validation.Rule;
+using SupportDesk.Domain.Abstract.ValueObject;
+
+namespace SupportDesk.Domain.Common.ValueObjects;
+
+public sealed record CreatedAt : AbstractValueObject
+{
+    public DateTime CreatedAtValue { get; init; }
+
+    public CreatedAt(DateTime CreatedAtValue)
+    {
+        this.CreatedAtValue = CreatedAtValue;
+        ValidateValueObject();
+    }
+    
+    public override ICollection<IRule> GetValidationRules()
+    {
+        return [];
+    }
+}

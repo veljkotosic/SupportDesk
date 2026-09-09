@@ -1,10 +1,13 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { organizationAdminAgentService } from '@/services/organizationAdmin/organizationAdminAgentService.ts'
 import { organizationDashboardHubService } from '@/services/hubs/organizationDashboardHubService.ts'
 import type { OrganizationAgent } from '@/types/organizationAgent/organizationAgent.ts'
 import type { TicketAssignedInfo } from '@/types/ticket/info/ticketAssignedInfo.ts'
 import type { TicketClosedInfo } from '@/types/ticket/info/ticketClosedInfo.ts'
+import {organizationService} from "@/services/organization/organizationService.ts";
+import {
+  supportAgentInviteService
+} from "@/services/supportAgentInvite/supportAgentInviteService.ts";
 
 export const useOrganizationAdminAgentStore = defineStore('organizationAdminAgent', () => {
   const agents = ref<OrganizationAgent[]>([])
@@ -29,7 +32,7 @@ export const useOrganizationAdminAgentStore = defineStore('organizationAdminAgen
     error.value = null
 
     try {
-      const result = await organizationAdminAgentService.getSupportAgents()
+      const result = await organizationService.getSupportAgents()
       agents.value = result.agents
     } catch (e: any) {
       error.value = e?.message ?? 'Failed to load agents'
@@ -46,19 +49,17 @@ export const useOrganizationAdminAgentStore = defineStore('organizationAdminAgen
   }
 
   async function generateInviteCode(email: string) {
-    return await organizationAdminAgentService.generateInviteCode(email)
+    return await supportAgentInviteService.generateInviteCode(email)
   }
 
   async function startLiveUpdates() {
     await organizationDashboardHubService.connect()
     organizationDashboardHubService.onTicketAssigned(assignTicket)
     organizationDashboardHubService.onTicketClosed(closeTicket)
-    await organizationDashboardHubService.startLiveUpdates()
   }
 
   async function stopLiveUpdates() {
     organizationDashboardHubService.offAll()
-    await organizationDashboardHubService.stopLiveUpdates()
     await organizationDashboardHubService.disconnect()
   }
 

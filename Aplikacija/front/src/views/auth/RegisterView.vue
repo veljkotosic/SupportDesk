@@ -10,7 +10,7 @@ import type {RegisterCustomerInput} from "@/types/auth/registerCustomerInput.ts"
 import type {RegisterSupportAgentInput} from "@/types/auth/registerSupportAgentInput.ts";
 import type {RegisterOrganizationInput} from "@/types/auth/registerOrganizationInput.ts";
 import {useRoute, useRouter} from "vue-router";
-import {UserType} from "@/types/user/userType.ts";
+import {UserRole} from "@/types/user/userRole.ts";
 
 const route = useRoute()
 const router = useRouter()
@@ -107,11 +107,11 @@ async function routeAuthenticatedUser() {
     return
   }
 
-  if (authStore.user?.type === UserType.Customer) {
+  if (authStore.user?.role === UserRole.Customer) {
     await router.push({ name: 'customerDashboard' })
-  } else if (authStore.user?.type === UserType.SupportAgent) {
+  } else if (authStore.user?.role === UserRole.SupportAgent) {
     await router.push({ name: 'supportAgentDashboard' })
-  } else if (authStore.user?.type === UserType.OrganizationAdmin) {
+  } else if (authStore.user?.role === UserRole.OrganizationAdmin) {
     await router.push({ name: 'organizationDashboard' })
   }
 }

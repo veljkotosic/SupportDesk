@@ -1,11 +1,11 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { organizationTicketService } from '@/services/ticket/organizationTicketService.ts'
 import { organizationDashboardHubService } from '@/services/hubs/organizationDashboardHubService.ts'
 import type { OrganizationTicketListItem } from '@/types/ticket/organizationTicketListItem.ts'
 import type { TicketPriority } from '@/types/ticket/ticketPriority.ts'
 import type { TicketStatus } from '@/types/ticket/ticketStatus.ts'
 import type { TicketFeedbackInfo } from '@/types/ticket/info/ticketFeedbackInfo.ts'
+import {ticketService} from "@/services/ticket/ticketService.ts";
 
 export type OrganizationTicketSort = 'latest' | 'oldest' | 'priority'
 
@@ -32,10 +32,10 @@ export const useOrganizationTicketListStore = defineStore('organizationTicketLis
     error.value = null
 
     try {
-      const result = await organizationTicketService.getTickets({
+      const result = await ticketService.getOrganizationTickets({
         skip: (currentPage.value - 1) * pageSize.value,
         take: pageSize.value,
-        search: searchQuery.value,
+        searchTerm: searchQuery.value,
         status: statusFilter.value,
         priority: priorityFilter.value,
         sortBy: sortBy.value,
@@ -76,12 +76,10 @@ export const useOrganizationTicketListStore = defineStore('organizationTicketLis
     organizationDashboardHubService.onTicketClosed(loadTickets)
     organizationDashboardHubService.onNewTicketMessage(loadTickets)
     organizationDashboardHubService.onGivenFeedback(updateTicketFeedback)
-    await organizationDashboardHubService.startLiveUpdates()
   }
 
   async function stopLiveUpdates() {
     organizationDashboardHubService.offAll()
-    await organizationDashboardHubService.stopLiveUpdates()
     await organizationDashboardHubService.disconnect()
   }
 
