@@ -11,7 +11,7 @@ import { useAuthStore } from '@/stores/authStore.ts'
 import { TicketPriority } from '@/types/ticket/ticketPriority.ts'
 import { TicketStatus } from '@/types/ticket/ticketStatus.ts'
 import { TicketFeedback } from '@/types/ticket/ticketFeedback.ts'
-import { UserType } from '@/types/user/userType.ts'
+import { UserRole } from '@/types/user/userRole.ts'
 
 defineProps<{
   title: string
@@ -80,7 +80,7 @@ function getDetailPath(basePath: string | undefined, ticketId: string) {
 }
 
 function isAssignedToAnotherAgent(supportAgentId?: string) {
-  return authStore.user?.type === UserType.SupportAgent &&
+  return authStore.user?.role === UserRole.SupportAgent &&
     Boolean(supportAgentId) &&
     supportAgentId !== authStore.user.userId
 }
@@ -369,16 +369,18 @@ async function handleNextPage() {
               </td>
               <td class="px-5 py-3.5 whitespace-nowrap">
                 <div class="flex items-center gap-2">
-                  <UserAvatar :user-name="ticket.customerUsername" size="sm" />
+                  <UserAvatar :user-name="ticket.customerUserName" size="sm" />
                   <div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ ticket.customerUsername }}</p>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">{{
+                        ticket.customerUserName
+                      }}</p>
                     <p class="text-xs text-gray-400 truncate max-w-[140px]">{{ ticket.customerEmail }}</p>
                   </div>
                 </div>
               </td>
               <td class="px-5 py-3.5 whitespace-nowrap">
-                <span v-if="ticket.supportAgentUsername" class="text-sm text-gray-700 dark:text-gray-300">
-                  {{ ticket.supportAgentUsername }}
+                <span v-if="ticket.supportAgentUserName" class="text-sm text-gray-700 dark:text-gray-300">
+                  {{ ticket.supportAgentUserName }}
                 </span>
                 <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                   Unassigned

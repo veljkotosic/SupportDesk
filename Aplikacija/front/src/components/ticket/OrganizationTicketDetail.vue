@@ -14,7 +14,7 @@ import { useTicketViewStore } from '@/stores/ticketViewStore.ts'
 import { ticketHubService } from '@/services/hubs/ticketHubService.ts'
 import { TicketFeedback } from '@/types/ticket/ticketFeedback.ts'
 import { TicketStatus } from '@/types/ticket/ticketStatus.ts'
-import { UserType } from '@/types/user/userType.ts'
+import { UserRole } from '@/types/user/userRole.ts'
 import type { MessageDetails } from '@/types/message/messageDetails.ts'
 import { isRealDate } from '@/utility/date.ts'
 import { templateAnswerService } from '@/services/templateAnswer/templateAnswerService.ts'
@@ -37,8 +37,8 @@ const errorMessage = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 const messageInput = ref<HTMLTextAreaElement | null>(null)
 
-const isAdmin = computed(() => authStore.user?.type === UserType.OrganizationAdmin)
-const isSupportAgent = computed(() => authStore.user?.type === UserType.SupportAgent)
+const isAdmin = computed(() => authStore.user?.role === UserRole.OrganizationAdmin)
+const isSupportAgent = computed(() => authStore.user?.role === UserRole.SupportAgent)
 const isClosed = computed(() => ticket.value?.status === TicketStatus.Closed)
 const isBlockedAgent = computed(() =>
   isSupportAgent.value &&
@@ -53,7 +53,7 @@ const canClose = computed(() =>
 const canSendMessage = computed(() => canClose.value && newMessage.value.trim().length > 0)
 
 const groupedMessages = computed(() => {
-  const groups: { senderId: string; senderUsername: string; createdAt: Date | string; messages: MessageDetails[] }[] = []
+  const groups: { senderId: string; senderUserName: string; createdAt: Date | string; messages: MessageDetails[] }[] = []
   for (const message of ticket.value?.messages ?? []) {
     const lastGroup = groups.at(-1)
     if (
@@ -65,7 +65,7 @@ const groupedMessages = computed(() => {
     } else {
       groups.push({
         senderId: message.senderId,
-        senderUsername: message.senderUsername,
+        senderUserName: message.senderUserName,
         createdAt: message.createdAt,
         messages: [message],
       })
@@ -225,7 +225,7 @@ async function handleUseTemplate(template: TemplateAnswer) {
       <div>
         <h2 class="font-semibold text-gray-900 dark:text-white mb-1">Ticket already assigned</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-          This ticket is currently being handled by {{ ticket.supportAgentUsername }}.
+          This ticket is currently being handled by {{ ticket.supportAgentUserName }}.
         </p>
       </div>
       <RouterLink :to="backPath" class="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium">
@@ -242,7 +242,9 @@ async function handleUseTemplate(template: TemplateAnswer) {
               <User :size="14" class="text-gray-400 mt-0.5" />
               <div>
                 <p class="text-xs text-gray-400">Customer</p>
-                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ticket.customerUsername }}</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{
+                    ticket.customerUserName
+                  }}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">{{ ticket.customerEmail }}</p>
               </div>
             </div>
@@ -257,9 +259,11 @@ async function handleUseTemplate(template: TemplateAnswer) {
 
         <div class="p-4 border-b border-gray-100 dark:border-gray-800">
           <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Assigned Agent</p>
-          <div v-if="ticket.supportAgentUsername" class="flex items-center gap-2.5">
-            <UserAvatar :user-name="ticket.supportAgentUsername" />
-            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ticket.supportAgentUsername }}</p>
+          <div v-if="ticket.supportAgentUserName" class="flex items-center gap-2.5">
+            <UserAvatar :user-name="ticket.supportAgentUserName" />
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{
+                ticket.supportAgentUserName
+              }}</p>
           </div>
           <p v-else class="text-sm text-gray-400">Not assigned yet</p>
         </div>
@@ -281,7 +285,7 @@ async function handleUseTemplate(template: TemplateAnswer) {
           <p v-if="ticket.notes.length === 0" class="text-xs text-gray-400 text-center py-4">No internal notes yet</p>
           <div v-for="note in ticket.notes" :key="note.id" class="mb-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-medium text-amber-700 dark:text-amber-400">{{ note.authorUsername }}</span>
+              <span class="text-xs font-medium text-amber-700 dark:text-amber-400">{{ note.authorUserName }}</span>
               <span class="text-xs text-amber-500/70">{{ formatDate(note.createdAt) }}</span>
             </div>
             <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">{{ note.text }}</p>
@@ -294,10 +298,10 @@ async function handleUseTemplate(template: TemplateAnswer) {
 
         <div ref="messagesContainer" class="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           <div v-for="group in groupedMessages" :key="`${group.senderId}-${group.createdAt}`" class="flex gap-3" :class="isCustomerMessage(group.messages[0]!) ? 'flex-row-reverse' : 'flex-row'">
-            <UserAvatar :user-name="group.senderUsername" />
+            <UserAvatar :user-name="group.senderUserName" />
             <div class="flex flex-col gap-1 max-w-lg" :class="isCustomerMessage(group.messages[0]!) ? 'items-end' : 'items-start'">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ group.senderUsername }}</span>
+                <span class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ group.senderUserName }}</span>
                 <span class="text-xs text-gray-400">{{ formatDate(group.createdAt) }}</span>
               </div>
               <div

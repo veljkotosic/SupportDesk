@@ -70,7 +70,7 @@ export const useTicketViewStore = defineStore('ticketView', () => {
     ticket.value!.status = TicketStatus.Assigned
     ticket.value!.assignedAt = info.assignedAt
     ticket.value!.supportAgentId = info.supportAgentId
-    ticket.value!.supportAgentUsername = info.supportAgentUsername
+    ticket.value!.supportAgentUserName = info.supportAgentUsername
   }
 
   function closeTicket(info: TicketClosedInfo) {

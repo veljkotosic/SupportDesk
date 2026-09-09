@@ -1,7 +1,7 @@
 export interface NoteDetails {
   id: string;
   authorId: string,
-  authorUsername: string,
+  authorUserName: string,
   text: string,
   createdAt: Date
 }

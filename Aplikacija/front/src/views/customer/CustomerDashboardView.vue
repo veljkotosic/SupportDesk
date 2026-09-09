@@ -31,7 +31,6 @@ onBeforeMount(async () => {
 
   }
   await customerDashboardHubService.connect()
-  await customerDashboardHubService.startLiveUpdates()
   customerDashboardHubService.onTicketAssigned((info) => {
     ticketStore.assignTicket(info)
   })
@@ -49,7 +48,6 @@ onUnmounted(async () => {
   }
   ticketStore.unloadTickets()
   customerDashboardHubService.offAll()
-  await customerDashboardHubService.stopLiveUpdates()
   await customerDashboardHubService.disconnect()
 })
 
@@ -253,10 +251,10 @@ async function handleNextPage() {
                 </div>
 
                 <div class="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-gray-50 dark:border-gray-800">
-                  <p v-if="ticket.supportAgentUsername" class="text-xs text-gray-500 dark:text-gray-400">
+                  <p v-if="ticket.supportAgentUserName" class="text-xs text-gray-500 dark:text-gray-400">
                     Agent:
                     <span class="text-gray-700 dark:text-gray-300 font-medium">
-                      {{ ticket.supportAgentUsername }}
+                      {{ ticket.supportAgentUserName }}
                     </span>
                   </p>
                   <p v-else class="text-xs text-gray-400">Awaiting assignment</p>

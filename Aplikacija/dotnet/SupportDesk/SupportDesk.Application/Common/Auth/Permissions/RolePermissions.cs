@@ -31,6 +31,7 @@ public static class RolePermissions
             Permissions.Faqs.Update,
             Permissions.Faqs.Delete,
             
+            Permissions.TemplateAnswers.Get,
             Permissions.TemplateAnswers.Add,
             Permissions.TemplateAnswers.Update,
             Permissions.TemplateAnswers.Delete,
@@ -62,7 +63,9 @@ public static class RolePermissions
             Permissions.Messages.Send,
             Permissions.Messages.Get,
             
-            Permissions.Notes.Add
+            Permissions.Notes.Add,
+            
+            Permissions.TemplateAnswers.Get
         ]
     };
 

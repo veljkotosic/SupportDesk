@@ -58,23 +58,28 @@ internal sealed class GetOrganizationTicketsQueryHandler
             select new
             {
                 Ticket = ticket,
-                CategoryName = category.Name.NameValue,
-                CustomerUserName = customer.UserName.UserNameValue,
+                Category = category,
+                Customer = customer,
                 CustomerEmail = customer.Email.EmailValue,
                 SupportAgentUserName = agent != null ? agent.UserName.UserNameValue : null
             };
 
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
-            var search = query.SearchTerm.Trim().ToLower();
-            var isGuid = Guid.TryParse(query.SearchTerm.Trim(), out var parsedGuid);
-            var parsedTicketId = isGuid ? new TicketId(parsedGuid) : null;
+            var search = query.SearchTerm.Trim();
 
-            projectedQuery = projectedQuery.Where(item =>
-                (parsedTicketId != null && item.Ticket.Id == parsedTicketId) ||
-                item.Ticket.Subject.SubjectValue.ToLower().Contains(search) ||
-                item.CustomerUserName.ToLower().Contains(search) ||
-                item.CategoryName.ToLower().Contains(search));
+            if (Guid.TryParse(search, out var parsedGuid))
+            {
+                var ticketId = new TicketId(parsedGuid);
+                projectedQuery = projectedQuery.Where(item => item.Ticket.Id == ticketId);
+            }
+            else
+            {
+                projectedQuery = projectedQuery.Where(item =>
+                    ((string)item.Ticket.Subject).Contains(search) ||
+                    ((string)item.Customer.UserName).Contains(search) ||
+                    ((string)item.Category.Name).Contains(search));
+            }
         }
 
         if (query.Status.HasValue)
@@ -111,9 +116,9 @@ internal sealed class GetOrganizationTicketsQueryHandler
             .Select(item => new OrganizationTicketListingDto(
                 item.Ticket.Id.IdValue,
                 item.Ticket.CategoryId.IdValue,
-                item.CategoryName,
+                item.Category.Name.NameValue,
                 item.Ticket.CustomerId.IdValue,
-                item.CustomerUserName,
+                item.Customer.UserName.UserNameValue,
                 item.CustomerEmail,
                 item.Ticket.SupportAgentId != null ? item.Ticket.SupportAgentId.IdValue : null,
                 item.SupportAgentUserName,

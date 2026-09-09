@@ -17,4 +17,6 @@ public sealed record UserName : AbstractValueObject
     {
         return [];
     }
+    
+    public static implicit operator string(UserName name) => name.UserNameValue;
 }

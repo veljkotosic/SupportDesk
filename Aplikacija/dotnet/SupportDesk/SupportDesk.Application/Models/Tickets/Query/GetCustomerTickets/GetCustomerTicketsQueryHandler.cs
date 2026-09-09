@@ -45,8 +45,8 @@ internal sealed class GetCustomerTicketsQueryHandler
         var projectedQuery =
             from ticket in customerTickets
             
-            join org in _applicationDbContext.Organizations.IgnoreQueryFilters().AsNoTracking()
-                on ticket.OrganizationId equals org.Id
+            join organization in _applicationDbContext.Organizations.IgnoreQueryFilters().AsNoTracking()
+                on ticket.OrganizationId equals organization.Id
                 
             join category in _applicationDbContext.Categories.IgnoreQueryFilters().AsNoTracking()
                 on ticket.CategoryId equals category.Id
@@ -61,23 +61,28 @@ internal sealed class GetCustomerTicketsQueryHandler
             select new
             {
                 Ticket = ticket,
-                OrganizationName = org.Name.NameValue,
-                CategoryName = category.Name.NameValue,
+                Organization = organization,
+                Category = category,
                 CustomerUserName = customer.UserName.UserNameValue,
                 SupportAgentUserName = agent != null ? agent.UserName.UserNameValue : null
             };
         
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
-            var search = query.SearchTerm.Trim().ToLower();
-            var isGuid = Guid.TryParse(query.SearchTerm.Trim(), out var parsedGuid);
-            var parsedTicketId = isGuid ? new TicketId(parsedGuid) : null;
+            var search = query.SearchTerm.Trim();
 
-            projectedQuery = projectedQuery.Where(item =>
-                (parsedTicketId != null && item.Ticket.Id == parsedTicketId) ||
-                item.Ticket.Subject.SubjectValue.ToLower().Contains(search) ||
-                item.OrganizationName.ToLower().Contains(search) ||
-                item.CategoryName.ToLower().Contains(search));
+            if (Guid.TryParse(search, out var parsedGuid))
+            {
+                var ticketId = new TicketId(parsedGuid);
+                projectedQuery = projectedQuery.Where(item => item.Ticket.Id == ticketId);
+            }
+            else
+            {
+                projectedQuery = projectedQuery.Where(item =>
+                    ((string)item.Ticket.Subject).Contains(search) ||
+                    ((string)item.Organization.Name).Contains(search) ||
+                    ((string)item.Category.Name).Contains(search));
+            }
         }
         
         if (query.Status.HasValue)
@@ -95,9 +100,9 @@ internal sealed class GetCustomerTicketsQueryHandler
                     .Select(item => new CustomerTicketListingDto(
                         item.Ticket.Id.IdValue,
                         item.Ticket.OrganizationId.IdValue,
-                        item.OrganizationName,
+                        item.Organization.Name.NameValue,
                         item.Ticket.CategoryId.IdValue,
-                        item.CategoryName,
+                        item.Category.Name.NameValue,
                         item.Ticket.CustomerId.IdValue,
                         item.CustomerUserName,
                         item.Ticket.SupportAgentId != null ? item.Ticket.SupportAgentId.IdValue : null,

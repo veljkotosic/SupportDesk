@@ -7,10 +7,10 @@ export interface OrganizationTicketListItem {
   categoryId: string
   categoryName: string
   customerId: string
-  customerUsername: string
+  customerUserName: string
   customerEmail: string
   supportAgentId?: string
-  supportAgentUsername?: string
+  supportAgentUserName?: string
   status: TicketStatus
   priority: TicketPriority
   feedback: TicketFeedback

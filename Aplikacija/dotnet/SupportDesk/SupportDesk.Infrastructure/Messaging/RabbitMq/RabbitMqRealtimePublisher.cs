@@ -14,6 +14,11 @@ public sealed class RabbitMqRealtimePublisher : IRealtimePublisher
     {
         _connection = connection;
     }
+    
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public async Task PublishAsync(RealtimeHubType hubType, string targetGroup, string action, object payload, CancellationToken cancellationToken = default)
     {
@@ -26,7 +31,7 @@ public sealed class RabbitMqRealtimePublisher : IRealtimePublisher
             autoDelete: false,
             cancellationToken: cancellationToken);
         
-        var serializedPayload = JsonSerializer.Serialize(payload);
+        var serializedPayload = JsonSerializer.Serialize(payload, SerializerOptions);
 
         var message = new RealtimeUpdateMessage(hubType, targetGroup, action, serializedPayload);
         

@@ -7,7 +7,7 @@ import ErrorBanner from '@/components/ErrorBanner.vue'
 import type {LoginInput} from "@/types/auth/loginInput.ts";
 
 import { useAuthStore } from "@/stores/authStore.ts";
-import {UserType} from "@/types/user/userType.ts";
+import {UserRole} from "@/types/user/userRole.ts";
 import router from "@/router";
 import {useRoute} from "vue-router";
 
@@ -29,11 +29,11 @@ async function handleLogin() {
       return
     }
 
-    if (user.type === UserType.Customer) {
+    if (user.role === UserRole.Customer) {
       await router.push({ name: 'customerDashboard' })
-    } else if (user.type === UserType.SupportAgent) {
+    } else if (user.role === UserRole.SupportAgent) {
       await router.push({ name: 'supportAgentDashboard' });
-    } else if (user.type === UserType.OrganizationAdmin) {
+    } else if (user.role === UserRole.OrganizationAdmin) {
       await router.push({ name: 'organizationDashboard' });
     }
 

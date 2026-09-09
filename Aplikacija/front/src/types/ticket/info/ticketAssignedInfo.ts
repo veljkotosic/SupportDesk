@@ -1,6 +1,6 @@
 export interface TicketAssignedInfo {
   ticketId: string;
   supportAgentId: string;
-  supportAgentUsername: string;
+  supportAgentUserName: string;
   assignedAt: Date;
 }

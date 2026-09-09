@@ -2,11 +2,14 @@
 import { computed, onBeforeMount, onBeforeUnmount, reactive, ref } from 'vue'
 import { Check, Copy, Edit2, FileText, HelpCircle, Link2, Plus, Search, Tag, Trash2, X } from 'lucide-vue-next'
 import OrganizationAdminLayout from '@/layouts/OrganizationAdminDashboardLayout.vue'
-import { type SettingsTab, useOrganizationSettingsStore } from '@/stores/organizationSettingsStore.ts'
 import ErrorBanner from '@/components/ErrorBanner.vue'
 import { useRouter } from 'vue-router'
+import {
+  type KnowledgeBaseTab,
+  useOrganizationKnowledgeBaseStore
+} from "@/stores/organizationKnowledgeBaseStore.ts";
 
-const settingsStore = useOrganizationSettingsStore()
+const knowledgeBaseStore = useOrganizationKnowledgeBaseStore()
 const router = useRouter()
 const showForm = ref(false)
 const editingId = ref<string | null>(null)
@@ -16,16 +19,16 @@ const linkError = ref('')
 let copyFeedbackTimeout: ReturnType<typeof setTimeout> | undefined
 
 const customerTicketLink = computed(() => {
-  if (!settingsStore.organizationId) return ''
+  if (!knowledgeBaseStore.organizationId) return ''
 
   const routeLocation = router.resolve({
     name: 'customerOpenTicket',
-    query: { organizationId: settingsStore.organizationId },
+    query: { organizationId: knowledgeBaseStore.organizationId },
   })
   return new URL(routeLocation.href, window.location.origin).toString()
 })
 
-const tabs: { id: SettingsTab; label: string; icon: typeof HelpCircle }[] = [
+const tabs: { id: KnowledgeBaseTab; label: string; icon: typeof HelpCircle }[] = [
   { id: 'faqs', label: 'FAQ Items', icon: HelpCircle },
   { id: 'templates', label: 'Template Answers', icon: FileText },
   { id: 'categories', label: 'Categories', icon: Tag },
@@ -35,17 +38,17 @@ const actionLabel = computed(() => ({
   faqs: 'Add FAQ',
   templates: 'Add Template',
   categories: 'Add Category',
-})[settingsStore.activeTab])
+})[knowledgeBaseStore.activeTab])
 
 const formTitle = computed(() => {
   const action = editingId.value ? 'Edit' : 'New'
-  return `${action} ${settingsStore.activeTab === 'faqs' ? 'FAQ Item' : settingsStore.activeTab === 'templates' ? 'Template Answer' : 'Category'}`
+  return `${action} ${knowledgeBaseStore.activeTab === 'faqs' ? 'FAQ Item' : knowledgeBaseStore.activeTab === 'templates' ? 'Template Answer' : 'Category'}`
 })
 
-onBeforeMount(settingsStore.loadSettings)
+onBeforeMount(knowledgeBaseStore.loadSettings)
 onBeforeUnmount(() => {
   if (copyFeedbackTimeout) clearTimeout(copyFeedbackTimeout)
-  settingsStore.clear()
+  knowledgeBaseStore.clear()
 })
 
 async function handleCopyTicketLink() {
@@ -65,8 +68,8 @@ async function handleCopyTicketLink() {
   }
 }
 
-function handleTabChange(tab: SettingsTab) {
-  settingsStore.setActiveTab(tab)
+function handleTabChange(tab: KnowledgeBaseTab) {
+  knowledgeBaseStore.setActiveTab(tab)
   handleCloseForm()
 }
 
@@ -113,15 +116,15 @@ async function handleSave() {
   }
 
   try {
-    if (settingsStore.activeTab === 'faqs') {
-      if (editingId.value) await settingsStore.updateFaq(editingId.value, primary, secondary)
-      else await settingsStore.addFaq(primary, secondary)
-    } else if (settingsStore.activeTab === 'templates') {
-      if (editingId.value) await settingsStore.updateTemplate(editingId.value, primary, secondary)
-      else await settingsStore.addTemplate(primary, secondary)
+    if (knowledgeBaseStore.activeTab === 'faqs') {
+      if (editingId.value) await knowledgeBaseStore.updateFaq(editingId.value, primary, secondary)
+      else await knowledgeBaseStore.addFaq(primary, secondary)
+    } else if (knowledgeBaseStore.activeTab === 'templates') {
+      if (editingId.value) await knowledgeBaseStore.updateTemplate(editingId.value, primary, secondary)
+      else await knowledgeBaseStore.addTemplate(primary, secondary)
     } else {
-      if (editingId.value) await settingsStore.updateCategory(editingId.value, primary, secondary)
-      else await settingsStore.addCategory(primary, secondary)
+      if (editingId.value) await knowledgeBaseStore.updateCategory(editingId.value, primary, secondary)
+      else await knowledgeBaseStore.addCategory(primary, secondary)
     }
 
     handleCloseForm()
@@ -132,7 +135,7 @@ async function handleSave() {
 
 async function handleRemoveFaq(id: string) {
   try {
-    await settingsStore.removeFaq(id)
+    await knowledgeBaseStore.removeFaq(id)
   } catch (e: any) {
 
   }
@@ -140,7 +143,7 @@ async function handleRemoveFaq(id: string) {
 
 async function handleRemoveTemplate(id: string) {
   try {
-    await settingsStore.removeTemplate(id)
+    await knowledgeBaseStore.removeTemplate(id)
   } catch (e: any) {
 
   }
@@ -148,7 +151,7 @@ async function handleRemoveTemplate(id: string) {
 
 async function handleRemoveCategory(id: string) {
   try {
-    await settingsStore.removeCategory(id)
+    await knowledgeBaseStore.removeCategory(id)
   } catch (e: any) {
 
   }
@@ -217,7 +220,7 @@ async function handleRemoveCategory(id: string) {
           :key="tab.id"
           type="button"
           class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
-          :class="settingsStore.activeTab === tab.id
+          :class="knowledgeBaseStore.activeTab === tab.id
             ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'"
           @click="handleTabChange(tab.id)"
@@ -237,7 +240,9 @@ async function handleRemoveCategory(id: string) {
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              {{ settingsStore.activeTab === 'faqs' ? 'Question' : settingsStore.activeTab === 'templates' ? 'Title' : 'Category Name' }}
+              {{
+                knowledgeBaseStore.activeTab === 'faqs' ? 'Question' : knowledgeBaseStore.activeTab === 'templates' ? 'Title' : 'Category Name'
+              }}
             </label>
             <input
               v-model="form.primary"
@@ -247,7 +252,9 @@ async function handleRemoveCategory(id: string) {
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              {{ settingsStore.activeTab === 'faqs' ? 'Answer' : settingsStore.activeTab === 'templates' ? 'Response Content' : 'Description' }}
+              {{
+                knowledgeBaseStore.activeTab === 'faqs' ? 'Answer' : knowledgeBaseStore.activeTab === 'templates' ? 'Response Content' : 'Description'
+              }}
             </label>
             <textarea
               v-model="form.secondary"
@@ -266,21 +273,21 @@ async function handleRemoveCategory(id: string) {
         </div>
       </div>
 
-      <ErrorBanner class="mb-4" :message="settingsStore.error" />
+      <ErrorBanner class="mb-4" :message="knowledgeBaseStore.error" />
 
       <div class="relative mb-5">
         <Search :size="15" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
-          v-model="settingsStore.searchQuery"
+          v-model="knowledgeBaseStore.searchQuery"
           type="text"
-          :placeholder="`Search ${settingsStore.activeTab === 'faqs' ? 'FAQs' : settingsStore.activeTab === 'templates' ? 'templates' : 'categories'}...`"
+          :placeholder="`Search ${knowledgeBaseStore.activeTab === 'faqs' ? 'FAQs' : knowledgeBaseStore.activeTab === 'templates' ? 'templates' : 'categories'}...`"
           class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
         />
       </div>
 
-      <div v-if="settingsStore.activeTab === 'faqs'" class="space-y-3">
-        <div v-if="settingsStore.filteredFaqs.length === 0" class="text-center py-10 text-gray-400">No FAQ items found</div>
-        <div v-for="item in settingsStore.filteredFaqs" :key="item.id" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+      <div v-if="knowledgeBaseStore.activeTab === 'faqs'" class="space-y-3">
+        <div v-if="knowledgeBaseStore.filteredFaqs.length === 0" class="text-center py-10 text-gray-400">No FAQ items found</div>
+        <div v-for="item in knowledgeBaseStore.filteredFaqs" :key="item.id" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
           <div class="flex items-start justify-between gap-4">
             <div>
               <h3 class="font-medium text-gray-900 dark:text-white text-sm mb-2">{{ item.question }}</h3>
@@ -294,9 +301,9 @@ async function handleRemoveCategory(id: string) {
         </div>
       </div>
 
-      <div v-else-if="settingsStore.activeTab === 'templates'" class="space-y-3">
-        <div v-if="settingsStore.filteredTemplateAnswers.length === 0" class="text-center py-10 text-gray-400">No template answers found</div>
-        <div v-for="item in settingsStore.filteredTemplateAnswers" :key="item.id" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+      <div v-else-if="knowledgeBaseStore.activeTab === 'templates'" class="space-y-3">
+        <div v-if="knowledgeBaseStore.filteredTemplateAnswers.length === 0" class="text-center py-10 text-gray-400">No template answers found</div>
+        <div v-for="item in knowledgeBaseStore.filteredTemplateAnswers" :key="item.id" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
           <div class="flex items-start justify-between gap-4">
             <div>
               <h3 class="font-medium text-gray-900 dark:text-white text-sm mb-2">{{ item.title }}</h3>
@@ -311,8 +318,8 @@ async function handleRemoveCategory(id: string) {
       </div>
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div v-if="settingsStore.filteredCategories.length === 0" class="sm:col-span-2 text-center py-10 text-gray-400">No categories found</div>
-        <div v-for="item in settingsStore.filteredCategories" :key="item.id" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex items-start gap-3">
+        <div v-if="knowledgeBaseStore.filteredCategories.length === 0" class="sm:col-span-2 text-center py-10 text-gray-400">No categories found</div>
+        <div v-for="item in knowledgeBaseStore.filteredCategories" :key="item.id" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex items-start gap-3">
           <div class="w-10 h-10 rounded-xl bg-violet-500 flex items-center justify-center flex-shrink-0"><Tag :size="17" class="text-white" /></div>
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-2">

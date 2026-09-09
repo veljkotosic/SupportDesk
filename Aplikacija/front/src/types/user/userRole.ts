@@ -1,4 +1,4 @@
-export enum UserType {
+export enum UserRole {
   Customer,
   SupportAgent,
   OrganizationAdmin

@@ -22,4 +22,6 @@ public sealed record TicketSubject : AbstractValueObject
             new MaxLengthRule(SubjectValue, TicketOptionsDefaults.SubjectMaximumLength)
         ];
     }
+    
+    public static implicit operator string(TicketSubject subject) => subject.SubjectValue;   
 }

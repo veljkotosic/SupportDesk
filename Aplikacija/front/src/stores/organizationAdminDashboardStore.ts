@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { organizationAdminDashboardService } from '@/services/organizationAdmin/organizationAdminDashboardService.ts'
 import { organizationDashboardHubService } from '@/services/hubs/organizationDashboardHubService.ts'
 import type { DashboardAgent } from '@/types/organizationAdminDashboard/dashboardAgent.ts'
 import type { DashboardSummary } from '@/types/organizationAdminDashboard/dashboardSummary.ts'
@@ -11,6 +10,7 @@ import { TicketStatus } from '@/types/ticket/ticketStatus.ts'
 import type { TicketAssignedInfo } from '@/types/ticket/info/ticketAssignedInfo.ts'
 import type { TicketClosedInfo } from '@/types/ticket/info/ticketClosedInfo.ts'
 import type { TicketFeedbackInfo } from '@/types/ticket/info/ticketFeedbackInfo.ts'
+import {organizationService} from "@/services/organization/organizationService.ts";
 
 const emptySummary = (): DashboardSummary => ({
   openTickets: 0,
@@ -33,7 +33,7 @@ export const useOrganizationAdminDashboardStore = defineStore('organizationAdmin
     error.value = null
 
     try {
-      const snapshot = await organizationAdminDashboardService.getDashboard()
+      const snapshot = await organizationService.getDashboard()
       organizationName.value = snapshot.organizationName
       summary.value = snapshot.summary
       ticketVolume.value = snapshot.ticketVolume
@@ -64,13 +64,10 @@ export const useOrganizationAdminDashboardStore = defineStore('organizationAdmin
     organizationDashboardHubService.onTicketClosed(closeTicket)
     organizationDashboardHubService.onGivenFeedback(updateFeedback)
     organizationDashboardHubService.onNewTicketMessage(updateMessageActivity)
-
-    await organizationDashboardHubService.startLiveUpdates()
   }
 
   async function stopLiveUpdates() {
     organizationDashboardHubService.offAll()
-    await organizationDashboardHubService.stopLiveUpdates()
     await organizationDashboardHubService.disconnect()
   }
 
@@ -93,7 +90,7 @@ export const useOrganizationAdminDashboardStore = defineStore('organizationAdmin
     if (ticket) {
       ticket.status = TicketStatus.Assigned
       ticket.supportAgentId = info.supportAgentId
-      ticket.supportAgentUsername = info.supportAgentUsername
+      ticket.supportAgentUserName = info.supportAgentUsername
       ticket.assignedAt = info.assignedAt
     }
   }

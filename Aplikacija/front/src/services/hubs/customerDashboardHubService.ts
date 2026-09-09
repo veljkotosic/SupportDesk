@@ -15,14 +15,6 @@ export const customerDashboardHubService = {
     await client.stop();
   },
 
-  async startLiveUpdates(): Promise<void> {
-    await client.invoke("StartLiveUpdates");
-  },
-
-  async stopLiveUpdates(): Promise<void> {
-    await client.invoke("StopLiveUpdates");
-  },
-
   onTicketAssigned(callback: (ticketAssignedInfo: TicketAssignedInfo) => void): void {
     client.on<TicketAssignedInfo>("TicketAssigned", callback);
   },

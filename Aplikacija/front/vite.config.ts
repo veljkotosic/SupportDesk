@@ -24,11 +24,11 @@ export default defineConfig({
     allowedHosts: ['.ngrok-free.app'],
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5011',
         changeOrigin: true
       },
       '/hubs': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5011',
         changeOrigin: true,
         ws: true
       }

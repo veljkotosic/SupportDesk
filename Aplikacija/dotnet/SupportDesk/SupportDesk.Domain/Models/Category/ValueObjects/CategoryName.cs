@@ -24,4 +24,6 @@ public sealed record CategoryName : AbstractValueObject
             new CategoryNameCharsetRule(NameValue)
         ];
     }
+    
+    public static implicit operator string(CategoryName name) => name.NameValue; 
 }

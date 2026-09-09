@@ -31,7 +31,7 @@ export const useTicketStore = defineStore('ticket', () =>{
     error.value = null
     try {
       const nextPage = Math.min(Math.max(1, page), totalPages.value)
-      const result = await ticketService.getTickets(
+      const result = await ticketService.getCustomerTickets(
         (nextPage - 1) * pageSize.value,
         pageSize.value,
         searchQuery.value,

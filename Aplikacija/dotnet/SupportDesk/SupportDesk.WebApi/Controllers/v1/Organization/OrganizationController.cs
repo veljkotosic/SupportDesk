@@ -8,6 +8,7 @@ using SupportDesk.Application.Models.Organizations.Query.GetOrganizationCategori
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationFaqs;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationKnowledgeBase;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationSupportAgentsSummary;
+using SupportDesk.Application.Models.Organizations.Query.GetOrganizationTemplateAnswers;
 
 namespace SupportDesk.WebApi.Controllers.v1.Organization;
 
@@ -109,5 +110,17 @@ public sealed class OrganizationController : ControllerBase
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         
         return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("templateAnswers")]
+    [ProducesResponseType(typeof(GetOrganizationTemplateAnswersQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]   
+    public async Task<ActionResult<GetOrganizationTemplateAnswersQueryResult>> GetOrganizationTemplateAnswers(CancellationToken cancellationToken)
+    {
+        var result = await _queryDispatcher.DispatchAsync(new GetOrganizationTemplateAnswersQuery(), cancellationToken);
+        
+        return Ok(result);      
     }
 }

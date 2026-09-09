@@ -36,7 +36,7 @@ internal sealed class PublishMessageCreatedRealtimeUpdateDomainEventHandler
         var messageDto = new RealtimeMessageDetailsDto(
             data.MessageId,
             data.SenderId,
-            data.SenderUsername,
+            data.SenderUserName,
             data.Text,
             data.CreatedAt);
 
@@ -98,7 +98,7 @@ internal sealed record MessageRealtimeProjection(
     Guid OrganizationId,
     Guid CustomerId,
     Guid SenderId,
-    string SenderUsername,
+    string SenderUserName,
     UserRole SenderRole,
     string Text,
     DateTime CreatedAt);
@@ -106,7 +106,7 @@ internal sealed record MessageRealtimeProjection(
 public sealed record RealtimeMessageDetailsDto(
     Guid Id,
     Guid SenderId,
-    string SenderUsername,
+    string SenderUserName,
     string Text,
     DateTime CreatedAt);
 

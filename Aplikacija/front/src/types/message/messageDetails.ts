@@ -1,7 +1,7 @@
 export interface MessageDetails {
   id: string
   senderId: string
-  senderUsername: string
+  senderUserName: string
   text: string
   createdAt: Date
 }

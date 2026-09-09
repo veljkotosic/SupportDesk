@@ -34,7 +34,7 @@ internal sealed class PublishNoteCreatedRealtimeUpdateDomainEventHandler
         
         await _realtimePublisher.PublishAsync(
             RealtimeHubType.Ticket,
-            $"{domainEvent.NoteId.IdValue}:organization",
+            $"{domainEvent.TicketId.IdValue}:organization",
             "NewNote",
             noteDto,
             cancellationToken);

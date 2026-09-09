@@ -1,20 +1,23 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { organizationSettingsService } from '@/services/organizationAdmin/organizationSettingsService.ts'
 import type {
-  CategorySetting,
-  FaqSetting,
-  TemplateAnswerSetting,
-} from '@/types/organizationSettings/organizationSettings.ts'
+  CategoryKnowledgeBase,
+  FaqKnowledgeBase,
+  TemplateAnswerKnowledgeBase
+} from "@/types/organizationSettings/organizationKnowledgeBase.ts";
+import {organizationService} from "@/services/organization/organizationService.ts";
+import {faqService} from "@/services/faq/faqService.ts";
+import {templateAnswerService} from "@/services/templateAnswer/templateAnswerService.ts";
+import {categoryService} from "@/services/category/categoryService.ts";
 
-export type SettingsTab = 'faqs' | 'templates' | 'categories'
+export type KnowledgeBaseTab = 'faqs' | 'templates' | 'categories'
 
-export const useOrganizationSettingsStore = defineStore('organizationSettings', () => {
+export const useOrganizationKnowledgeBaseStore = defineStore('organizationKnowledgeBase', () => {
   const organizationId = ref('')
-  const faqs = ref<FaqSetting[]>([])
-  const templateAnswers = ref<TemplateAnswerSetting[]>([])
-  const categories = ref<CategorySetting[]>([])
-  const activeTab = ref<SettingsTab>('faqs')
+  const faqs = ref<FaqKnowledgeBase[]>([])
+  const templateAnswers = ref<TemplateAnswerKnowledgeBase[]>([])
+  const categories = ref<CategoryKnowledgeBase[]>([])
+  const activeTab = ref<KnowledgeBaseTab>('faqs')
   const searchQuery = ref('')
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -40,7 +43,7 @@ export const useOrganizationSettingsStore = defineStore('organizationSettings', 
     isLoading.value = true
     error.value = null
     try {
-      const result = await organizationSettingsService.getSettings()
+      const result = await organizationService.getKnowledgeBase()
       organizationId.value = result.organizationId
       faqs.value = result.faqs
       templateAnswers.value = result.templateAnswers
@@ -64,7 +67,7 @@ export const useOrganizationSettingsStore = defineStore('organizationSettings', 
     }
   }
 
-  function setActiveTab(tab: SettingsTab) {
+  function setActiveTab(tab: KnowledgeBaseTab) {
     activeTab.value = tab
     searchQuery.value = ''
   }
@@ -94,14 +97,14 @@ export const useOrganizationSettingsStore = defineStore('organizationSettings', 
     loadSettings,
     setActiveTab,
     clear,
-    addFaq: (question: string, answer: string) => mutate(() => organizationSettingsService.addFaq(question, answer)),
-    updateFaq: (id: string, question: string, answer: string) => mutate(() => organizationSettingsService.updateFaq(id, question, answer)),
-    removeFaq: (id: string) => mutate(() => organizationSettingsService.removeFaq(id)),
-    addTemplate: (title: string, text: string) => mutate(() => organizationSettingsService.addTemplateAnswer(title, text)),
-    updateTemplate: (id: string, title: string, text: string) => mutate(() => organizationSettingsService.updateTemplateAnswer(id, title, text)),
-    removeTemplate: (id: string) => mutate(() => organizationSettingsService.removeTemplateAnswer(id)),
-    addCategory: (name: string, description: string) => mutate(() => organizationSettingsService.addCategory(name, description)),
-    updateCategory: (id: string, name: string, description: string) => mutate(() => organizationSettingsService.updateCategory(id, name, description)),
-    removeCategory: (id: string) => mutate(() => organizationSettingsService.removeCategory(id)),
+    addFaq: (question: string, answer: string) => mutate(() => faqService.addFaq(question, answer)),
+    updateFaq: (id: string, question: string, answer: string) => mutate(() => faqService.updateFaq(id, question, answer)),
+    removeFaq: (id: string) => mutate(() => faqService.removeFaq(id)),
+    addTemplate: (title: string, text: string) => mutate(() => templateAnswerService.addTemplateAnswer(title, text)),
+    updateTemplate: (id: string, title: string, text: string) => mutate(() => templateAnswerService.updateTemplateAnswer(id, title, text)),
+    removeTemplate: (id: string) => mutate(() => templateAnswerService.removeTemplateAnswer(id)),
+    addCategory: (name: string, description: string) => mutate(() => categoryService.addCategory(name, description)),
+    updateCategory: (id: string, name: string, description: string) => mutate(() => categoryService.updateCategory(id, name, description)),
+    removeCategory: (id: string) => mutate(() => categoryService.removeCategory(id)),
   }
 })
