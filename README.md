@@ -1,68 +1,71 @@
-# SupportDesk
+### SupportDesk
 
-SupportDesk is a web-based customer support platform that allows organizations to manage support tickets, customers, support agents, categories, and knowledge-base content.
+SupportDesk is a web-based multi-tenant customer support platform that allows organizations to manage support tickets, customers, support agents, categories, template answers, and knowledge base content with real-time collaboration.
 
-## Getting Started
+This implementation is the product of the previously planned architectural refactor, transitioning the codebase into Clean Architecture with strong separation of concerns.
 
-### Requirements
+---
 
-* Docker
+### Architecture and Design Patterns
+
+* **Clean Architecture & DDD**: Clear separation across Domain, Application, Infrastructure, and WebApi layers. Core domain concepts are encapsulated using strongly typed Value Objects with self-validation rules and domain entities.
+* **CQRS (Command Query Responsibility Segregation)**: Distinct pipelines and dispatchers for commands and queries with dedicated handlers and validation behaviors.
+* **Event-Driven Real-time Updates**: Domain events and real-time push notifications published through RabbitMQ message broker and delivered to connected clients via SignalR hubs.
+* **Multi-Tenancy & Tenant Isolation**: Context-based organization scoping and permission checks enforced across queries, commands, and real-time message streams.
+* **Single-Module Modular Structure**: Feature-based vertical organization of application models, events, and query contracts.
+
+---
+
+### Tech Stack
+
+* **Backend**: ASP.NET Core (.NET), Entity Framework Core
+* **Database & Messaging**: PostgreSQL, RabbitMQ
+* **Frontend**: Vue.js, TypeScript, Pinia, Vue Router, Tailwind CSS
+* **Real-time**: SignalR, RabbitMQ Fanout Exchange backplane
+* **Containerization**: Docker, Docker Compose
+
+---
+
+### Getting Started
+
+#### Requirements
+
+* Docker & Docker Compose
 * .NET SDK
 * PostgreSQL
-* Visual Studio / JetBrains Rider
-* Bun
+* Bun or Node.js
 
-### Setup
+#### Setup
 
 1. Clone the repository:
-
 ```bash
 git clone https://github.com/veljkotosic/SupportDesk.git
 cd SupportDesk
 ```
 
-2. Configure Environment by adding `.env` file to:
+2. Configure environment variables in `Aplikacija/.env` as indicated in `Aplikacija/.env.example`.
 
-```text
-Aplikacija/.env
-```
-
-  as per `Aplikacija/.env.example`.
-
-3. Install frontend dependencies:
-
-```bash
-cd frontend
-bun install
-```
-
-4. Start the required services with Docker Compose:
-
+3. Start infrastructure dependencies (PostgreSQL, RabbitMQ) using Docker Compose:
 ```bash
 cd docker
-docker compose up 
+docker compose up -d
 ```
 
-5. Start the backend from the .NET project.
-
-6. Start the Vue development server:
-
+4. Run the backend Web API:
 ```bash
+cd ../Aplikacija/dotnet/SupportDesk/SupportDesk.WebApi
+dotnet run
+```
+
+5. Install frontend dependencies and run the development server:
+```bash
+cd ../../../front
+bun install
 bun run dev
 ```
 
-7. Open the frontend URL provided by Vite.
+---
 
-## Tech Stack
+### Planned Improvements
 
-* ASP.NET Core
-* Entity Framework Core
-* PostgreSQL
-* Vue.js
-* TypeScript
-* Pinia
-* SignalR
-
-## Planned Improvements
-
-The project is planned to be refactored to improve its overall architecture, separation of concerns, and maintainability, including adopting **Clean Architecture** and applying additional clean-code principles.
+The next architectural iteration will decompose the system into a true modular monolith with strictly isolated module boundaries, independent domain models, and encapsulated databases/schemas, moving beyond this initial single-module implementation.
