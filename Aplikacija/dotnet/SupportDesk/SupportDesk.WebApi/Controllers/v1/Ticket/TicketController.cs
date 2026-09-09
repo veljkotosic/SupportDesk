@@ -9,6 +9,8 @@ using SupportDesk.Application.Models.Tickets.Command.OpenTicket;
 using SupportDesk.Application.Models.Tickets.Command.ReadAllNotifications;
 using SupportDesk.Application.Models.Tickets.Query.GetCustomerTickets;
 using SupportDesk.Application.Models.Tickets.Query.GetOrganizationTicketsQuery;
+using SupportDesk.Application.Models.Tickets.Query.GetTicket;
+using SupportDesk.Application.Models.Tickets.Query.GetTicketViewInfo;
 using SupportDesk.WebApi.Controllers.v1.Ticket.Requests;
 
 namespace SupportDesk.WebApi.Controllers.v1.Ticket;
@@ -143,6 +145,36 @@ public class TicketController : ControllerBase
     {
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
        
+        return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("{ticketId:guid}")]
+    [ProducesResponseType(typeof(GetTicketQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<GetTicketQueryResult>> GetTicket(
+        [FromRoute] Guid ticketId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _queryDispatcher.DispatchAsync(new GetTicketQuery(ticketId), cancellationToken);
+        
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("{ticketId:guid}/info")]
+    [ProducesResponseType(typeof(GetTicketViewInfoQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<GetTicketViewInfoQueryResult>> GetTicketInfo(
+        [FromRoute] Guid ticketId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _queryDispatcher.DispatchAsync(new GetTicketViewInfoQuery(ticketId), cancellationToken);
+        
         return Ok(result);
     }
 }

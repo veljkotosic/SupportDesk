@@ -16,12 +16,15 @@
 
     <ItemGroup>
       <Folder Include="Models\Auth\Query\" />
-      <Folder Include="Models\User\" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Common\Dtos\CustomerDashboardTicketDetailsDto.cs" />
     </ItemGroup>
 
 </Project>
