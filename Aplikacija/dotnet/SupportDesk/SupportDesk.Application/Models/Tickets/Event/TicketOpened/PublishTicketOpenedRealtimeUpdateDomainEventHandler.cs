@@ -4,7 +4,6 @@ using SupportDesk.Application.Abstract.Event;
 using SupportDesk.Application.Abstract.Messaging;
 using SupportDesk.Application.Common.Dtos;
 using SupportDesk.Domain.Abstract.Validation;
-using SupportDesk.Domain.Models.Ticket.Enums;
 using SupportDesk.Domain.Models.Ticket.Events;
 using SupportDesk.Domain.Models.Ticket.Validation;
 using SupportDesk.Domain.Models.Ticket.ValueObjects;

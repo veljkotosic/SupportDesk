@@ -6,7 +6,6 @@ using SupportDesk.Domain.Models.TicketNotification;
 using SupportDesk.Domain.Models.TicketNotification.Enums;
 using SupportDesk.Domain.Models.TicketNotification.Repository;
 using SupportDesk.Domain.Models.TicketNotification.ValueObjects;
-using SupportDesk.Domain.Models.User.ValueObjects;
 using SupportDesk.Infrastructure.Persistence.Abstract;
 using SupportDesk.Infrastructure.Persistence.Database;
 

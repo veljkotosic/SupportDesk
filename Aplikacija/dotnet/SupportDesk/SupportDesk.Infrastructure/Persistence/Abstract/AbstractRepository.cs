@@ -1,9 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Auth.UserContext;
-using SupportDesk.Application.Abstract.Event;
 using SupportDesk.Domain.Abstract;
 using SupportDesk.Domain.Abstract.Repository;
 using SupportDesk.Domain.Common.ValueObjects;

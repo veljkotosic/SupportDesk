@@ -6,7 +6,6 @@ using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Ticket;
 using SupportDesk.Domain.Models.Ticket.Enums;
-using SupportDesk.Domain.Models.Ticket.Validation;
 using SupportDesk.Domain.Models.Ticket.Validation.Rules;
 using SupportDesk.Domain.Models.TicketNotification;
 using SupportDesk.Domain.Models.TicketNotification.Enums;

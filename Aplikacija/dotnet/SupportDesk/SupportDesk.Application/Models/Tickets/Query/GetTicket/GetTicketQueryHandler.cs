@@ -6,7 +6,6 @@ using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Query;
 using SupportDesk.Application.Common.Dtos;
 using SupportDesk.Domain.Abstract.Validation;
-using SupportDesk.Domain.Models.Ticket;
 using SupportDesk.Domain.Models.Ticket.Validation;
 using SupportDesk.Domain.Models.Ticket.ValueObjects;
 using SupportDesk.Domain.Models.TicketNotification.Enums;

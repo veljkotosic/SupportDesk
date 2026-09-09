@@ -1,6 +1,3 @@
-using SupportDesk.Application.Abstract.Database;
-using SupportDesk.Application.Abstract.Query;
-
 namespace SupportDesk.ArchitectureTests.Application;
 
 [TestFixture]
