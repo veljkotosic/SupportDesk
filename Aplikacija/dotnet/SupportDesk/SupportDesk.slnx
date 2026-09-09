@@ -10,5 +10,4 @@
   <Project Path="SupportDesk.UnitTests/SupportDesk.UnitTests.csproj" />
   <Project Path="SupportDesk.IntegrationTests/SupportDesk.IntegrationTests.csproj" />
   <Project Path="SupportDesk.Worker/SupportDesk.Worker.csproj" />
-  <Project Path="SupportDeskWebApi/SupportDeskWebApi.csproj" />
 </Solution>
