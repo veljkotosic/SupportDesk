@@ -7,6 +7,8 @@ using SupportDesk.Application.Models.Tickets.Command.CloseTicket;
 using SupportDesk.Application.Models.Tickets.Command.GiveFeedback;
 using SupportDesk.Application.Models.Tickets.Command.OpenTicket;
 using SupportDesk.Application.Models.Tickets.Command.ReadAllNotifications;
+using SupportDesk.Application.Models.Tickets.Query.GetCustomerTickets;
+using SupportDesk.Application.Models.Tickets.Query.GetOrganizationTicketsQuery;
 using SupportDesk.WebApi.Controllers.v1.Ticket.Requests;
 
 namespace SupportDesk.WebApi.Controllers.v1.Ticket;
@@ -17,10 +19,12 @@ namespace SupportDesk.WebApi.Controllers.v1.Ticket;
 public class TicketController : ControllerBase
 {
     private readonly ICommandDispatcher _commandDispatcher;
+    private readonly IQueryDispatcher _queryDispatcher;
 
-    public TicketController(ICommandDispatcher commandDispatcher)
+    public TicketController(ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher)
     {
         _commandDispatcher = commandDispatcher;
+        _queryDispatcher = queryDispatcher;
     }
 
     [Authorize]
@@ -112,5 +116,33 @@ public class TicketController : ControllerBase
         await _commandDispatcher.DispatchAsync(command, cancellationToken);
         
         return NoContent();     
+    }
+    
+    [Authorize]
+    [HttpGet("customer")]
+    [ProducesResponseType(typeof(GetCustomerTicketsQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<GetCustomerTicketsQueryResult>> GetCustomerTickets(
+        [FromQuery] GetCustomerTicketsQuery query,
+        CancellationToken cancellationToken)
+    {
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+       
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("organization")]
+    [ProducesResponseType(typeof(GetOrganizationTicketsQueryResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<GetOrganizationTicketsQueryResult>> GetOrganizationTickets(
+        [FromQuery] GetOrganizationTicketsQuery query,
+        CancellationToken cancellationToken)
+    {
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+       
+        return Ok(result);
     }
 }

@@ -11,6 +11,7 @@ public static class RolePermissions
         [
             Permissions.Tickets.Open,
             Permissions.Tickets.View,
+            Permissions.Tickets.GetCustomerTickets,
             Permissions.Tickets.GiveFeedback,
             Permissions.Tickets.ReadNotifications,
             
@@ -34,6 +35,7 @@ public static class RolePermissions
             Permissions.TemplateAnswers.Delete,
             
             Permissions.Tickets.View,
+            Permissions.Tickets.GetOrganizationTickets,
             
             Permissions.Messages.Send,
             Permissions.Messages.Get,
@@ -50,6 +52,7 @@ public static class RolePermissions
         [UserRole.SupportAgent] =
         [
             Permissions.Tickets.View,
+            Permissions.Tickets.GetOrganizationTickets,
             Permissions.Tickets.Assign,
             Permissions.Tickets.Close,
             
