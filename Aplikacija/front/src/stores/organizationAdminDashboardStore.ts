@@ -90,7 +90,7 @@ export const useOrganizationAdminDashboardStore = defineStore('organizationAdmin
     if (ticket) {
       ticket.status = TicketStatus.Assigned
       ticket.supportAgentId = info.supportAgentId
-      ticket.supportAgentUserName = info.supportAgentUsername
+      ticket.supportAgentUserName = info.supportAgentUserName
       ticket.assignedAt = info.assignedAt
     }
   }
