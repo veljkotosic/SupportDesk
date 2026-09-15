@@ -17,9 +17,11 @@ public static class ObservabilityRegistrationExtensions
         public IServiceCollection AddSupportDeskObservability(string serviceName, IConfiguration configuration)
         {
             var otlpEndpoint = new Uri(configuration.GetEnvOtelExporterOtlpEndpoint());
-            
+
             var resourceBuilder = ResourceBuilder.CreateDefault()
-                .AddService(serviceName, serviceVersion: "1.0.0");
+                .AddService(serviceName, serviceVersion: "1.0.0")
+                .AddContainerDetector()
+                .AddHostDetector();
 
             services.AddLogging(builder =>
             {
