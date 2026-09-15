@@ -1,0 +1,114 @@
+services:
+
+  postgres:
+    image: postgres:18
+    env_file:
+      - .env
+
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - backend
+
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.role == manager
+      restart_policy:
+        condition: on-failure
+
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    env_file:
+      - .env
+
+    ports:
+      - target: 5672
+        published: 5672
+        protocol: tcp
+        mode: host
+
+      - target: 15672
+        published: 15672
+        protocol: tcp
+        mode: host
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    networks:
+      - backend
+
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.role == manager
+      restart_policy:
+        condition: on-failure
+
+
+  seq:
+    image: datalust/seq:latest
+
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
+
+    ports:
+      - target: 80
+        published: 5341
+        protocol: tcp
+        mode: host
+
+    volumes:
+      - seq_data:/data
+
+    networks:
+      - backend
+
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.role == manager
+      restart_policy:
+        condition: on-failure
+
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  seq_data:
+
+
+networks:
+  backend:
+    name: SupportDesk_backend
+    driver: overlay
+    attachable: true
+    driver_opts:
+      com.docker.network.driver.mtu: "1400"

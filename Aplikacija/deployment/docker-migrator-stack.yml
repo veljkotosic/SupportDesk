@@ -1,0 +1,24 @@
+services:
+
+  migrator:
+    image: ${REGISTRY_IP}:5000/supportdesk-migrator:latest
+
+    env_file:
+      - .env
+
+    networks:
+      - backend
+
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.labels.role == manager
+
+
+networks:
+  backend:
+    external: true
+    name: SupportDesk_backend
