@@ -4,6 +4,25 @@ This directory contains configuration files and shell scripts for deploying the 
 
 ---
 
+### Technical Constraints & Deployment Scope
+
+> **Important Security & Architecture Notice:**
+
+* **Target Environment & Testing**:
+   * This setup has been exclusively configured and tested on a **local home network (LAN) across a 2-node Docker Swarm cluster** (1 manager node, 1 worker node).
+* **Not Suitable for Direct VPS / Public Cloud Deployment**:
+   * **Insecure HTTP Registry**: The built-in registry runs over plain HTTP on port `5000` without authentication or TLS certificates. Exposing an insecure registry or opening daemon insecure-registry flags on public VPS instances presents severe security risks.
+   * **Exposed Management Ports**: Ports for Seq (`5341`), RabbitMQ Management (`15672`), PostgreSQL (`5432`), and Portainer (`9000`) are published directly on node ports for local troubleshooting without an external edge gateway.
+   * **Plain HTTP Traffic**: The Nginx frontend runs on plain HTTP (`port 80`) without automated SSL/TLS termination (e.g., Let's Encrypt / Certbot).
+* **Enterprise / True Production Setup**:
+   * A real production deployment expects network and infrastructure setups **outside of this project context**, such as:
+      * A secured private container registry (e.g., Harbor, AWS ECR, Azure ACR, or Docker Hub) with TLS and RBAC.
+      * An edge reverse proxy / API Gateway / Cloud Load Balancer (e.g., Traefik, Cloudflare, AWS ALB) managing SSL/TLS certificates and routing.
+      * Swarm overlay encryption (`--opt encrypted`), private VPC / overlay subnets, and strict firewall / security group rules isolating internal services (PostgreSQL, RabbitMQ, Seq).
+      * Secret management solutions (e.g., Docker Secrets, HashiCorp Vault) rather than plain `.env` files.
+
+---
+
 ### System Architecture & Stacks
 
 The deployment consists of three Docker Swarm stacks:
