@@ -1,0 +1,4 @@
+# Treat StarUML project files as generated/vendored documentation assets
+*.mdj linguist-generated=true
+*.mdj linguist-vendored
+*.mdj -diff
