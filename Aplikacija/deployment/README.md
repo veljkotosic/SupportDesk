@@ -4,6 +4,12 @@ This directory contains configuration files and shell scripts for deploying the 
 
 ---
 
+### Cluster Architecture & Swarm Orchestration
+
+![Docker Swarm Orchestration Diagram](../../docs/diagrams/images/Docker%20Swarm%20Deployment%20Diagram.jpg)
+
+---
+
 ### Technical Constraints & Deployment Scope
 
 > **Important Security & Architecture Notice:**

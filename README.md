@@ -6,6 +6,12 @@ This implementation is the product of the previously planned architectural refac
 
 ---
 
+### Architecture Overview
+
+![SupportDesk Deployment Diagram](docs/diagrams/images/SupportDesk%20Deployment%20Diagram.jpg)
+
+---
+
 ### Architecture and Design Patterns
 
 * **Clean Architecture & DDD**: Clear separation across Domain, Application, Infrastructure, and WebApi layers. Core domain concepts are encapsulated using strongly typed Value Objects with self-validation rules and domain entities.
@@ -22,7 +28,8 @@ This implementation is the product of the previously planned architectural refac
 * **Database & Messaging**: PostgreSQL, RabbitMQ
 * **Frontend**: Vue.js, TypeScript, Pinia, Vue Router, Tailwind CSS
 * **Real-time**: SignalR, RabbitMQ Fanout Exchange backplane
-* **Containerization**: Docker, Docker Compose
+* **Observability**: OpenTelemetry, Seq
+* **Containerization**: Docker, Docker Compose, Docker Swarm
 
 ---
 
@@ -32,7 +39,6 @@ This implementation is the product of the previously planned architectural refac
 
 * Docker & Docker Compose
 * .NET SDK
-* PostgreSQL
 * Bun or Node.js
 
 #### Setup
