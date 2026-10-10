@@ -33,7 +33,7 @@ internal sealed class UpdateCategoryDetailsTests : IntegrationTestsBase
         var newName = "Test Category 2";
         var newDescription = "Test Description 2";
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateCategoryDetailsCommand(
                 category.Id.IdValue,
@@ -61,7 +61,7 @@ internal sealed class UpdateCategoryDetailsTests : IntegrationTestsBase
         var newName = "Test Category";
         var newDescription = "Test Description";
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateCategoryDetailsCommand(
                 category.Id.IdValue,
@@ -91,7 +91,7 @@ internal sealed class UpdateCategoryDetailsTests : IntegrationTestsBase
         
         _ = await CreateCategory(_user.OrganizationId!.IdValue, otherName, otherDescription, TimeProvider.System);
 
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateCategoryDetailsCommand(
                 category.Id.IdValue,
@@ -107,7 +107,7 @@ internal sealed class UpdateCategoryDetailsTests : IntegrationTestsBase
     {
         var categoryId = Guid.NewGuid();
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateCategoryDetailsCommand(categoryId, "Test", "Test"));
         });
@@ -120,7 +120,7 @@ internal sealed class UpdateCategoryDetailsTests : IntegrationTestsBase
     {
         await PermissionService.RevokePermissionAsync(_user.Id.IdValue, Permissions.Categories.Update);
         
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateCategoryDetailsCommand(Guid.NewGuid(), "Test", "Test"));
         });

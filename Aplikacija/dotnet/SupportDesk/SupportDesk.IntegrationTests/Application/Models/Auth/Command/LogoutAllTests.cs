@@ -25,7 +25,7 @@ internal sealed class LogoutAllTests : IntegrationTestsBase
             await Login(DefaultCustomerEmail, DefaultCustomerPassword);
         }
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new LogoutAllCommand());
         });

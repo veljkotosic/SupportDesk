@@ -14,7 +14,7 @@ internal sealed class RegisterCustomerTests : IntegrationTestsBase
     {
         RegisterCustomerCommandResult? result = null;
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(new RegisterCustomerCommand(
                 DefaultCustomerUserName,
@@ -54,7 +54,7 @@ internal sealed class RegisterCustomerTests : IntegrationTestsBase
         string password,
         string username)
     {
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new RegisterCustomerCommand(username, email, password));
         });

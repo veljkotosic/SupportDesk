@@ -25,7 +25,7 @@ internal sealed class LogoutTests : IntegrationTestsBase
     {
         var refreshToken = await Login(DefaultCustomerEmail, DefaultCustomerPassword);
 
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new LogoutCommand(refreshToken.Value));
         });
@@ -44,7 +44,7 @@ internal sealed class LogoutTests : IntegrationTestsBase
 
         var refreshToken = await Login("other@other.com", DefaultCustomerPassword);
             
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new LogoutCommand(refreshToken.Value));
         });

@@ -50,7 +50,7 @@ internal sealed class GiveFeedbackTests : IntegrationTestsBase
         
         var command = new GiveFeedbackCommand(_ticket.Id.IdValue, TicketFeedback.Helpful);
 
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -69,7 +69,7 @@ internal sealed class GiveFeedbackTests : IntegrationTestsBase
     {
         var command = new GiveFeedbackCommand(Guid.NewGuid(), TicketFeedback.Helpful);
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         }); 
@@ -85,7 +85,7 @@ internal sealed class GiveFeedbackTests : IntegrationTestsBase
         
         var command = new GiveFeedbackCommand(_ticket.Id.IdValue, TicketFeedback.Helpful);
         
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });       
@@ -101,7 +101,7 @@ internal sealed class GiveFeedbackTests : IntegrationTestsBase
         
         var command = new GiveFeedbackCommand(_ticket.Id.IdValue, TicketFeedback.None);
         
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         }); 
@@ -112,7 +112,7 @@ internal sealed class GiveFeedbackTests : IntegrationTestsBase
     {
         var command = new GiveFeedbackCommand(_ticket.Id.IdValue, TicketFeedback.Helpful);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -125,7 +125,7 @@ internal sealed class GiveFeedbackTests : IntegrationTestsBase
         
         var command = new GiveFeedbackCommand(_ticket.Id.IdValue, TicketFeedback.Helpful);
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });

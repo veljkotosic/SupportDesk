@@ -33,7 +33,7 @@ internal sealed class UpdateFaqDetailsTests : IntegrationTestsBase
         var newQuestion = "Test Question 2";
         var newAnswer = "Test Answer 2";
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateFaqDetailsCommand(
                 faq.Id.IdValue,
@@ -61,7 +61,7 @@ internal sealed class UpdateFaqDetailsTests : IntegrationTestsBase
         var newQuestion = "Test Question";
         var newAnswer = "Test Answer";
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateFaqDetailsCommand(
                 faq.Id.IdValue,
@@ -83,7 +83,7 @@ internal sealed class UpdateFaqDetailsTests : IntegrationTestsBase
     {
         var faqId = Guid.NewGuid();
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateFaqDetailsCommand(faqId, "Test", "Test"));
         });
@@ -96,7 +96,7 @@ internal sealed class UpdateFaqDetailsTests : IntegrationTestsBase
     {
         await PermissionService.RevokePermissionAsync(_user.Id.IdValue, Permissions.Faqs.Update);
         
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateFaqDetailsCommand(Guid.NewGuid(), "Test", "Test"));
         });

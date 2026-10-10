@@ -33,7 +33,7 @@ internal sealed class UpdateTemplateAnswerDetailsTests : IntegrationTestsBase
         var newTitle = "Test Title 2";
         var newText = "Test Text 2";
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateTemplateAnswerDetailsCommand(
                 templateAnswer.Id.IdValue,
@@ -61,7 +61,7 @@ internal sealed class UpdateTemplateAnswerDetailsTests : IntegrationTestsBase
         var newTitle = "Test Title";
         var newText = "Test Text";
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateTemplateAnswerDetailsCommand(
                 templateAnswer.Id.IdValue,
@@ -83,7 +83,7 @@ internal sealed class UpdateTemplateAnswerDetailsTests : IntegrationTestsBase
     {
         var templateAnswerId = Guid.NewGuid();
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateTemplateAnswerDetailsCommand(templateAnswerId, "Test", "Test"));
         });
@@ -96,7 +96,7 @@ internal sealed class UpdateTemplateAnswerDetailsTests : IntegrationTestsBase
     {
         await PermissionService.RevokePermissionAsync(_user.Id.IdValue, Permissions.TemplateAnswers.Update);
         
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new UpdateTemplateAnswerDetailsCommand(Guid.NewGuid(), "Test", "Test"));
         });

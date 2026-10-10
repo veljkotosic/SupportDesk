@@ -46,7 +46,7 @@ internal sealed class AssignTicketTests : IntegrationTestsBase
     {
         var command = new AssignTicketCommand(_ticket.Id.IdValue);
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -71,7 +71,7 @@ internal sealed class AssignTicketTests : IntegrationTestsBase
         
         var command = new AssignTicketCommand(_ticket.Id.IdValue);
         
-        Assert.ThrowsAsync<ValidationException>(async () => await CommandDispatcher.DispatchAsync(command));
+        await Assert.ThrowsAsync<ValidationException>(async () => await CommandDispatcher.DispatchAsync(command));
     }
     
     [Test]
@@ -83,7 +83,7 @@ internal sealed class AssignTicketTests : IntegrationTestsBase
         
         var command = new AssignTicketCommand(_ticket.Id.IdValue);
         
-        Assert.ThrowsAsync<ValidationException>(async () => await CommandDispatcher.DispatchAsync(command));
+        await Assert.ThrowsAsync<ValidationException>(async () => await CommandDispatcher.DispatchAsync(command));
     }
     
     [Test]
@@ -93,6 +93,6 @@ internal sealed class AssignTicketTests : IntegrationTestsBase
         
         var command = new AssignTicketCommand(_ticket.Id.IdValue);
 
-        Assert.ThrowsAsync<PermissionException>(async () => await CommandDispatcher.DispatchAsync(command));
+        await Assert.ThrowsAsync<PermissionException>(async () => await CommandDispatcher.DispatchAsync(command));
     }
 }

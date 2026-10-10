@@ -33,7 +33,7 @@ internal sealed class RevokeSupportAgentInviteTests : IntegrationTestsBase
 
         var command = new RevokeSupportAgentInviteCommand(invite.Id.IdValue);
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -62,7 +62,7 @@ internal sealed class RevokeSupportAgentInviteTests : IntegrationTestsBase
 
         var command = new RevokeSupportAgentInviteCommand(invite.Id.IdValue);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -82,7 +82,7 @@ internal sealed class RevokeSupportAgentInviteTests : IntegrationTestsBase
 
         var command = new RevokeSupportAgentInviteCommand(invite.Id.IdValue);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -93,7 +93,7 @@ internal sealed class RevokeSupportAgentInviteTests : IntegrationTestsBase
     {
         var command = new RevokeSupportAgentInviteCommand(Guid.NewGuid());
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -106,7 +106,7 @@ internal sealed class RevokeSupportAgentInviteTests : IntegrationTestsBase
         
         var command = new RevokeSupportAgentInviteCommand(Guid.NewGuid());
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
             ;

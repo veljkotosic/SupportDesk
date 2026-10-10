@@ -51,7 +51,7 @@ internal sealed class CloseTicketTests : IntegrationTestsBase
         
         var command = new CloseTicketCommand(_ticket.Id.IdValue);
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -68,11 +68,11 @@ internal sealed class CloseTicketTests : IntegrationTestsBase
     }
     
     [Test]
-    public void Handle_WithPermissions_WithTicketOpen_ShouldThrowValidationException()
+    public async Task Handle_WithPermissions_WithTicketOpen_ShouldThrowValidationException()
     {
         var command = new CloseTicketCommand(_ticket.Id.IdValue);
         
-        Assert.ThrowsAsync<ValidationException>(async () => await CommandDispatcher.DispatchAsync(command));
+        await Assert.ThrowsAsync<ValidationException>(async () => await CommandDispatcher.DispatchAsync(command));
     }
     
     [Test]
@@ -84,7 +84,7 @@ internal sealed class CloseTicketTests : IntegrationTestsBase
         
         var command = new CloseTicketCommand(_ticket.Id.IdValue);
         
-        Assert.ThrowsAsync<ValidationException>(async () => await CommandDispatcher.DispatchAsync(command));
+        await Assert.ThrowsAsync<ValidationException>(async () => await CommandDispatcher.DispatchAsync(command));
     }
 
     [Test]
@@ -100,7 +100,7 @@ internal sealed class CloseTicketTests : IntegrationTestsBase
         
         var command = new CloseTicketCommand(_ticket.Id.IdValue);
 
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -115,6 +115,6 @@ internal sealed class CloseTicketTests : IntegrationTestsBase
         
         var command = new CloseTicketCommand(_ticket.Id.IdValue);
 
-        Assert.ThrowsAsync<PermissionException>(async () => await CommandDispatcher.DispatchAsync(command));
+        await Assert.ThrowsAsync<PermissionException>(async () => await CommandDispatcher.DispatchAsync(command));
     }
 }

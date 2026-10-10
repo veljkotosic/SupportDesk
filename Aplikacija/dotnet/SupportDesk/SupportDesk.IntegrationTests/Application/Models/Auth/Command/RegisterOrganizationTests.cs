@@ -15,7 +15,7 @@ internal sealed class RegisterOrganizationTests : IntegrationTestsBase
     {
         RegisterOrganizationCommandResult? result = null;
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(new RegisterOrganizationCommand(
                 DefaultOrganizationAdminUserName,
@@ -66,7 +66,7 @@ internal sealed class RegisterOrganizationTests : IntegrationTestsBase
         string password,
         string organizationName)
     {
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new RegisterOrganizationCommand(userName, organizationName, email, password));
         });

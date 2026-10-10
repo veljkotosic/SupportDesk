@@ -33,7 +33,7 @@ internal sealed class CreateSupportAgentInviteTests : IntegrationTestsBase
 
         CreateSupportAgentInviteCommandResult? result = null;
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(command);
         });
@@ -68,7 +68,7 @@ internal sealed class CreateSupportAgentInviteTests : IntegrationTestsBase
 
         CreateSupportAgentInviteCommandResult? result = null;
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(command);
         });
@@ -105,7 +105,7 @@ internal sealed class CreateSupportAgentInviteTests : IntegrationTestsBase
         
         var command = new CreateSupportAgentInviteCommand(agent.Email.EmailValue);
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });
@@ -118,7 +118,7 @@ internal sealed class CreateSupportAgentInviteTests : IntegrationTestsBase
     {
         var command = new CreateSupportAgentInviteCommand("invalidEmail");
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });
@@ -131,7 +131,7 @@ internal sealed class CreateSupportAgentInviteTests : IntegrationTestsBase
         
         var command = new CreateSupportAgentInviteCommand("valid@email.com");
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });

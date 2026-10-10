@@ -30,7 +30,7 @@ internal sealed class DeleteFaqTests : IntegrationTestsBase
     {
         var addedFaq = await CreateFaq(_user.OrganizationId!.IdValue, "Test Question", "Test Answer", _timeProvider);
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteFaqCommand(addedFaq.Id.IdValue));
         });
@@ -49,7 +49,7 @@ internal sealed class DeleteFaqTests : IntegrationTestsBase
     {
         var faqId = new FaqId(Guid.NewGuid());
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteFaqCommand(faqId.IdValue));
         });
@@ -65,7 +65,7 @@ internal sealed class DeleteFaqTests : IntegrationTestsBase
         await DbContext.SaveChangesAsync();   
         DbContext.ChangeTracker.Clear();
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteFaqCommand(addedFaq.Id.IdValue));
         });
@@ -78,7 +78,7 @@ internal sealed class DeleteFaqTests : IntegrationTestsBase
     {
         await PermissionService.RevokePermissionAsync(_user.Id.IdValue, Permissions.Faqs.Delete);
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteFaqCommand(Guid.NewGuid()));
         });
