@@ -1,18 +1,30 @@
 ﻿using DotNetEnv;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using SupportDesk.Infrastructure.DependencyInjection;
+using SupportDesk.Infrastructure.Persistence.Database;
 using SupportDesk.OutboxProcessor.BackgroundServices.OutboxProcessing;
 
 Env.TraversePath().NoClobber().Load();
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5012);
+});
 
 builder.Services.AddSupportDeskObservability("SupportDesk.OutboxProcessor", builder.Configuration);
 builder.Services.AddSupportDeskOutboxProcessor(builder.Configuration);
 
 builder.Services.AddHostedService<OutboxProcessorService>();
 
-var host = builder.Build();
+var app = builder.Build();
 
-host.Run();
+app.MapHealthChecks("/health");
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<SupportDeskDbContext>();
+    _ = dbContext.Model; 
+}
+
+app.Run();
