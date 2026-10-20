@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+using Dapper;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Auth.UserContext;
@@ -6,10 +6,10 @@ using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Query;
 using SupportDesk.Application.Common.Dtos;
 using SupportDesk.Domain.Abstract.Validation;
+using SupportDesk.Domain.Models.Ticket.Enums;
 using SupportDesk.Domain.Models.Ticket.Validation;
 using SupportDesk.Domain.Models.Ticket.ValueObjects;
 using SupportDesk.Domain.Models.TicketNotification.Enums;
-using SupportDesk.Domain.Models.User.ValueObjects;
 
 namespace SupportDesk.Application.Models.Tickets.Query.GetTicket;
 
@@ -18,80 +18,144 @@ internal sealed class GetTicketQueryHandler
 {
     private readonly IUserContext _userContext;
     private readonly ITenantContext _tenantContext;
-    private readonly IApplicationDbContext _applicationDbContext;
+    private readonly IDbConnectionFactory _dbConnectionFactory;
 
     public GetTicketQueryHandler(
         PermissionChecker permissionChecker,
         IUserContext userContext,
         ITenantContext tenantContext,
-        IApplicationDbContext applicationDbContext)
+        IDbConnectionFactory dbConnectionFactory)
         : base(permissionChecker)
     {
         _userContext = userContext;
         _tenantContext = tenantContext;
-        _applicationDbContext = applicationDbContext;
+        _dbConnectionFactory = dbConnectionFactory;
     }
 
-    protected override async Task<GetTicketQueryResult> ExecuteAsync(GetTicketQuery query, CancellationToken cancellationToken)
+    protected override async Task<GetTicketQueryResult> ExecuteAsync(
+        GetTicketQuery query,
+        CancellationToken cancellationToken)
     {
-        var ticketId = new TicketId(query.TicketId);
-        var currentUserId = new UserId(_userContext.GetCurrentUserId());
+        var ticketId = query.TicketId;
+        var currentUserId = _userContext.GetCurrentUserId();
         var organizationId = _tenantContext.GetCurrentOrganizationId();
 
-        var ticketDetails = await (
-            from ticket in _applicationDbContext.Tickets.IgnoreQueryFilters().AsNoTracking()
-            where ticket.Id == ticketId
-            
-            join organization in _applicationDbContext.Organizations.IgnoreQueryFilters().AsNoTracking()
-                on ticket.OrganizationId equals organization.Id
-                
-            join category in _applicationDbContext.Categories.IgnoreQueryFilters().AsNoTracking()
-                on ticket.CategoryId equals category.Id
-                
-            join customer in _applicationDbContext.DomainUsers.IgnoreQueryFilters().AsNoTracking()
-                on ticket.CustomerId equals customer.Id
-                
-            join agent in _applicationDbContext.DomainUsers.IgnoreQueryFilters().AsNoTracking()
-                on ticket.SupportAgentId equals agent.Id into agentGroup
-            from agent in agentGroup.DefaultIfEmpty()
-            
-            select new DashboardTicketDetailsDto(
-                ticket.Id.IdValue,
-                organization.Id.IdValue,
-                organization.Name.NameValue,
-                category.Id.IdValue,
-                category.Name.NameValue,
-                customer.Id.IdValue,
-                customer.UserName.UserNameValue,
-                agent != null ? agent.Id.IdValue : null,
-                agent != null ? agent.UserName.UserNameValue : null,
-                ticket.Status,
-                ticket.Priority,
-                ticket.Subject.SubjectValue,
-                ticket.OpenedAt.OpenedAtValue,
-                ticket.AssignedAt != null ? ticket.AssignedAt.AssignedAtValue : null,
-                ticket.ClosedAt != null ? ticket.ClosedAt.ClosedAtValue : null,
-                ticket.Feedback,
-                ticket.LastMessageAt != null ? ticket.LastMessageAt.LastMessageAtValue : null,
-                _applicationDbContext.TicketNotifications
-                    .AsNoTracking()
-                    .Where(notification => notification.TicketId == ticket.Id && notification.Status == TicketNotificationStatus.Unread)
-                    .Select(notification => new TicketNotificationDetailsDto(
-                        notification.Id.IdValue,
-                        notification.OrganizationId.IdValue,
-                        notification.TicketId.IdValue,
-                        notification.Text.TextValue,
-                        notification.Status,
-                        notification.CreatedAt.CreatedAtValue))
-                    .ToList()
-            )
-        ).FirstOrDefaultAsync(cancellationToken);
+        const string sql = """
+            -- 1. Ticket details
+            SELECT 
+                t."Id" AS "Id",
+                o."Id" AS "OrganizationId",
+                o."Name" AS "OrganizationName",
+                c."Id" AS "CategoryId",
+                c."Name" AS "CategoryName",
+                customer."Id" AS "CustomerId",
+                customer."UserName" AS "CustomerUserName",
+                agent."Id" AS "SupportAgentId",
+                agent."UserName" AS "SupportAgentUserName",
+                t."Status" AS "Status",
+                t."Priority" AS "Priority",
+                t."Feedback" AS "Feedback",
+                t."Subject" AS "Subject",
+                t."OpenedAt" AS "OpenedAt",
+                t."AssignedAt" AS "AssignedAt",
+                t."ClosedAt" AS "ClosedAt",
+                t."LastMessageAt" AS "LastMessageAt"
+            FROM "Tickets" t
+            JOIN "Organizations" o ON o."Id" = t."OrganizationId"
+            JOIN "Categories" c ON c."Id" = t."CategoryId"
+            JOIN "Users" customer ON customer."Id" = t."CustomerId"
+            LEFT JOIN "Users" agent ON agent."Id" = t."SupportAgentId"
+            WHERE t."Id" = @TicketId;
 
-        if (ticketDetails is null || (organizationId is null && ticketDetails.CustomerId != currentUserId.IdValue))
+            -- 2. Unread notifications
+            SELECT 
+                n."Id" AS "Id",
+                n."OrganizationId" AS "OrganizationId",
+                n."TicketId" AS "TicketId",
+                n."Text" AS "Text",
+                n."Status" AS "Status",
+                n."CreatedAt" AS "CreatedAt"
+            FROM "TicketNotifications" n
+            WHERE n."TicketId" = @TicketId
+              AND n."Status" = @UnreadStatus;
+            """;
+
+        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+
+        var command = new CommandDefinition(
+            sql,
+            new { TicketId = ticketId, UnreadStatus = (short)TicketNotificationStatus.Unread },
+            cancellationToken: cancellationToken);
+
+        await using var multi = await connection.QueryMultipleAsync(command);
+
+        var rawTicket = await multi.ReadFirstOrDefaultAsync<RawTicketRow>();
+
+        if (rawTicket is null || (organizationId is null && rawTicket.CustomerId != currentUserId))
         {
-            throw new ValidationException(TicketErrors.NotFound(ticketId));
+            throw new ValidationException(TicketErrors.NotFound(new TicketId(ticketId)));
         }
 
-        return new GetTicketQueryResult(ticketDetails);
+        var rawNotifications = (await multi.ReadAsync<RawNotificationRow>()).ToList();
+        var notifications = rawNotifications.Select(n => new TicketNotificationDetailsDto(
+            n.Id,
+            n.OrganizationId,
+            n.TicketId,
+            n.Text,
+            n.Status,
+            n.CreatedAt)).ToList();
+
+        var details = new DashboardTicketDetailsDto(
+            rawTicket.Id,
+            rawTicket.OrganizationId,
+            rawTicket.OrganizationName,
+            rawTicket.CategoryId,
+            rawTicket.CategoryName,
+            rawTicket.CustomerId,
+            rawTicket.CustomerUserName,
+            rawTicket.SupportAgentId,
+            rawTicket.SupportAgentUserName,
+            rawTicket.Status,
+            rawTicket.Priority,
+            rawTicket.Subject,
+            rawTicket.OpenedAt,
+            rawTicket.AssignedAt,
+            rawTicket.ClosedAt,
+            rawTicket.Feedback,
+            rawTicket.LastMessageAt,
+            notifications);
+
+        return new GetTicketQueryResult(details);
+    }
+
+    private sealed record RawTicketRow
+    {
+        public Guid Id { get; set; }
+        public Guid OrganizationId { get; set; }
+        public string OrganizationName { get; set; } = null!;
+        public Guid CategoryId { get; set; }
+        public string CategoryName { get; set; } = null!;
+        public Guid CustomerId { get; set; }
+        public string CustomerUserName { get; set; } = null!;
+        public Guid? SupportAgentId { get; set; }
+        public string? SupportAgentUserName { get; set; }
+        public TicketStatus Status { get; set; }
+        public TicketPriority Priority { get; set; }
+        public TicketFeedback Feedback { get; set; }
+        public string Subject { get; set; } = null!;
+        public DateTime OpenedAt { get; set; }
+        public DateTime? AssignedAt { get; set; }
+        public DateTime? ClosedAt { get; set; }
+        public DateTime? LastMessageAt { get; set; }
+    }
+
+    private sealed record RawNotificationRow
+    {
+        public Guid Id { get; set; }
+        public Guid OrganizationId { get; set; }
+        public Guid TicketId { get; set; }
+        public string Text { get; set; } = null!;
+        public TicketNotificationStatus Status { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -62,7 +62,7 @@ internal sealed class ReadAllNotificationsTests : IntegrationTestsBase
 
         var command = new ReadAllNotificationsCommand(_ticket.Id.IdValue);
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -82,7 +82,7 @@ internal sealed class ReadAllNotificationsTests : IntegrationTestsBase
     {
         var command = new ReadAllNotificationsCommand(Guid.NewGuid());
         
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -98,7 +98,7 @@ internal sealed class ReadAllNotificationsTests : IntegrationTestsBase
         
         var command = new ReadAllNotificationsCommand(_ticket.Id.IdValue);
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });
@@ -113,7 +113,7 @@ internal sealed class ReadAllNotificationsTests : IntegrationTestsBase
         
         var command = new ReadAllNotificationsCommand(_ticket.Id.IdValue);
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(command);
         });

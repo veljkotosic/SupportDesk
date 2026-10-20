@@ -6,6 +6,7 @@
   <Project Path="SupportDesk.WebApi/SupportDesk.WebApi.csproj" />
   <Project Path="SupportDesk.ArchitectureTests/SupportDesk.ArchitectureTests.csproj" />
   <Project Path="SupportDesk.OutboxProcessor/SupportDesk.OutboxProcessor.csproj" />
+  <Project Path="SupportDesk.TestDataGenerator/SupportDesk.TestDataGenerator.csproj" />
   <Project Path="SupportDesk.TestsUtility/SupportDesk.TestsUtility.csproj" />
   <Project Path="SupportDesk.UnitTests/SupportDesk.UnitTests.csproj" />
   <Project Path="SupportDesk.IntegrationTests/SupportDesk.IntegrationTests.csproj" />

@@ -31,7 +31,7 @@ internal sealed class DeleteTemplateAnswerTests : IntegrationTestsBase
     {
         var addedTemplateAnswer = await CreateTemplateAnswer(_user.OrganizationId!.IdValue, "Test Title", "Test Text", _timeProvider);
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteTemplateAnswerCommand(addedTemplateAnswer.Id.IdValue));
         });
@@ -50,7 +50,7 @@ internal sealed class DeleteTemplateAnswerTests : IntegrationTestsBase
     {
         var templateAnswerId = new TemplateAnswerId(Guid.NewGuid());
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteTemplateAnswerCommand(templateAnswerId.IdValue));
         });
@@ -66,7 +66,7 @@ internal sealed class DeleteTemplateAnswerTests : IntegrationTestsBase
         await DbContext.SaveChangesAsync();   
         DbContext.ChangeTracker.Clear();
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteTemplateAnswerCommand(addedTemplateAnswer.Id.IdValue));
         });
@@ -79,7 +79,7 @@ internal sealed class DeleteTemplateAnswerTests : IntegrationTestsBase
     {
         await PermissionService.RevokePermissionAsync(_user.Id.IdValue, Permissions.TemplateAnswers.Delete);
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteTemplateAnswerCommand(Guid.NewGuid()));
         });

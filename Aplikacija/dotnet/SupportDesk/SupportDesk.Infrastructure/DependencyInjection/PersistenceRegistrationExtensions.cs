@@ -23,6 +23,8 @@ public static class PersistenceRegistrationExtensions
                     npgsql.MigrationsAssembly(typeof(SupportDeskDbContext).Assembly.FullName);
                 });
             });
+
+            services.AddSingleton<IDbConnectionFactory>(_ => new NpgsqlConnectionFactory(configuration.GetEnvConnectionString()));
             
             services.AddScoped<IApplicationDbContext, SupportDeskDbContext>();
 

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+using Dapper;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Database;
@@ -11,50 +11,63 @@ internal sealed class GetOrganizationKnowledgeBaseQueryHandler
     : AbstractQueryHandler<GetOrganizationKnowledgeBaseQuery, GetOrganizationKnowledgeBaseQueryResult>
 {
     private readonly ITenantContext _tenantContext;
-    private readonly IApplicationDbContext _applicationDbContext;
+    private readonly IDbConnectionFactory _dbConnectionFactory;
     
     public GetOrganizationKnowledgeBaseQueryHandler(
         PermissionChecker permissionChecker,
         ITenantContext tenantContext,
-        IApplicationDbContext applicationDbContext) 
+        IDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
         _tenantContext = tenantContext;
-        _applicationDbContext = applicationDbContext;
+        _dbConnectionFactory = dbConnectionFactory;
     }
 
     protected override async Task<GetOrganizationKnowledgeBaseQueryResult> ExecuteAsync(GetOrganizationKnowledgeBaseQuery query, CancellationToken cancellationToken)
     {
-        var faqs = await _applicationDbContext.Faqs
-            .AsNoTracking()
-            .OrderBy(faq => faq.Question)
-            .Select(faq => new KnowledgeBaseFaqDto(
-                faq.Id.IdValue,
-                faq.Question.QuestionValue,
-                faq.Answer.AnswerValue))
-            .ToListAsync(cancellationToken);
-        
-        var templateAnswers = await _applicationDbContext.TemplateAnswers
-            .AsNoTracking()
-            .OrderBy(template => template.Title)
-            .Select(template => new KnowledgeBaseTemplateAnswerDto(
-                template.Id.IdValue,
-                template.Title.TitleValue,
-                template.Text.TextValue))
-            .ToListAsync(cancellationToken);
-        
-        var categories = await _applicationDbContext.Categories
-            .AsNoTracking()
-            .OrderBy(category => category.Name)
-            .Select(category => new KnowledgeBaseCategoryDto(
-                category.Id.IdValue,
-                category.Name.NameValue,
-                category.Description.DescriptionValue,
-                _applicationDbContext.Tickets.Count(ticket => ticket.CategoryId == category.Id)))
-            .ToListAsync(cancellationToken);
+        var organizationId = (Guid)_tenantContext.GetCurrentOrganizationId()!;
+
+        const string sql = """
+            -- 1. FAQs
+            SELECT "Id", "Question", "Answer"
+            FROM "Faqs"
+            WHERE "OrganizationId" = @OrganizationId AND "DeletedAt" IS NULL
+            ORDER BY "Question";
+
+            -- 2. Template Answers
+            SELECT "Id", "Title", "Text"
+            FROM "TemplateAnswers"
+            WHERE "OrganizationId" = @OrganizationId AND "DeletedAt" IS NULL
+            ORDER BY "Title";
+
+            -- 3. Categories with ticket count
+            SELECT 
+                c."Id",
+                c."Name",
+                c."Description",
+                COALESCE(tc."TicketCount", 0)::int AS "TicketCount"
+            FROM "Categories" c
+            LEFT JOIN (
+                SELECT "CategoryId", COUNT(*)::int AS "TicketCount"
+                FROM "Tickets"
+                WHERE "OrganizationId" = @OrganizationId
+                GROUP BY "CategoryId"
+            ) tc ON c."Id" = tc."CategoryId"
+            WHERE c."OrganizationId" = @OrganizationId AND c."DeletedAt" IS NULL
+            ORDER BY c."Name";
+            """;
+
+        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(sql, new { OrganizationId = organizationId }, cancellationToken: cancellationToken);
+
+        using var multi = await connection.QueryMultipleAsync(command);
+
+        var faqs = (await multi.ReadAsync<KnowledgeBaseFaqDto>()).AsList();
+        var templateAnswers = (await multi.ReadAsync<KnowledgeBaseTemplateAnswerDto>()).AsList();
+        var categories = (await multi.ReadAsync<KnowledgeBaseCategoryDto>()).AsList();
 
         return new GetOrganizationKnowledgeBaseQueryResult(
-            (Guid)_tenantContext.GetCurrentOrganizationId()!,
+            organizationId,
             faqs,
             templateAnswers,
             categories);

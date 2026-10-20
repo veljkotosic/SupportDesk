@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+using Dapper;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Query;
@@ -9,26 +9,30 @@ namespace SupportDesk.Application.Models.Organizations.Query.GetAllOrganizations
 internal sealed class GetAllOrganizationsQueryHandler
     : AbstractQueryHandler<GetAllOrganizationsQuery, GetAllOrganizationsQueryResult>
 {
-    private readonly IApplicationDbContext _applicationDbContext;
+    private readonly IDbConnectionFactory _dbConnectionFactory;
     
     public GetAllOrganizationsQueryHandler(
         PermissionChecker permissionChecker,
-        IApplicationDbContext applicationDbContext) 
+        IDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
-        _applicationDbContext = applicationDbContext;
+        _dbConnectionFactory = dbConnectionFactory;
     }
 
     protected override async Task<GetAllOrganizationsQueryResult> ExecuteAsync(GetAllOrganizationsQuery query, CancellationToken cancellationToken)
     {
-        var organizationListings = await _applicationDbContext.Organizations
-            .IgnoreQueryFilters()
-            .AsNoTracking()
-            .Select(organization => new OrganizationListingDto(
-                organization.Id.IdValue,
-                organization.Name.NameValue))
-            .ToListAsync(cancellationToken);
+        const string sql = """
+            SELECT "Id" AS "OrganizationId", "Name" AS "OrganizationName"
+            FROM "Organizations"
+            WHERE "DeletedAt" IS NULL
+            ORDER BY "Name";
+            """;
+
+        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
+
+        var organizations = (await connection.QueryAsync<OrganizationListingDto>(command)).AsList();
         
-        return new GetAllOrganizationsQueryResult(organizationListings);
+        return new GetAllOrganizationsQueryResult(organizations);
     }
 }

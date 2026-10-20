@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
+using Dapper;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Query;
 using SupportDesk.Application.Models.Organizations.Query.GetOrganizationTemplateAnswers.Dtos;
-using SupportDesk.Domain.Models.Organization.ValueObjects;
 
 namespace SupportDesk.Application.Models.Organizations.Query.GetOrganizationTemplateAnswers;
 
@@ -12,33 +11,34 @@ internal sealed class GetOrganizationTemplateAnswersQueryHandler
     : AbstractQueryHandler<GetOrganizationTemplateAnswersQuery, GetOrganizationTemplateAnswersQueryResult>
 {
     private readonly ITenantContext _tenantContext;
-    private readonly IApplicationDbContext _applicationDbContext;
+    private readonly IDbConnectionFactory _dbConnectionFactory;
     
     public GetOrganizationTemplateAnswersQueryHandler(
         PermissionChecker permissionChecker,
         ITenantContext tenantContext,
-        IApplicationDbContext applicationDbContext) 
+        IDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
         _tenantContext = tenantContext;
-        _applicationDbContext = applicationDbContext;
+        _dbConnectionFactory = dbConnectionFactory;
     }
 
     protected override async Task<GetOrganizationTemplateAnswersQueryResult> ExecuteAsync(GetOrganizationTemplateAnswersQuery query, CancellationToken cancellationToken)
     {
-        var organizationId = new OrganizationId((Guid)_tenantContext.GetCurrentOrganizationId()!);
-        
-        var templateAnswers = await _applicationDbContext.TemplateAnswers
-            .IgnoreQueryFilters()
-            .AsNoTracking()
-            .Where(templateAnswer => templateAnswer.OrganizationId == organizationId)
-            .OrderBy(templateAnswer => templateAnswer.Title)
-            .Select(templateAnswer => new TemplateAnswerListingDto(
-                templateAnswer.Id.IdValue,
-                templateAnswer.Title.TitleValue,
-                templateAnswer.Text.TextValue))
-            .ToListAsync(cancellationToken);
-        
+        var organizationId = (Guid)_tenantContext.GetCurrentOrganizationId()!;
+
+        const string sql = """
+            SELECT "Id", "Title", "Text"
+            FROM "TemplateAnswers"
+            WHERE "OrganizationId" = @OrganizationId AND "DeletedAt" IS NULL
+            ORDER BY "Title";
+            """;
+
+        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(sql, new { OrganizationId = organizationId }, cancellationToken: cancellationToken);
+
+        var templateAnswers = (await connection.QueryAsync<TemplateAnswerListingDto>(command)).AsList();
+
         return new GetOrganizationTemplateAnswersQueryResult(templateAnswers);      
     }
 }

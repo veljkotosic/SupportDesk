@@ -24,7 +24,7 @@ public static class SupportDeskRegistrationExtensions
             
             services.AddRabbitMqConnection();
 
-            services.AddSupportDeskHealthChecks();
+            services.AddSupportDeskWebApiHealthChecks(configuration);
             
             services.AddSupportDeskAuth(configuration);
             services.AddHttpExecutionContext();
@@ -43,6 +43,8 @@ public static class SupportDeskRegistrationExtensions
             services.AddWorkerExecutionContext();
 
             services.AddRabbitMqRealtimePublisher();
+
+            services.AddSupportDeskWorkerHealthChecks(configuration);
             
             return services;
         }
@@ -56,6 +58,8 @@ public static class SupportDeskRegistrationExtensions
             services.AddWorkerExecutionContext();
             
             services.AddDomainEventPublisher();
+            
+            services.AddSupportDeskOutboxProcessorHealthChecks(configuration);
             
             return services;
         }

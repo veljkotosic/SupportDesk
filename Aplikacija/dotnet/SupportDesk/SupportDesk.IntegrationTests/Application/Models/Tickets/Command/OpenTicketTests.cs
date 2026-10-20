@@ -38,7 +38,7 @@ internal sealed class OpenTicketTests : IntegrationTestsBase
         
         OpenTicketCommandResult? result = null;
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(command);
         });
@@ -92,7 +92,7 @@ internal sealed class OpenTicketTests : IntegrationTestsBase
             subject,
             message);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });
@@ -110,7 +110,7 @@ internal sealed class OpenTicketTests : IntegrationTestsBase
 
         var command = new OpenTicketCommand(Guid.NewGuid(), Guid.NewGuid(), TicketPriority.Medium, "Test", "Test");
         
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });

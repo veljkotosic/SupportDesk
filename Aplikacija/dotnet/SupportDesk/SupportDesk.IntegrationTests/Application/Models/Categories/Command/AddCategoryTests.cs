@@ -36,7 +36,7 @@ internal sealed class AddCategoryTests : IntegrationTestsBase
     {
         AddCategoryCommandResult? result = null;
 
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(new AddCategoryCommand(ValidName, ValidDescription));
         });
@@ -63,7 +63,7 @@ internal sealed class AddCategoryTests : IntegrationTestsBase
         
         _ = await CreateCategory(_user.OrganizationId!.IdValue, ValidName, ValidDescription, _timeProvider);
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new AddCategoryCommand(ValidName, ValidDescription));
         });       
@@ -74,7 +74,7 @@ internal sealed class AddCategoryTests : IntegrationTestsBase
     [Test]
     public async Task Handle_WithPermissions_WithInvalidInput_ShouldThrowValidationException()
     {
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new AddCategoryCommand(InvalidName, InvalidDescription));
         });
@@ -85,7 +85,7 @@ internal sealed class AddCategoryTests : IntegrationTestsBase
     {
         await PermissionService.RevokePermissionAsync(_user.Id.IdValue, Permissions.Categories.Add);
         
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new AddCategoryCommand(ValidName, ValidDescription));
         });

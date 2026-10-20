@@ -59,7 +59,7 @@ internal sealed class AddNoteTests : IntegrationTestsBase
         
         AddNoteCommandResult? result = null;
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(command);
         });
@@ -92,7 +92,7 @@ internal sealed class AddNoteTests : IntegrationTestsBase
         
         AddNoteCommandResult? result = null;
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(command);
         });
@@ -123,7 +123,7 @@ internal sealed class AddNoteTests : IntegrationTestsBase
         
         var command = new AddNoteCommand(Guid.NewGuid(), InvalidText);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });
@@ -146,7 +146,7 @@ internal sealed class AddNoteTests : IntegrationTestsBase
         
         var command = new AddNoteCommand(_ticket.Id.IdValue, ValidText);
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });
@@ -165,7 +165,7 @@ internal sealed class AddNoteTests : IntegrationTestsBase
         
         var command = new AddNoteCommand(_ticket.Id.IdValue, ValidText);
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });

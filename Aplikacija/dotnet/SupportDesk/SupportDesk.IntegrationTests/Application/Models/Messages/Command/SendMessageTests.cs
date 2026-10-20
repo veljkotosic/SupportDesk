@@ -54,7 +54,7 @@ internal sealed class SendMessageTests : IntegrationTestsBase
         
         SendMessageCommandResult? result = null;
 
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(command);
         });
@@ -84,7 +84,7 @@ internal sealed class SendMessageTests : IntegrationTestsBase
 
         var command = new SendMessageCommand(_ticket.Id.IdValue, InvalidMessage);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });
@@ -98,7 +98,7 @@ internal sealed class SendMessageTests : IntegrationTestsBase
 
         var command = new SendMessageCommand(Guid.NewGuid(), ValidMessage);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });
@@ -114,7 +114,7 @@ internal sealed class SendMessageTests : IntegrationTestsBase
         
         var command = new SendMessageCommand(Guid.NewGuid(), ValidMessage);
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);
         });
@@ -128,7 +128,7 @@ internal sealed class SendMessageTests : IntegrationTestsBase
         
         var command = new SendMessageCommand(_ticket.Id.IdValue, ValidMessage);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);       
         });
@@ -147,7 +147,7 @@ internal sealed class SendMessageTests : IntegrationTestsBase
 
         SendMessageCommandResult? result = null;
 
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(command);
         });
@@ -181,7 +181,7 @@ internal sealed class SendMessageTests : IntegrationTestsBase
         
         var command = new SendMessageCommand(_ticket.Id.IdValue, ValidMessage);
 
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(command);       
         });

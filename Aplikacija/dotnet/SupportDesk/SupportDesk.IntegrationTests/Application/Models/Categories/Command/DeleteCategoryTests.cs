@@ -30,7 +30,7 @@ internal sealed class DeleteCategoryTests : IntegrationTestsBase
     {
         var addedCategory = await CreateCategory(_user.OrganizationId!.IdValue, "Test Category", "Test Description", TimeProvider.System);
         
-        Assert.DoesNotThrowAsync(async () => {
+        await Assert.DoesNotThrowAsync(async () => {
             await CommandDispatcher.DispatchAsync(new DeleteCategoryCommand(addedCategory.Id.IdValue));
         });
 
@@ -48,7 +48,7 @@ internal sealed class DeleteCategoryTests : IntegrationTestsBase
     {
         var categoryId = new CategoryId(Guid.NewGuid());
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteCategoryCommand(categoryId.IdValue));
         });
@@ -64,7 +64,7 @@ internal sealed class DeleteCategoryTests : IntegrationTestsBase
         await DbContext.SaveChangesAsync(); 
         DbContext.ChangeTracker.Clear();
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteCategoryCommand(addedCategory.Id.IdValue));
         });
@@ -77,7 +77,7 @@ internal sealed class DeleteCategoryTests : IntegrationTestsBase
     {
         await PermissionService.RevokePermissionAsync(_user.Id.IdValue, Permissions.Categories.Delete);
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new DeleteCategoryCommand(Guid.NewGuid()));
         });

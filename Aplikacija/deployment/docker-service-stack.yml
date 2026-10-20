@@ -49,6 +49,13 @@ services:
     networks:
       - backend
 
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:5013/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
     deploy:
       replicas: 2
 
@@ -76,6 +83,13 @@ services:
 
     networks:
       - backend
+    
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:5012/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
     deploy:
       replicas: 1

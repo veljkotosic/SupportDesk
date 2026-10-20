@@ -17,7 +17,7 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -241,7 +241,7 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.HasIndex("TicketId");
+                    b.HasIndex("TicketId", "CreatedAt");
 
                     b.ToTable("Messages", (string)null);
                 });
@@ -274,7 +274,7 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasIndex("OrganizationId");
 
-                    b.HasIndex("TicketId");
+                    b.HasIndex("TicketId", "CreatedAt");
 
                     b.ToTable("Notes", (string)null);
                 });
@@ -417,11 +417,23 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("CustomerId", "LastMessageAt");
 
-                    b.HasIndex("OrganizationId");
+                    b.HasIndex("OrganizationId", "LastMessageAt");
 
-                    b.HasIndex("SupportAgentId");
+                    b.HasIndex("OrganizationId", "OpenedAt");
+
+                    b.HasIndex("OrganizationId", "Status");
+
+                    b.HasIndex("SupportAgentId", "Status");
+
+                    b.HasIndex("CustomerId", "Status", "LastMessageAt");
+
+                    b.HasIndex("OrganizationId", "Status", "LastMessageAt");
+
+                    b.HasIndex("OrganizationId", "Status", "Priority");
+
+                    b.HasIndex("SupportAgentId", "Status", "LastMessageAt");
 
                     b.ToTable("Tickets", (string)null);
                 });
@@ -450,9 +462,9 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId");
+                    b.HasIndex("OrganizationId", "Status");
 
-                    b.HasIndex("TicketId");
+                    b.HasIndex("TicketId", "Status");
 
                     b.ToTable("TicketNotifications", (string)null);
                 });

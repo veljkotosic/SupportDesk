@@ -33,7 +33,7 @@ internal sealed class AddFaqTests : IntegrationTestsBase
     {
         AddFaqCommandResult? result = null;   
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(new AddFaqCommand(ValidQuestion, ValidAnswer));
         });
@@ -55,7 +55,7 @@ internal sealed class AddFaqTests : IntegrationTestsBase
     [Test]
     public async Task Handle_WithPermissions_WithInvalidData_ShouldThrowValidationException()
     {
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(new AddFaqCommand(InvalidQuestion, InvalidAnswer));
         });
@@ -66,7 +66,7 @@ internal sealed class AddFaqTests : IntegrationTestsBase
     {
         await PermissionService.RevokePermissionAsync(_user.Id.IdValue, Permissions.Faqs.Add);
 
-        Assert.ThrowsAsync<PermissionException>(async () =>
+        await Assert.ThrowsAsync<PermissionException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(new AddFaqCommand(ValidQuestion, ValidAnswer));
         });

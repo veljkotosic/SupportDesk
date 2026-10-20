@@ -31,7 +31,7 @@ internal sealed class RegisterSupportAgentTests : IntegrationTestsBase
         
         RegisterSupportAgentCommandResult? result = null;
         
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(new RegisterSupportAgentCommand(
                 DefaultSupportAgentUserName,
@@ -86,7 +86,7 @@ internal sealed class RegisterSupportAgentTests : IntegrationTestsBase
     {
         var invite = await CreateSupportAgentInvite(DefaultSupportAgentEmail, _organizationAdmin.OrganizationId!.IdValue, TimeProvider.System);
         
-        Assert.ThrowsAsync<ValidationException>(async () =>
+        await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(new RegisterSupportAgentCommand(userName, email, password, invite.Code.CodeValue));
         });
@@ -97,7 +97,7 @@ internal sealed class RegisterSupportAgentTests : IntegrationTestsBase
     {
         var invite = await CreateSupportAgentInvite(DefaultSupportAgentEmail, _organizationAdmin.OrganizationId!.IdValue, TimeProvider.System);
 
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(new RegisterSupportAgentCommand(
                 DefaultSupportAgentUserName,
@@ -119,7 +119,7 @@ internal sealed class RegisterSupportAgentTests : IntegrationTestsBase
         
         fakeTimeProvider.Advance(TimeSpan.FromDays(SupportAgentInviteOptionsDefaults.ExpirationDays + 1));
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(new RegisterSupportAgentCommand(
                 DefaultSupportAgentUserName,
@@ -138,7 +138,7 @@ internal sealed class RegisterSupportAgentTests : IntegrationTestsBase
         invite.Use(TimeProvider.System);
         await DbContext.SaveChangesAsync();
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(new RegisterSupportAgentCommand(
                 DefaultSupportAgentUserName,
@@ -157,7 +157,7 @@ internal sealed class RegisterSupportAgentTests : IntegrationTestsBase
         invite.Revoke(TimeProvider.System);
         await DbContext.SaveChangesAsync();
         
-        var exception = Assert.ThrowsAsync<ValidationException>(async () =>
+        var exception = await Assert.ThrowsAsync<ValidationException>(async () =>
         {
             _ = await CommandDispatcher.DispatchAsync(new RegisterSupportAgentCommand(
                 DefaultSupportAgentUserName,

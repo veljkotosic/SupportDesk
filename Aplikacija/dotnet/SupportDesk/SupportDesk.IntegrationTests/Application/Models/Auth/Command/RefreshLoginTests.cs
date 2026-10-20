@@ -24,7 +24,7 @@ internal sealed class RefreshLoginTests : IntegrationTestsBase
         var oldRefreshToken = await Login(DefaultCustomerEmail, DefaultCustomerPassword);
         RefreshLoginCommandResult? result = null;
 
-        Assert.DoesNotThrowAsync(async () =>
+        await Assert.DoesNotThrowAsync(async () =>
         {
             result = await CommandDispatcher.DispatchAsync(new RefreshLoginCommand(oldRefreshToken.Value));
         });
@@ -62,7 +62,7 @@ internal sealed class RefreshLoginTests : IntegrationTestsBase
         
         await DbContext.SaveChangesAsync();
 
-        var exception = Assert.ThrowsAsync<RefreshTokenException>(async () =>
+        var exception = await Assert.ThrowsAsync<RefreshTokenException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new RefreshLoginCommand(token.Token));
         });
@@ -76,7 +76,7 @@ internal sealed class RefreshLoginTests : IntegrationTestsBase
     {
         var fakeTokenValue = "FakeNonExistentRefreshToken12345!";
 
-        var exception = Assert.ThrowsAsync<RefreshTokenException>(async () =>
+        var exception = await Assert.ThrowsAsync<RefreshTokenException>(async () =>
         {
             await CommandDispatcher.DispatchAsync(new RefreshLoginCommand(fakeTokenValue));
         });

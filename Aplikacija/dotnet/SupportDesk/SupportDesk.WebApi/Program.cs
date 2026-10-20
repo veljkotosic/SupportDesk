@@ -2,6 +2,7 @@ using System.Text.Json;
 using Asp.Versioning;
 using DotNetEnv;
 using SupportDesk.Infrastructure.DependencyInjection;
+using SupportDesk.Infrastructure.Persistence.Database;
 using SupportDesk.WebApi.BackgroundServices.RealtimeUpdates;
 using SupportDesk.WebApi.ExceptionHandlers;
 using SupportDesk.WebApi.Filters;
@@ -45,11 +46,11 @@ builder.Services.AddControllers(options =>
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
-
 app.UseExceptionHandler();
 
 app.MapHealthChecks("/health");
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -59,5 +60,11 @@ app.MapControllers();
 app.MapHub<CustomerDashboardHub>("hubs/customerDashboardHub");
 app.MapHub<OrganizationDashboardHub>("hubs/organizationDashboardHub");
 app.MapHub<TicketHub>("hubs/ticketHub");
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<SupportDeskDbContext>();
+    _ = dbContext.Model; 
+}
 
 app.Run();

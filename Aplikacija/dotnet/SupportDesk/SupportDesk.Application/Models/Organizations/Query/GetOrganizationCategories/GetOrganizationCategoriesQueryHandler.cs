@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+using Dapper;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Query;
@@ -12,38 +12,46 @@ namespace SupportDesk.Application.Models.Organizations.Query.GetOrganizationCate
 internal sealed class GetOrganizationCategoriesQueryHandler
     : AbstractQueryHandler<GetOrganizationCategoriesQuery, GetOrganizationCategoriesQueryResult>
 {
-    private readonly IApplicationDbContext _applicationDbContext;
+    private readonly IDbConnectionFactory _dbConnectionFactory;
     
     public GetOrganizationCategoriesQueryHandler(
         PermissionChecker permissionChecker,
-        IApplicationDbContext applicationDbContext) 
+        IDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
-        _applicationDbContext = applicationDbContext;
+        _dbConnectionFactory = dbConnectionFactory;
     }
 
     protected override async Task<GetOrganizationCategoriesQueryResult> ExecuteAsync(GetOrganizationCategoriesQuery query, CancellationToken cancellationToken)
     {
         var organizationId = new OrganizationId(query.OrganizationId);
-        
-        var organizationExists = await _applicationDbContext.Organizations
-            .IgnoreQueryFilters()
-            .AnyAsync(organization => organization.Id == organizationId, cancellationToken);
 
-        if (!organizationExists)
+        const string sql = """
+            -- 1. Check organization existence
+            SELECT EXISTS (
+                SELECT 1 FROM "Organizations" WHERE "Id" = @OrganizationId AND "DeletedAt" IS NULL
+            );
+
+            -- 2. Fetch categories
+            SELECT "Id" AS "CategoryId", "Name" AS "CategoryName"
+            FROM "Categories"
+            WHERE "OrganizationId" = @OrganizationId AND "DeletedAt" IS NULL
+            ORDER BY "Name";
+            """;
+
+        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(sql, new { OrganizationId = query.OrganizationId }, cancellationToken: cancellationToken);
+
+        using var multi = await connection.QueryMultipleAsync(command);
+
+        var exists = await multi.ReadFirstAsync<bool>();
+        if (!exists)
         {
             throw new ValidationException(OrganizationErrors.NotFound(organizationId));
         }
 
-        var categories = await _applicationDbContext.Categories
-            .IgnoreQueryFilters()
-            .AsNoTracking()
-            .Where(category => category.OrganizationId == organizationId)
-            .Select(category => new CategoryListingDto(
-                category.Id.IdValue,
-                category.Name.NameValue))
-            .ToListAsync(cancellationToken);
-        
+        var categories = (await multi.ReadAsync<CategoryListingDto>()).AsList();
+
         return new GetOrganizationCategoriesQueryResult(categories);
     }
 }

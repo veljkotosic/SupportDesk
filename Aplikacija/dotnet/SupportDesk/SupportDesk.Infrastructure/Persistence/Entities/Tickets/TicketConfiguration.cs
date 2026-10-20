@@ -147,5 +147,15 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.HasQueryFilter(ticket => 
             _context.OrganizationId == null || 
             ticket.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
+
+        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.Status, ticket.LastMessageAt });
+        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.Status, ticket.Priority });
+        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.Status });
+        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.LastMessageAt });
+        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.OpenedAt });
+        builder.HasIndex(ticket => new { ticket.CustomerId, ticket.Status, ticket.LastMessageAt });
+        builder.HasIndex(ticket => new { ticket.CustomerId, ticket.LastMessageAt });
+        builder.HasIndex(ticket => new { ticket.SupportAgentId, ticket.Status, ticket.LastMessageAt });
+        builder.HasIndex(ticket => new { ticket.SupportAgentId, ticket.Status });
     }
 }
