@@ -26,8 +26,6 @@ public static class ObservabilityRegistrationExtensions
             services.AddLogging(builder =>
             {
                 builder.ClearProviders();
-
-                builder.AddConsole();
                 
                 builder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
                 builder.AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning);
