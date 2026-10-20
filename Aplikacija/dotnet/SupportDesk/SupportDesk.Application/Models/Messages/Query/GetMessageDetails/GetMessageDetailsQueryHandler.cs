@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+using Dapper;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Query;
@@ -11,35 +11,37 @@ namespace SupportDesk.Application.Models.Messages.Query.GetMessageDetails;
 internal sealed class GetMessageDetailsQueryHandler
     : AbstractQueryHandler<GetMessageDetailsQuery, GetMessageDetailsQueryResult>
 {
-    private readonly IApplicationDbContext _applicationDbContext;
+    private readonly IDbConnectionFactory _dbConnectionFactory;
     
     public GetMessageDetailsQueryHandler(
         PermissionChecker permissionChecker,
-        IApplicationDbContext applicationDbContext) 
+        IDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
-        _applicationDbContext = applicationDbContext;
+        _dbConnectionFactory = dbConnectionFactory;
     }
 
     protected override async Task<GetMessageDetailsQueryResult> ExecuteAsync(GetMessageDetailsQuery query, CancellationToken cancellationToken)
     {
         var messageId = new MessageId(query.MessageId);
 
-        var queryable =
-            from message in _applicationDbContext.Messages.AsNoTracking()
-            where message.Id == messageId
-            
-            join sender in _applicationDbContext.DomainUsers.AsNoTracking()
-                on message.SenderId equals sender.Id
+        const string sql = """
+            SELECT 
+                m."Id",
+                s."Id" AS "SenderId",
+                s."UserName" AS "SenderUsername",
+                m."Text",
+                m."CreatedAt"
+            FROM "Messages" m
+            JOIN "Users" s ON m."SenderId" = s."Id"
+            WHERE m."Id" = @MessageId
+            LIMIT 1;
+            """;
 
-            select new GetMessageDetailsQueryResult(
-                message.Id.IdValue,
-                sender.Id.IdValue,
-                sender.UserName.UserNameValue,
-                message.Text.TextValue,
-                message.CreatedAt.CreatedAtValue);
+        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var command = new CommandDefinition(sql, new { MessageId = query.MessageId }, cancellationToken: cancellationToken);
 
-        var result = await queryable.FirstOrDefaultAsync(cancellationToken);
+        var result = await connection.QueryFirstOrDefaultAsync<GetMessageDetailsQueryResult>(command);
 
         if (result is null)
         {

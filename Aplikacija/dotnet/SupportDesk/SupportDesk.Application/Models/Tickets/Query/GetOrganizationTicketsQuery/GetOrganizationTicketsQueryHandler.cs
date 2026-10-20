@@ -1,13 +1,12 @@
-using Microsoft.EntityFrameworkCore;
+using System.Text;
+using Dapper;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Application.Abstract.Query;
 using SupportDesk.Application.Models.Tickets.Enums;
 using SupportDesk.Application.Models.Tickets.Query.GetOrganizationTicketsQuery.Dtos;
-using SupportDesk.Domain.Models.Organization.ValueObjects;
 using SupportDesk.Domain.Models.Ticket.Enums;
-using SupportDesk.Domain.Models.Ticket.ValueObjects;
 
 namespace SupportDesk.Application.Models.Tickets.Query.GetOrganizationTicketsQuery;
 
@@ -15,127 +14,169 @@ internal sealed class GetOrganizationTicketsQueryHandler
     : AbstractQueryHandler<GetOrganizationTicketsQuery, GetOrganizationTicketsQueryResult>
 {
     private readonly ITenantContext _tenantContext;
-    private readonly IApplicationDbContext _applicationDbContext;
+    private readonly IDbConnectionFactory _dbConnectionFactory;
 
     public GetOrganizationTicketsQueryHandler(
         PermissionChecker permissionChecker,
         ITenantContext tenantContext,
-        IApplicationDbContext applicationDbContext)
+        IDbConnectionFactory dbConnectionFactory)
         : base(permissionChecker)
     {
         _tenantContext = tenantContext;
-        _applicationDbContext = applicationDbContext;
+        _dbConnectionFactory = dbConnectionFactory;
     }
 
     protected override async Task<GetOrganizationTicketsQueryResult> ExecuteAsync(
         GetOrganizationTicketsQuery query,
         CancellationToken cancellationToken)
     {
-        var organizationId = new OrganizationId((Guid)_tenantContext.GetCurrentOrganizationId()!);
+        var organizationId = (Guid)_tenantContext.GetCurrentOrganizationId()!;
 
-        var orgTickets = _applicationDbContext.Tickets
-            .AsNoTracking()
-            .Where(t => t.OrganizationId == organizationId);
+        var dynamicParams = new DynamicParameters();
+        dynamicParams.Add("OrganizationId", organizationId);
+        dynamicParams.Add("OpenStatus", (short)TicketStatus.Open);
+        dynamicParams.Add("AssignedStatus", (short)TicketStatus.Assigned);
+        dynamicParams.Add("ClosedStatus", (short)TicketStatus.Closed);
+        dynamicParams.Add("Skip", query.Skip);
+        dynamicParams.Add("Take", query.Take);
 
-        var allCount = await orgTickets.CountAsync(cancellationToken);
-        var openCount = await orgTickets.CountAsync(t => t.Status == TicketStatus.Open, cancellationToken);
-        var assignedCount = await orgTickets.CountAsync(t => t.Status == TicketStatus.Assigned, cancellationToken);
-        var closedCount = await orgTickets.CountAsync(t => t.Status == TicketStatus.Closed, cancellationToken);
-
-        var projectedQuery =
-            from ticket in orgTickets
-            
-            join category in _applicationDbContext.Categories.AsNoTracking()
-                on ticket.CategoryId equals category.Id
-                
-            join customer in _applicationDbContext.DomainUsers.IgnoreQueryFilters().AsNoTracking()
-                on ticket.CustomerId equals customer.Id
-                
-            join agent in _applicationDbContext.DomainUsers.IgnoreQueryFilters().AsNoTracking()
-                on ticket.SupportAgentId equals agent.Id into agentGroup
-            from agent in agentGroup.DefaultIfEmpty()
-            
-            select new
-            {
-                Ticket = ticket,
-                Category = category,
-                Customer = customer,
-                CustomerEmail = customer.Email.EmailValue,
-                SupportAgentUserName = agent != null ? agent.UserName.UserNameValue : null
-            };
+        var whereClause = new StringBuilder("WHERE t.\"OrganizationId\" = @OrganizationId");
 
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
             var search = query.SearchTerm.Trim();
-
             if (Guid.TryParse(search, out var parsedGuid))
             {
-                var ticketId = new TicketId(parsedGuid);
-                projectedQuery = projectedQuery.Where(item => item.Ticket.Id == ticketId);
+                dynamicParams.Add("SearchGuid", parsedGuid);
+                whereClause.Append(" AND t.\"Id\" = @SearchGuid");
             }
             else
             {
-                projectedQuery = projectedQuery.Where(item =>
-                    ((string)item.Ticket.Subject).Contains(search) ||
-                    ((string)item.Customer.UserName).Contains(search) ||
-                    ((string)item.Category.Name).Contains(search));
+                dynamicParams.Add("SearchPattern", $"%{search}%");
+                whereClause.Append(" AND (t.\"Subject\" ILIKE @SearchPattern OR cu.\"UserName\" ILIKE @SearchPattern OR c.\"Name\" ILIKE @SearchPattern)");
             }
         }
 
         if (query.Status.HasValue)
         {
-            projectedQuery = projectedQuery.Where(item => item.Ticket.Status == query.Status.Value);
+            dynamicParams.Add("Status", (short)query.Status.Value);
+            whereClause.Append(" AND t.\"Status\" = @Status");
         }
 
         if (query.Priority.HasValue)
         {
-            projectedQuery = projectedQuery.Where(item => item.Ticket.Priority == query.Priority.Value);
+            dynamicParams.Add("Priority", (short)query.Priority.Value);
+            whereClause.Append(" AND t.\"Priority\" = @Priority");
         }
 
-        var totalCount = await projectedQuery.CountAsync(cancellationToken);
-
-        var orderedQuery = query.SortBy switch
+        var orderByClause = query.SortBy switch
         {
-            TicketSortOption.Oldest => projectedQuery
-                .OrderBy(item => item.Ticket.LastMessageAt)
-                .ThenBy(item => item.Ticket.Id),
-
-            TicketSortOption.Priority => projectedQuery
-                .OrderByDescending(item => item.Ticket.Priority)
-                .ThenByDescending(item => item.Ticket.LastMessageAt)
-                .ThenByDescending(item => item.Ticket.Id),
-
-            TicketSortOption.Latest or _ => projectedQuery
-                .OrderByDescending(item => item.Ticket.LastMessageAt)
-                .ThenByDescending(item => item.Ticket.Id)
+            TicketSortOption.Oldest => "ORDER BY t.\"LastMessageAt\" ASC NULLS LAST, t.\"Id\" ASC",
+            TicketSortOption.Priority => "ORDER BY t.\"Priority\" DESC, t.\"LastMessageAt\" DESC NULLS LAST, t.\"Id\" DESC",
+            TicketSortOption.Latest or _ => "ORDER BY t.\"LastMessageAt\" DESC NULLS LAST, t.\"Id\" DESC"
         };
 
-        var tickets = await orderedQuery
-            .Skip(query.Skip)
-            .Take(query.Take)
-            .Select(item => new OrganizationTicketListingDto(
-                item.Ticket.Id.IdValue,
-                item.Ticket.CategoryId.IdValue,
-                item.Category.Name.NameValue,
-                item.Ticket.CustomerId.IdValue,
-                item.Customer.UserName.UserNameValue,
-                item.CustomerEmail,
-                item.Ticket.SupportAgentId != null ? item.Ticket.SupportAgentId.IdValue : null,
-                item.SupportAgentUserName,
-                item.Ticket.Status,
-                item.Ticket.Priority,
-                item.Ticket.Feedback,
-                item.Ticket.Subject.SubjectValue,
-                item.Ticket.LastMessageAt != null ? item.Ticket.LastMessageAt.LastMessageAtValue : null
-            ))
-            .ToListAsync(cancellationToken);
+        var sql = $"""
+            -- 1. Status counts
+            SELECT 
+                COUNT(*)::int AS "AllCount",
+                COUNT(*) FILTER (WHERE "Status" = @OpenStatus)::int AS "OpenCount",
+                COUNT(*) FILTER (WHERE "Status" = @AssignedStatus)::int AS "AssignedCount",
+                COUNT(*) FILTER (WHERE "Status" = @ClosedStatus)::int AS "ClosedCount"
+            FROM "Tickets"
+            WHERE "OrganizationId" = @OrganizationId;
+
+            -- 2. Total filtered count
+            SELECT COUNT(*)::int
+            FROM "Tickets" t
+            JOIN "Categories" c ON t."CategoryId" = c."Id"
+            JOIN "Users" cu ON t."CustomerId" = cu."Id"
+            {whereClause};
+
+            -- 3. Paginated tickets
+            SELECT 
+                t."Id" AS "Id",
+                t."CategoryId" AS "CategoryId",
+                c."Name" AS "CategoryName",
+                t."CustomerId" AS "CustomerId",
+                cu."UserName" AS "CustomerUserName",
+                cu."Email" AS "CustomerEmail",
+                t."SupportAgentId" AS "SupportAgentId",
+                sa."UserName" AS "SupportAgentUserName",
+                t."Status" AS "Status",
+                t."Priority" AS "Priority",
+                t."Feedback" AS "Feedback",
+                t."Subject" AS "Subject",
+                t."LastMessageAt" AS "LastMessageAt"
+            FROM "Tickets" t
+            JOIN "Categories" c ON t."CategoryId" = c."Id"
+            JOIN "Users" cu ON t."CustomerId" = cu."Id"
+            LEFT JOIN "Users" sa ON t."SupportAgentId" = sa."Id"
+            {whereClause}
+            {orderByClause}
+            LIMIT @Take OFFSET @Skip;
+            """;
+
+        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+
+        var command = new CommandDefinition(
+            sql,
+            dynamicParams,
+            cancellationToken: cancellationToken);
+
+        await using var multi = await connection.QueryMultipleAsync(command);
+
+        var statusCounts = await multi.ReadSingleAsync<StatusCountsRow>();
+        var totalCount = await multi.ReadSingleAsync<int>();
+        var rawTickets = (await multi.ReadAsync<RawOrganizationTicketRow>()).ToList();
+
+        var ticketRows = rawTickets.Select(t => new OrganizationTicketListingDto(
+            t.Id,
+            t.CategoryId,
+            t.CategoryName,
+            t.CustomerId,
+            t.CustomerUserName,
+            t.CustomerEmail,
+            t.SupportAgentId,
+            t.SupportAgentUserName,
+            t.Status,
+            t.Priority,
+            t.Feedback,
+            t.Subject,
+            t.LastMessageAt
+        )).ToList();
 
         return new GetOrganizationTicketsQueryResult(
-            tickets,
+            ticketRows,
             totalCount,
-            allCount,
-            openCount,
-            assignedCount,
-            closedCount);
+            statusCounts.AllCount,
+            statusCounts.OpenCount,
+            statusCounts.AssignedCount,
+            statusCounts.ClosedCount);
+    }
+
+    private sealed record StatusCountsRow
+    {
+        public int AllCount { get; set; }
+        public int OpenCount { get; set; }
+        public int AssignedCount { get; set; }
+        public int ClosedCount { get; set; }
+    }
+
+    private sealed record RawOrganizationTicketRow
+    {
+        public Guid Id { get; set; }
+        public Guid CategoryId { get; set; }
+        public string CategoryName { get; set; } = null!;
+        public Guid CustomerId { get; set; }
+        public string CustomerUserName { get; set; } = null!;
+        public string CustomerEmail { get; set; } = null!;
+        public Guid? SupportAgentId { get; set; }
+        public string? SupportAgentUserName { get; set; }
+        public TicketStatus Status { get; set; }
+        public TicketPriority Priority { get; set; }
+        public TicketFeedback Feedback { get; set; }
+        public string Subject { get; set; } = null!;
+        public DateTime? LastMessageAt { get; set; }
     }
 }
