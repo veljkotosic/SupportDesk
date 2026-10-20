@@ -34,81 +34,102 @@ public sealed class RabbitMqDomainEventConsumerService : BackgroundService
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        try
+        while (!stoppingToken.IsCancellationRequested)
         {
-            var channel = await _connection.CreateChannelAsync(stoppingToken);
-            
-            await channel.ExchangeDeclareAsync(
-                exchange: RabbitMqConstants.DomainEventsExchange,
-                type: ExchangeType.Topic,
-                durable: true,
-                autoDelete: false,
-                cancellationToken: stoppingToken);
-            
-            await channel.QueueDeclareAsync(
-                queue: RabbitMqConstants.WorkerDomainEventsQueue,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                cancellationToken: stoppingToken);
-            
-            await channel.QueueBindAsync(
-                queue: RabbitMqConstants.WorkerDomainEventsQueue,
-                exchange: RabbitMqConstants.DomainEventsExchange,
-                routingKey: "#",
-                cancellationToken: stoppingToken);
-            
-            await channel.BasicQosAsync(
-                prefetchSize: 0,
-                prefetchCount: 10,
-                global: false,
-                cancellationToken: stoppingToken);
-
-            var consumer = new AsyncEventingBasicConsumer(channel);
-            consumer.ReceivedAsync += async (sender, eventArgs) =>
+            try
             {
+                using var channel = await _connection.CreateChannelAsync(stoppingToken);
+                
+                await channel.ExchangeDeclareAsync(
+                    exchange: RabbitMqConstants.DomainEventsExchange,
+                    type: ExchangeType.Topic,
+                    durable: true,
+                    autoDelete: false,
+                    cancellationToken: stoppingToken);
+                
+                await channel.QueueDeclareAsync(
+                    queue: RabbitMqConstants.WorkerDomainEventsQueue,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    cancellationToken: stoppingToken);
+                
+                await channel.QueueBindAsync(
+                    queue: RabbitMqConstants.WorkerDomainEventsQueue,
+                    exchange: RabbitMqConstants.DomainEventsExchange,
+                    routingKey: "#",
+                    cancellationToken: stoppingToken);
+                
+                await channel.BasicQosAsync(
+                    prefetchSize: 0,
+                    prefetchCount: 10,
+                    global: false,
+                    cancellationToken: stoppingToken);
+
+                var consumer = new AsyncEventingBasicConsumer(channel);
+                consumer.ReceivedAsync += async (sender, eventArgs) =>
+                {
+                    try
+                    {
+                        var body = eventArgs.Body.ToArray();
+                        var json = Encoding.UTF8.GetString(body);
+                        var outboxMessage = JsonSerializer.Deserialize<OutboxMessage>(json);
+
+                        if (outboxMessage is not null)
+                        {
+                            await ProcessMessageWithInboxAsync(outboxMessage, stoppingToken);
+                        }
+                        
+                        await channel.BasicAckAsync(eventArgs.DeliveryTag, false, stoppingToken);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, "Error while processing domain event");
+                        
+                        await channel.BasicNackAsync(
+                            deliveryTag: eventArgs.DeliveryTag,
+                            multiple: false,
+                            requeue: true,
+                            cancellationToken: stoppingToken);
+                    }
+                };
+
+                await channel.BasicConsumeAsync(
+                    queue: RabbitMqConstants.WorkerDomainEventsQueue,
+                    autoAck: false,
+                    consumer: consumer,
+                    cancellationToken: stoppingToken);
+                
+                _logger.LogInformation("Worker domain event consumer started listening on queue {Queue}", RabbitMqConstants.WorkerDomainEventsQueue);
+
+                var channelShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                channel.ChannelShutdownAsync += (sender, args) =>
+                {
+                    _logger.LogWarning("RabbitMQ channel shut down: {ReplyText}. Worker consumer will reconnect...", args.ReplyText);
+                    channelShutdownTcs.TrySetResult(true);
+                    return Task.CompletedTask;
+                };
+
+                using var reg = stoppingToken.Register(() => channelShutdownTcs.TrySetCanceled());
+                await channelShutdownTcs.Task;
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Worker consumer is stopping.");
+                break;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error in Worker domain event consumer. Reconnecting in 5 seconds...");
                 try
                 {
-                    var body = eventArgs.Body.ToArray();
-                    var json = Encoding.UTF8.GetString(body);
-                    var outboxMessage = JsonSerializer.Deserialize<OutboxMessage>(json);
-
-                    if (outboxMessage is not null)
-                    {
-                        await ProcessMessageWithInboxAsync(outboxMessage, stoppingToken);
-                    }
-                    
-                    await channel.BasicAckAsync(eventArgs.DeliveryTag, false, stoppingToken);
+                    await Task.Delay(5000, stoppingToken);
                 }
-                catch (Exception e)
+                catch (OperationCanceledException)
                 {
-                    _logger.LogError(e, "Error while processing domain event");
-                    
-                    await channel.BasicNackAsync(
-                        deliveryTag: eventArgs.DeliveryTag,
-                        multiple: false,
-                        requeue: true,
-                        cancellationToken: stoppingToken);
+                    break;
                 }
-            };
-
-            await channel.BasicConsumeAsync(
-                queue: RabbitMqConstants.WorkerDomainEventsQueue,
-                autoAck: false,
-                consumer: consumer,
-                cancellationToken: stoppingToken);
-            
-            _logger.LogInformation("Worker domain event consumer started listening on queue {Queue}", RabbitMqConstants.WorkerDomainEventsQueue);
-
-            await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogInformation("Worker consumer is stopping.");
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Fatal error in Worker domain event consumer.");
+            }
         }
     }
 
