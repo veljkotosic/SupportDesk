@@ -64,8 +64,8 @@ export function customerChatJourney(customerCredentials, explicitTicketId = null
                             `Chat Ticket VU${vuId}-IT${iter}`.substring(0, 40),
                             'Hello, I need assistance with this order.'
                         );
-                        if (newTicket && newTicket.id) {
-                            targetTicketId = newTicket.id;
+                        if (newTicket && (newTicket.ticketId || newTicket.id)) {
+                            targetTicketId = newTicket.ticketId || newTicket.id;
                         }
                     }
                 }
@@ -81,19 +81,31 @@ export function customerChatJourney(customerCredentials, explicitTicketId = null
                 arguments: [targetTicketId]
             }) + RECORD_SEPARATOR);
 
+            let canSendMessage = false;
+
             group('Customer - View Ticket & Messages', () => {
-                TicketService.getTicketInfo(targetTicketId);
+                const infoRes = TicketService.getTicketInfo(targetTicketId);
                 TicketService.readAllNotifications(targetTicketId);
+
+                if (infoRes && infoRes.ticket) {
+                    const t = infoRes.ticket;
+                    // Customer can send messages only if status is Open or Assigned (never Closed)
+                    if (t.status === TicketStatus.Open || t.status === TicketStatus.Assigned) {
+                        canSendMessage = true;
+                    }
+                }
             });
 
-            group('Customer - Send Message', () => {
-                waitBetween(3, 6);
+            if (canSendMessage) {
+                group('Customer - Send Message', () => {
+                    waitBetween(3, 6);
 
-                MessageService.sendMessage(
-                    targetTicketId,
-                    'Thank you for looking into this. Could you please give me an update?'
-                );
-            });
+                    MessageService.sendMessage(
+                        targetTicketId,
+                        'Thank you for looking into this. Could you please give me an update?'
+                    );
+                });
+            }
 
             if (stats && stats.incomingCount > 0) {
                 waitBetween(2, 4);

@@ -35,7 +35,12 @@ export function agentResolveTicketJourney(agentCredentials, explicitTicketId = n
             // 1. Check if agent already owns an assigned ticket
             const list = TicketService.getOrganizationTickets(0, 10, '', TicketStatus.Assigned);
             if (list && list.tickets && list.tickets.length > 0) {
-                const myTicket = list.tickets.find(t => agentUserId && t.supportAgentId === agentUserId);
+                const myTicket = list.tickets.find(t =>
+                    t.status === TicketStatus.Assigned &&
+                    t.supportAgentId &&
+                    agentUserId &&
+                    t.supportAgentId.toLowerCase() === agentUserId.toLowerCase()
+                );
                 if (myTicket) {
                     targetTicketId = myTicket.id;
                 }
@@ -71,26 +76,39 @@ export function agentResolveTicketJourney(agentCredentials, explicitTicketId = n
                 arguments: [targetTicketId]
             }) + RECORD_SEPARATOR);
 
+            let canModifyAndClose = false;
+
             group('Agent - Inspect Ticket & Templates', () => {
-                TicketService.getTicketInfo(targetTicketId);
+                const infoRes = TicketService.getTicketInfo(targetTicketId);
                 OrganizationService.getOrganizationTemplateAnswers();
+
+                if (infoRes && infoRes.ticket) {
+                    const t = infoRes.ticket;
+                    const matchesAgent = t.supportAgentId && agentUserId &&
+                        t.supportAgentId.toLowerCase() === agentUserId.toLowerCase();
+                    if (t.status === TicketStatus.Assigned && matchesAgent) {
+                        canModifyAndClose = true;
+                    }
+                }
             });
 
-            group('Agent - Add Internal Note', () => {
-                waitBetween(2, 4);
-                NoteService.addNote(targetTicketId, 'Verified diagnostic logs. Root cause identified.');
-            });
+            if (canModifyAndClose) {
+                group('Agent - Add Internal Note', () => {
+                    waitBetween(2, 4);
+                    NoteService.addNote(targetTicketId, 'Verified diagnostic logs. Root cause identified.');
+                });
 
-            group('Agent - Reply & Resolve Ticket', () => {
-                waitBetween(3, 5);
-                MessageService.sendMessage(
-                    targetTicketId,
-                    'We have resolved your issue. Please let us know if you need anything else.'
-                );
+                group('Agent - Reply & Resolve Ticket', () => {
+                    waitBetween(3, 5);
+                    MessageService.sendMessage(
+                        targetTicketId,
+                        'We have resolved your issue. Please let us know if you need anything else.'
+                    );
 
-                waitBetween(1, 2);
-                TicketService.closeTicket(targetTicketId);
-            });
+                    waitBetween(1, 2);
+                    TicketService.closeTicket(targetTicketId);
+                });
+            }
 
             if (stats.incomingCount > 0) {
                 waitBetween(1, 2);
