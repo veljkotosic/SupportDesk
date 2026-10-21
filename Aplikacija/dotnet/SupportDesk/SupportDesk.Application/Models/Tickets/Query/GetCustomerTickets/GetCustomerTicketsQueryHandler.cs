@@ -65,6 +65,15 @@ internal sealed class GetCustomerTicketsQueryHandler
             whereClause.Append(" AND t.\"Status\" = @Status");
         }
 
+        var hasSearch = !string.IsNullOrWhiteSpace(query.SearchTerm);
+        var countFromClause = hasSearch
+            ? "FROM \"Tickets\" t JOIN \"Organizations\" o ON t.\"OrganizationId\" = o.\"Id\" JOIN \"Categories\" c ON t.\"CategoryId\" = c.\"Id\" JOIN \"Users\" cu ON t.\"CustomerId\" = cu.\"Id\""
+            : "FROM \"Tickets\" t";
+
+        var paginatedPageFromClause = hasSearch
+            ? "FROM \"Tickets\" t JOIN \"Organizations\" o ON t.\"OrganizationId\" = o.\"Id\" JOIN \"Categories\" c ON t.\"CategoryId\" = c.\"Id\" JOIN \"Users\" cu ON t.\"CustomerId\" = cu.\"Id\""
+            : "FROM \"Tickets\" t";
+
         var sql = $"""
             -- 1. Status counts
             SELECT 
@@ -77,10 +86,7 @@ internal sealed class GetCustomerTicketsQueryHandler
 
             -- 2. Total filtered count
             SELECT COUNT(*)::int
-            FROM "Tickets" t
-            JOIN "Organizations" o ON t."OrganizationId" = o."Id"
-            JOIN "Categories" c ON t."CategoryId" = c."Id"
-            JOIN "Users" cu ON t."CustomerId" = cu."Id"
+            {countFromClause}
             {whereClause};
 
             -- 3. Paginated tickets
@@ -114,10 +120,7 @@ internal sealed class GetCustomerTicketsQueryHandler
             -- 4. Unread notifications for paginated tickets
             WITH paginated_page AS (
                 SELECT t."Id"
-                FROM "Tickets" t
-                JOIN "Organizations" o ON t."OrganizationId" = o."Id"
-                JOIN "Categories" c ON t."CategoryId" = c."Id"
-                JOIN "Users" cu ON t."CustomerId" = cu."Id"
+                {paginatedPageFromClause}
                 {whereClause}
                 ORDER BY t."LastMessageAt" DESC NULLS LAST, t."Id" DESC
                 LIMIT @Take OFFSET @Skip

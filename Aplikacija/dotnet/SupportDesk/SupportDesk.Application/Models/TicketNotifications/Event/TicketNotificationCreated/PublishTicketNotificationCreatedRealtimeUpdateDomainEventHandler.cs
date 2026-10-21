@@ -30,7 +30,7 @@ internal sealed class PublishTicketNotificationCreatedRealtimeUpdateDomainEventH
         
         if (ticketNotificationDetails is null)
         {
-            throw new ValidationException(TicketNotificationErrors.NotFound(domainEvent.TicketNotificationId));
+            return;
         }
         
         await _realtimePublisher.PublishAsync(
@@ -44,7 +44,7 @@ internal sealed class PublishTicketNotificationCreatedRealtimeUpdateDomainEventH
     private IQueryable<GetCustomerDashboardTicketNotificationDetailsQuery> GetQuery(TicketNotificationId ticketNotificationId)
     {
         var queryable =
-            from ticketNotification in _applicationDbContext.TicketNotifications.AsNoTracking()
+            from ticketNotification in _applicationDbContext.TicketNotifications.IgnoreQueryFilters().AsNoTracking()
             where ticketNotification.Id == ticketNotificationId &&
                   ticketNotification.Status == TicketNotificationStatus.Unread
 
