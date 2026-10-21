@@ -43,6 +43,8 @@ export function agentClaimTicketJourney(agentCredentials) {
                 waitBetween(1, 3);
                 TicketService.assignTicket(openTicketId);
             });
+        } else {
+            waitBetween(2, 4);
         }
     });
 
