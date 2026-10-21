@@ -6,6 +6,7 @@ using SupportDesk.Domain.Abstract.Validation;
 using SupportDesk.Domain.Models.User.Validation;
 using SupportDesk.Domain.Models.User.ValueObjects;
 using SupportDesk.Infrastructure.Persistence.Database;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace SupportDesk.Infrastructure.Auth.Permission;
 
@@ -15,49 +16,62 @@ public class DbPermissionService : IPermissionService
     private const string RevokeClaimType = "revoked_permission";
 
     private readonly SupportDeskDbContext _dbContext;
+    private readonly IFusionCache _fusionCache;
     
-    public DbPermissionService(SupportDeskDbContext dbContext)
+    public DbPermissionService(SupportDeskDbContext dbContext, IFusionCache fusionCache)
     {
         _dbContext = dbContext;
+        _fusionCache = fusionCache;
     }
+
+    private static string GetCacheKey(Guid userId) => $"user-permissions:{userId}";
     
     public async Task<List<string>> GetPermissionsForUserAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var userIdVo = new UserId(userId);
-        
-        var user = await _dbContext.DomainUsers
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userIdVo, cancellationToken);
+        var cacheKey = GetCacheKey(userId);
 
-        if (user is null)
-        {
-            return [];
-        }
-
-        var permissions = RolePermissions.GetDefaultPermissions(user.Role)
-            .Select(p => p.Value)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var userClaims = await _dbContext.UserClaims
-            .Where(c => c.UserId == userId && 
-                        (c.ClaimType == GrantClaimType || c.ClaimType == RevokeClaimType) && 
-                        c.ClaimValue != null)
-            .Select(c => new { c.ClaimType, c.ClaimValue })
-            .ToListAsync(cancellationToken);
-
-        foreach (var claim in userClaims)
-        {
-            if (claim.ClaimType == GrantClaimType)
+        return await _fusionCache.GetOrSetAsync<List<string>>(
+            cacheKey,
+            async (ctx, ct) =>
             {
-                permissions.Add(claim.ClaimValue!);
-            }
-            else if (claim.ClaimType == RevokeClaimType)
-            {
-                permissions.Remove(claim.ClaimValue!);
-            }
-        }
+                var userIdVo = new UserId(userId);
+                
+                var user = await _dbContext.DomainUsers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == userIdVo, ct);
 
-        return permissions.ToList();
+                if (user is null)
+                {
+                    return [];
+                }
+
+                var permissions = RolePermissions.GetDefaultPermissions(user.Role)
+                    .Select(p => p.Value)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var userClaims = await _dbContext.UserClaims
+                    .Where(c => c.UserId == userId && 
+                                (c.ClaimType == GrantClaimType || c.ClaimType == RevokeClaimType) && 
+                                c.ClaimValue != null)
+                    .Select(c => new { c.ClaimType, c.ClaimValue })
+                    .ToListAsync(ct);
+
+                foreach (var claim in userClaims)
+                {
+                    if (claim.ClaimType == GrantClaimType)
+                    {
+                        permissions.Add(claim.ClaimValue!);
+                    }
+                    else if (claim.ClaimType == RevokeClaimType)
+                    {
+                        permissions.Remove(claim.ClaimValue!);
+                    }
+                }
+
+                return permissions.ToList();
+            },
+            
+            new FusionCacheEntryOptions(TimeSpan.FromMinutes(2)), token: cancellationToken);
     }
 
     public async Task GrantPermissionAsync(Guid userId, Application.Abstract.Auth.Permission.Permission permission, CancellationToken cancellationToken = default)
@@ -116,6 +130,7 @@ public class DbPermissionService : IPermissionService
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await _fusionCache.RemoveAsync(GetCacheKey(userId), token: cancellationToken);
     }
 
     public async Task RevokePermissionAsync(Guid userId, Application.Abstract.Auth.Permission.Permission permission, CancellationToken cancellationToken = default)
@@ -178,5 +193,7 @@ public class DbPermissionService : IPermissionService
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        
+        await _fusionCache.RemoveAsync(GetCacheKey(userId), token: cancellationToken);
     }
 }
