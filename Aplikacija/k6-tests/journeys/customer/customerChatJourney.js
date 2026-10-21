@@ -2,10 +2,8 @@ import { group } from 'k6';
 import { TicketService } from '../../services/ticketService.js';
 import { MessageService } from '../../services/messageService.js';
 import { OrganizationService } from '../../services/organizationService.js';
-import { RECORD_SEPARATOR, withSignalRHub } from '../../utils/signalR.js';
 import { waitBetween } from '../../utils/wait.js';
 import { startSession, finishSession } from '../shared/session.js';
-import { ticketHubUrl } from '../../config/environment.js';
 import { TicketStatus, TicketPriority } from '../../utils/enums.js';
 
 /**
@@ -74,45 +72,33 @@ export function customerChatJourney(customerCredentials, explicitTicketId = null
     }
 
     if (targetTicketId) {
-        withSignalRHub(ticketHubUrl, (socket, stats) => {
-            socket.send(JSON.stringify({
-                type: 1,
-                target: 'JoinTicket',
-                arguments: [targetTicketId]
-            }) + RECORD_SEPARATOR);
+        let canSendMessage = false;
 
-            let canSendMessage = false;
+        group('Customer - View Ticket & Messages', () => {
+            const infoRes = TicketService.getTicketInfo(targetTicketId);
+            TicketService.readAllNotifications(targetTicketId);
 
-            group('Customer - View Ticket & Messages', () => {
-                const infoRes = TicketService.getTicketInfo(targetTicketId);
-                TicketService.readAllNotifications(targetTicketId);
-
-                if (infoRes && infoRes.ticket) {
-                    const t = infoRes.ticket;
-                    // Customer can send messages only if status is Open or Assigned (never Closed)
-                    if (t.status === TicketStatus.Open || t.status === TicketStatus.Assigned) {
-                        canSendMessage = true;
-                    }
+            if (infoRes && infoRes.ticket) {
+                const t = infoRes.ticket;
+                // Customer can send messages only if status is Open or Assigned (never Closed)
+                if (t.status === TicketStatus.Open || t.status === TicketStatus.Assigned) {
+                    canSendMessage = true;
                 }
-            });
-
-            if (canSendMessage) {
-                group('Customer - Send Message', () => {
-                    waitBetween(3, 6);
-
-                    MessageService.sendMessage(
-                        targetTicketId,
-                        'Thank you for looking into this. Could you please give me an update?'
-                    );
-                });
-            } else {
-                waitBetween(2, 4);
-            }
-
-            if (stats && stats.incomingCount > 0) {
-                waitBetween(2, 4);
             }
         });
+
+        if (canSendMessage) {
+            group('Customer - Send Message', () => {
+                waitBetween(3, 6);
+
+                MessageService.sendMessage(
+                    targetTicketId,
+                    'Thank you for looking into this. Could you please give me an update?'
+                );
+            });
+        } else {
+            waitBetween(2, 4);
+        }
     } else {
         waitBetween(2, 4);
     }
