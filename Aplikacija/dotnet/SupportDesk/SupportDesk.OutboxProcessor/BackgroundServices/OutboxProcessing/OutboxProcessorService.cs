@@ -42,6 +42,7 @@ public sealed class OutboxProcessorService : BackgroundService
 
                 if (messages.Count > 0)
                 {
+                    var hasErrors = false;
                     foreach (var message in messages)
                     {
                         try
@@ -51,12 +52,19 @@ public sealed class OutboxProcessorService : BackgroundService
                         }
                         catch (Exception e)
                         {
+                            hasErrors = true;
                             message.Error = e.ToString();
                             _logger.LogError(e, "Error processing outbox message with id {MessageId}", message.Id);
+                            break;
                         }
                     }
 
                     await dbContext.SaveChangesAsync(stoppingToken);
+
+                    if (hasErrors)
+                    {
+                        await Task.Delay(3000, stoppingToken);
+                    }
                 }
                 else
                 {

@@ -33,7 +33,12 @@ export function agentChatJourney(agentCredentials, explicitTicketId = null) {
             // 1. Check if this agent already has an assigned ticket in their queue
             const assignedList = TicketService.getOrganizationTickets(0, 10, '', TicketStatus.Assigned);
             if (assignedList && assignedList.tickets && assignedList.tickets.length > 0) {
-                const myTicket = assignedList.tickets.find(t => agentUserId && t.supportAgentId === agentUserId);
+                const myTicket = assignedList.tickets.find(t =>
+                    t.status === TicketStatus.Assigned &&
+                    t.supportAgentId &&
+                    agentUserId &&
+                    t.supportAgentId.toLowerCase() === agentUserId.toLowerCase()
+                );
                 if (myTicket) {
                     targetTicketId = myTicket.id;
                 }
@@ -69,19 +74,32 @@ export function agentChatJourney(agentCredentials, explicitTicketId = null) {
                 arguments: [targetTicketId]
             }) + RECORD_SEPARATOR);
 
+            let canSendMessage = false;
+
             group('Agent - View Ticket & Templates', () => {
-                TicketService.getTicketInfo(targetTicketId);
+                const infoRes = TicketService.getTicketInfo(targetTicketId);
                 OrganizationService.getOrganizationTemplateAnswers();
+
+                if (infoRes && infoRes.ticket) {
+                    const t = infoRes.ticket;
+                    const matchesAgent = t.supportAgentId && agentUserId &&
+                        t.supportAgentId.toLowerCase() === agentUserId.toLowerCase();
+                    if (t.status === TicketStatus.Assigned && matchesAgent) {
+                        canSendMessage = true;
+                    }
+                }
             });
 
-            group('Agent - Send Response Message', () => {
-                waitBetween(3, 6);
+            if (canSendMessage) {
+                group('Agent - Send Response Message', () => {
+                    waitBetween(3, 6);
 
-                MessageService.sendMessage(
-                    targetTicketId,
-                    'Hello! I am currently investigating this issue and will update you shortly.'
-                );
-            });
+                    MessageService.sendMessage(
+                        targetTicketId,
+                        'Hello! I am currently investigating this issue and will update you shortly.'
+                    );
+                });
+            }
 
             if (stats && stats.incomingCount > 0) {
                 waitBetween(2, 4);

@@ -34,72 +34,93 @@ public class RabbitMqRealtimeUpdateConsumerService : BackgroundService
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        try
+        while (!stoppingToken.IsCancellationRequested)
         {
-            var channel = await _connection.CreateChannelAsync(stoppingToken);
-
-            await channel.ExchangeDeclareAsync(
-                exchange: RabbitMqConstants.RealtimeUpdatesExchange,
-                type: ExchangeType.Fanout,
-                durable: true,
-                autoDelete: false,
-                cancellationToken: stoppingToken);
-
-            var queueDeclareResult = await channel.QueueDeclareAsync(
-                queue: string.Empty,
-                durable: false,
-                exclusive: true,
-                autoDelete: true,
-                cancellationToken: stoppingToken);
-
-            var queueName = queueDeclareResult.QueueName;
-
-            await channel.QueueBindAsync(
-                queue: queueName,
-                exchange: RabbitMqConstants.RealtimeUpdatesExchange,
-                routingKey: string.Empty,
-                cancellationToken: stoppingToken);
-
-            var consumer = new AsyncEventingBasicConsumer(channel);
-            consumer.ReceivedAsync += async (sender, eventArgs) =>
+            try
             {
+                using var channel = await _connection.CreateChannelAsync(stoppingToken);
+
+                await channel.ExchangeDeclareAsync(
+                    exchange: RabbitMqConstants.RealtimeUpdatesExchange,
+                    type: ExchangeType.Fanout,
+                    durable: true,
+                    autoDelete: false,
+                    cancellationToken: stoppingToken);
+
+                var queueDeclareResult = await channel.QueueDeclareAsync(
+                    queue: string.Empty,
+                    durable: false,
+                    exclusive: true,
+                    autoDelete: true,
+                    cancellationToken: stoppingToken);
+
+                var queueName = queueDeclareResult.QueueName;
+
+                await channel.QueueBindAsync(
+                    queue: queueName,
+                    exchange: RabbitMqConstants.RealtimeUpdatesExchange,
+                    routingKey: string.Empty,
+                    cancellationToken: stoppingToken);
+
+                var consumer = new AsyncEventingBasicConsumer(channel);
+                consumer.ReceivedAsync += async (sender, eventArgs) =>
+                {
+                    try
+                    {
+                        var body = eventArgs.Body.ToArray();
+                        var json = Encoding.UTF8.GetString(body);
+                        var message = JsonSerializer.Deserialize<RealtimeUpdateMessage>(json);
+
+                        if (message is not null)
+                        {
+                            await DispatchToHubAsync(message, stoppingToken);
+                        }
+
+                        await channel.BasicAckAsync(eventArgs.DeliveryTag, false, stoppingToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to dispatch real-time update message to SignalR hub.");
+                    }
+                };
+
+                await channel.BasicConsumeAsync(
+                    queue: queueName,
+                    autoAck: false,
+                    consumer: consumer,
+                    cancellationToken: stoppingToken);
+
+                _logger.LogInformation("Web API real-time update consumer started listening on queue {QueueName}", queueName);
+
+                var channelShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                channel.ChannelShutdownAsync += (sender, args) =>
+                {
+                    _logger.LogWarning("RabbitMQ channel shut down: {ReplyText}. Real-time consumer will reconnect...", args.ReplyText);
+                    channelShutdownTcs.TrySetResult(true);
+                    return Task.CompletedTask;
+                };
+
+                using var reg = stoppingToken.Register(() => channelShutdownTcs.TrySetCanceled());
+                await channelShutdownTcs.Task;
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Web API real-time update consumer is stopping.");
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Web API real-time update consumer. Reconnecting in 5 seconds...");
                 try
                 {
-                    var body = eventArgs.Body.ToArray();
-                    var json = Encoding.UTF8.GetString(body);
-                    var message = JsonSerializer.Deserialize<RealtimeUpdateMessage>(json);
-
-                    if (message is not null)
-                    {
-                        await DispatchToHubAsync(message, stoppingToken);
-                    }
-
-                    await channel.BasicAckAsync(eventArgs.DeliveryTag, false, stoppingToken);
+                    await Task.Delay(5000, stoppingToken);
                 }
-                catch (Exception ex)
+                catch (OperationCanceledException)
                 {
-                    _logger.LogError(ex, "Failed to dispatch real-time update message to SignalR hub.");
+                    break;
                 }
-            };
-
-            await channel.BasicConsumeAsync(
-                queue: queueName,
-                autoAck: false,
-                consumer: consumer,
-                cancellationToken: stoppingToken);
-
-            _logger.LogInformation("Web API real-time update consumer started listening on queue {QueueName}", queueName);
-
-            await Task.Delay(Timeout.Infinite, stoppingToken);
+            }
         }
-        catch (OperationCanceledException)
-        {
-            _logger.LogInformation("Web API real-time update consumer is stopping.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fatal error in Web API real-time update consumer.");
-        }       
     }
     
     private async Task DispatchToHubAsync(RealtimeUpdateMessage message, CancellationToken cancellationToken)

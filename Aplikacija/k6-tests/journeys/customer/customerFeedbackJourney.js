@@ -25,8 +25,8 @@ export function customerFeedbackJourney(customerCredentials) {
             list = TicketService.getCustomerTickets(0, 10, '', TicketStatus.Closed);
         }
         if (list && list.tickets && list.tickets.length > 0) {
-            // ONLY select a ticket that has NOT yet received feedback (Feedback == None)
-            const unrated = list.tickets.find(t => t.feedback === TicketFeedback.None);
+            // ONLY select a ticket that has NOT yet received feedback (Feedback == None) and is Closed
+            const unrated = list.tickets.find(t => t.feedback === TicketFeedback.None && t.status === TicketStatus.Closed);
             if (unrated) {
                 closedTicketId = unrated.id;
             }
