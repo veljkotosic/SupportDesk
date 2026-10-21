@@ -105,12 +105,16 @@ export function customerChatJourney(customerCredentials, explicitTicketId = null
                         'Thank you for looking into this. Could you please give me an update?'
                     );
                 });
+            } else {
+                waitBetween(2, 4);
             }
 
             if (stats && stats.incomingCount > 0) {
                 waitBetween(2, 4);
             }
         });
+    } else {
+        waitBetween(2, 4);
     }
 
     group('Customer - Session End', () => {

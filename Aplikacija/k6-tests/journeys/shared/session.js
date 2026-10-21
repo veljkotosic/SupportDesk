@@ -12,11 +12,12 @@ import { baseUrl } from '../../config/environment.js';
  */
 export function startSession(credentials, roleName) {
     const groupName = roleName ? `${roleName} - Login` : 'Login';
-    
-    return group(groupName, () => {
+    let profile = null;
+    group(groupName, () => {
         AuthService.login(credentials.email, credentials.password);
-        return AuthService.getMe();
+        profile = AuthService.getMe();
     });
+    return profile;
 }
 
 export function finishSession() {

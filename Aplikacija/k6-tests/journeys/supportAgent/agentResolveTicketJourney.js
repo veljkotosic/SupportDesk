@@ -33,16 +33,21 @@ export function agentResolveTicketJourney(agentCredentials, explicitTicketId = n
     if (!targetTicketId) {
         group('Agent - Locate Assigned Ticket', () => {
             // 1. Check if agent already owns an assigned ticket
-            const list = TicketService.getOrganizationTickets(0, 10, '', TicketStatus.Assigned);
+            const assignedSkip = ((vuId * 17 + iter * 7) % 10) * 10;
+            let list = TicketService.getOrganizationTickets(assignedSkip, 10, '', TicketStatus.Assigned);
+            if (!list || !list.tickets || list.tickets.length === 0) {
+                list = TicketService.getOrganizationTickets(0, 10, '', TicketStatus.Assigned);
+            }
             if (list && list.tickets && list.tickets.length > 0) {
-                const myTicket = list.tickets.find(t =>
+                const myTickets = list.tickets.filter(t =>
                     t.status === TicketStatus.Assigned &&
                     t.supportAgentId &&
                     agentUserId &&
                     t.supportAgentId.toLowerCase() === agentUserId.toLowerCase()
                 );
-                if (myTicket) {
-                    targetTicketId = myTicket.id;
+                if (myTickets.length > 0) {
+                    const pickIdx = (vuId + iter) % myTickets.length;
+                    targetTicketId = myTickets[pickIdx].id;
                 }
             }
 
@@ -108,12 +113,16 @@ export function agentResolveTicketJourney(agentCredentials, explicitTicketId = n
                     waitBetween(1, 2);
                     TicketService.closeTicket(targetTicketId);
                 });
+            } else {
+                waitBetween(2, 4);
             }
 
             if (stats.incomingCount > 0) {
                 waitBetween(1, 2);
             }
         });
+    } else {
+        waitBetween(2, 5);
     }
 
     group('Agent - Session End', () => {

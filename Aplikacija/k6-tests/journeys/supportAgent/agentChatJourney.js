@@ -31,16 +31,21 @@ export function agentChatJourney(agentCredentials, explicitTicketId = null) {
     if (!targetTicketId) {
         group('Agent - Locate Active Ticket', () => {
             // 1. Check if this agent already has an assigned ticket in their queue
-            const assignedList = TicketService.getOrganizationTickets(0, 10, '', TicketStatus.Assigned);
+            const assignedSkip = ((vuId * 17 + iter * 7) % 10) * 10;
+            let assignedList = TicketService.getOrganizationTickets(assignedSkip, 10, '', TicketStatus.Assigned);
+            if (!assignedList || !assignedList.tickets || assignedList.tickets.length === 0) {
+                assignedList = TicketService.getOrganizationTickets(0, 10, '', TicketStatus.Assigned);
+            }
             if (assignedList && assignedList.tickets && assignedList.tickets.length > 0) {
-                const myTicket = assignedList.tickets.find(t =>
+                const myTickets = assignedList.tickets.filter(t =>
                     t.status === TicketStatus.Assigned &&
                     t.supportAgentId &&
                     agentUserId &&
                     t.supportAgentId.toLowerCase() === agentUserId.toLowerCase()
                 );
-                if (myTicket) {
-                    targetTicketId = myTicket.id;
+                if (myTickets.length > 0) {
+                    const pickIdx = (vuId + iter) % myTickets.length;
+                    targetTicketId = myTickets[pickIdx].id;
                 }
             }
 
@@ -99,12 +104,16 @@ export function agentChatJourney(agentCredentials, explicitTicketId = null) {
                         'Hello! I am currently investigating this issue and will update you shortly.'
                     );
                 });
+            } else {
+                waitBetween(2, 4);
             }
 
             if (stats && stats.incomingCount > 0) {
                 waitBetween(2, 4);
             }
         });
+    } else {
+        waitBetween(2, 5);
     }
 
     group('Agent - Session End', () => {
