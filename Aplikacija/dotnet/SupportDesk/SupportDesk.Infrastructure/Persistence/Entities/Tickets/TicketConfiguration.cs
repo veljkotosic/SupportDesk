@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SupportDesk.Domain.Models.Category;
 using SupportDesk.Domain.Models.Category.ValueObjects;
 using SupportDesk.Domain.Models.Message;
@@ -148,10 +149,18 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             _context.OrganizationId == null || 
             ticket.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
 
-        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.Status, ticket.LastMessageAt });
+        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.Status, ticket.LastMessageAt })
+            .IsDescending(false, false, true)
+            .HasNullSortOrder(NullSortOrder.NullsLast);
         builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.Status, ticket.Priority });
         builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.Status });
-        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.LastMessageAt });
+        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.Status, ticket.ClosedAt });
+        builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.LastMessageAt, ticket.Id })
+            .IsDescending(false, true, true)
+            .HasNullSortOrder(NullSortOrder.NullsLast);
+        builder.HasIndex(ticket => new { ticket.CustomerId, ticket.LastMessageAt, ticket.Id })
+            .IsDescending(false, true, true)
+            .HasNullSortOrder(NullSortOrder.NullsLast);
         builder.HasIndex(ticket => new { ticket.OrganizationId, ticket.OpenedAt });
         builder.HasIndex(ticket => new { ticket.CustomerId, ticket.Status, ticket.LastMessageAt });
         builder.HasIndex(ticket => new { ticket.CustomerId, ticket.LastMessageAt });

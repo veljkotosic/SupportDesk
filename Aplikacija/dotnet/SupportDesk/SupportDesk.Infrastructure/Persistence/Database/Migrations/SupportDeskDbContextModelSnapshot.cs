@@ -419,17 +419,24 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasIndex("CustomerId", "LastMessageAt");
 
-                    b.HasIndex("OrganizationId", "LastMessageAt");
-
                     b.HasIndex("OrganizationId", "OpenedAt");
 
                     b.HasIndex("OrganizationId", "Status");
 
                     b.HasIndex("SupportAgentId", "Status");
 
+                    b.HasIndex("CustomerId", "LastMessageAt", "Id")
+                        .IsDescending(false, true, true);
+
                     b.HasIndex("CustomerId", "Status", "LastMessageAt");
 
-                    b.HasIndex("OrganizationId", "Status", "LastMessageAt");
+                    b.HasIndex("OrganizationId", "LastMessageAt", "Id")
+                        .IsDescending(false, true, true);
+
+                    b.HasIndex("OrganizationId", "Status", "ClosedAt");
+
+                    b.HasIndex("OrganizationId", "Status", "LastMessageAt")
+                        .IsDescending(false, false, true);
 
                     b.HasIndex("OrganizationId", "Status", "Priority");
 
@@ -598,6 +605,8 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OutboxMessageId", "HandlerType");
+
                     b.ToTable("InboxMessages", (string)null);
                 });
 
@@ -633,6 +642,9 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OccurredOnUtc")
+                        .HasFilter("\"ProcessedOnUtc\" IS NULL");
+
                     b.ToTable("OutboxMessages", (string)null);
                 });
 
@@ -655,7 +667,12 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RefreshTokens");
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

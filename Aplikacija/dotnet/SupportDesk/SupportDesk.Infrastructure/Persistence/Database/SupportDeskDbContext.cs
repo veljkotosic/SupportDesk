@@ -27,6 +27,7 @@ using SupportDesk.Infrastructure.Persistence.Entities.TemplateAnswers;
 using SupportDesk.Infrastructure.Persistence.Entities.TicketNotifications;
 using SupportDesk.Infrastructure.Persistence.Entities.Tickets;
 using SupportDesk.Infrastructure.Persistence.Entities.Users;
+using SupportDesk.Infrastructure.Persistence.RefreshToken;
 
 namespace SupportDesk.Infrastructure.Persistence.Database;
 
@@ -84,6 +85,7 @@ public sealed class SupportDeskDbContext
         
         builder.ApplyConfiguration(new OutboxMessageConfiguration());
         builder.ApplyConfiguration(new InboxMessageConfiguration());
-
+        
+        builder.ApplyConfiguration(new RefreshTokenConfiguration());
     }
 }
