@@ -31,7 +31,7 @@ The test suite requires pre-existing accounts to authenticate.
 ### Default Credentials
 - **Password**: `Password123!` (all users)
 - **Customers**: `customer1@test.com` to `customer10000@test.com`
-- **Organization Admins**: `admin1@org1.com` to `admin275@org275.com`
+- **Organization Admins**: `admin1@org1.com` to `admin273@org273.com`
 - **Support Agents**: Loaded from `data/agents.json` (fallback list in `data/users.js`)
 
 ### Seeding with TestDataGenerator

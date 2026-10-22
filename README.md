@@ -78,6 +78,12 @@ For staging and production deployment instructions using Docker Swarm and stack 
 
 ---
 
+### Performance Testing
+
+For load, stress, and performance testing instructions using k6 and calibrated workload profiles, refer to the [Performance Testing Guide](Aplikacija/k6-tests/README.md).
+
+---
+
 ### Planned Improvements
 
 The next architectural iteration will decompose the system into a true modular monolith with strictly isolated module boundaries, independent domain models, and encapsulated databases/schemas, moving beyond this initial single-module implementation.
