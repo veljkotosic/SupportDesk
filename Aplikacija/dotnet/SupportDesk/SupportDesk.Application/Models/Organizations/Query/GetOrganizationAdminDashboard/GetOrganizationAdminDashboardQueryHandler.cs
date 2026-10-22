@@ -73,6 +73,13 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
             ORDER BY u."UserName";
             
             -- 4. Six most recent tickets
+            WITH recent_tickets AS (
+                SELECT t."Id"
+                FROM "Tickets" t
+                WHERE t."OrganizationId" = @OrganizationId
+                ORDER BY t."LastMessageAt" DESC NULLS LAST
+                LIMIT 6
+            )
             SELECT
                 t."Id" AS "Id",
                 o."Id" AS "OrganizationId",
@@ -91,7 +98,9 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
                 t."ClosedAt" AS "ClosedAt",
                 t."Feedback" AS "Feedback",
                 t."LastMessageAt" AS "LastMessageAt"
-            FROM "Tickets" t
+            FROM recent_tickets rt
+            JOIN "Tickets" t
+                ON t."Id" = rt."Id"
             JOIN "Organizations" o
                 ON o."Id" = t."OrganizationId"
             JOIN "Categories" c
@@ -100,9 +109,7 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
                 ON customer."Id" = t."CustomerId"
             LEFT JOIN "Users" agent
                 ON agent."Id" = t."SupportAgentId"
-            WHERE t."OrganizationId" = @OrganizationId
-            ORDER BY t."LastMessageAt" DESC NULLS LAST
-            LIMIT 6;
+            ORDER BY t."LastMessageAt" DESC NULLS LAST;
             
             -- 5. Unread notifications for the six most recent tickets
             WITH recent_tickets AS (

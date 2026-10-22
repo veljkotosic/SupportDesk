@@ -30,6 +30,7 @@
       <PackageReference Include="OpenTelemetry.Resources.Container" Version="1.18.0-beta.1" />
       <PackageReference Include="OpenTelemetry.Resources.Host" Version="1.18.0-beta.1" />
       <PackageReference Include="RabbitMQ.Client" Version="7.2.2" />
+      <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.9.0" />
     </ItemGroup>
 
     <ItemGroup>

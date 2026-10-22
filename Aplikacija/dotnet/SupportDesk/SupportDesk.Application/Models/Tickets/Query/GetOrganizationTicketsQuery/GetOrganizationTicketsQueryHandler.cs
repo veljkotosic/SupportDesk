@@ -76,6 +76,65 @@ internal sealed class GetOrganizationTicketsQueryHandler
             TicketSortOption.Latest or _ => "ORDER BY t.\"LastMessageAt\" DESC NULLS LAST, t.\"Id\" DESC"
         };
 
+        var hasSearch = !string.IsNullOrWhiteSpace(query.SearchTerm);
+        var countFromClause = hasSearch
+            ? "FROM \"Tickets\" t JOIN \"Categories\" c ON t.\"CategoryId\" = c.\"Id\" JOIN \"Users\" cu ON t.\"CustomerId\" = cu.\"Id\""
+            : "FROM \"Tickets\" t";
+
+        var dataQuery = hasSearch
+            ? $"""
+                SELECT 
+                    t."Id" AS "Id",
+                    t."CategoryId" AS "CategoryId",
+                    c."Name" AS "CategoryName",
+                    t."CustomerId" AS "CustomerId",
+                    cu."UserName" AS "CustomerUserName",
+                    cu."Email" AS "CustomerEmail",
+                    t."SupportAgentId" AS "SupportAgentId",
+                    sa."UserName" AS "SupportAgentUserName",
+                    t."Status" AS "Status",
+                    t."Priority" AS "Priority",
+                    t."Feedback" AS "Feedback",
+                    t."Subject" AS "Subject",
+                    t."LastMessageAt" AS "LastMessageAt"
+                FROM "Tickets" t
+                JOIN "Categories" c ON t."CategoryId" = c."Id"
+                JOIN "Users" cu ON t."CustomerId" = cu."Id"
+                LEFT JOIN "Users" sa ON t."SupportAgentId" = sa."Id"
+                {whereClause}
+                {orderByClause}
+                LIMIT @Take OFFSET @Skip;
+                """
+            : $"""
+                WITH paged AS (
+                    SELECT t."Id"
+                    FROM "Tickets" t
+                    {whereClause}
+                    {orderByClause}
+                    LIMIT @Take OFFSET @Skip
+                )
+                SELECT 
+                    t."Id" AS "Id",
+                    t."CategoryId" AS "CategoryId",
+                    c."Name" AS "CategoryName",
+                    t."CustomerId" AS "CustomerId",
+                    cu."UserName" AS "CustomerUserName",
+                    cu."Email" AS "CustomerEmail",
+                    t."SupportAgentId" AS "SupportAgentId",
+                    sa."UserName" AS "SupportAgentUserName",
+                    t."Status" AS "Status",
+                    t."Priority" AS "Priority",
+                    t."Feedback" AS "Feedback",
+                    t."Subject" AS "Subject",
+                    t."LastMessageAt" AS "LastMessageAt"
+                FROM paged p
+                JOIN "Tickets" t ON t."Id" = p."Id"
+                JOIN "Categories" c ON t."CategoryId" = c."Id"
+                JOIN "Users" cu ON t."CustomerId" = cu."Id"
+                LEFT JOIN "Users" sa ON t."SupportAgentId" = sa."Id"
+                {orderByClause};
+                """;
+
         var sql = $"""
             -- 1. Status counts
             SELECT 
@@ -88,33 +147,11 @@ internal sealed class GetOrganizationTicketsQueryHandler
 
             -- 2. Total filtered count
             SELECT COUNT(*)::int
-            FROM "Tickets" t
-            JOIN "Categories" c ON t."CategoryId" = c."Id"
-            JOIN "Users" cu ON t."CustomerId" = cu."Id"
+            {countFromClause}
             {whereClause};
 
             -- 3. Paginated tickets
-            SELECT 
-                t."Id" AS "Id",
-                t."CategoryId" AS "CategoryId",
-                c."Name" AS "CategoryName",
-                t."CustomerId" AS "CustomerId",
-                cu."UserName" AS "CustomerUserName",
-                cu."Email" AS "CustomerEmail",
-                t."SupportAgentId" AS "SupportAgentId",
-                sa."UserName" AS "SupportAgentUserName",
-                t."Status" AS "Status",
-                t."Priority" AS "Priority",
-                t."Feedback" AS "Feedback",
-                t."Subject" AS "Subject",
-                t."LastMessageAt" AS "LastMessageAt"
-            FROM "Tickets" t
-            JOIN "Categories" c ON t."CategoryId" = c."Id"
-            JOIN "Users" cu ON t."CustomerId" = cu."Id"
-            LEFT JOIN "Users" sa ON t."SupportAgentId" = sa."Id"
-            {whereClause}
-            {orderByClause}
-            LIMIT @Take OFFSET @Skip;
+            {dataQuery}
             """;
 
         await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);

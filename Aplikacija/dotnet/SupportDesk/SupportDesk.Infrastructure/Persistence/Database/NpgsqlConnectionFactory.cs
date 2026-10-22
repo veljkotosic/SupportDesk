@@ -7,10 +7,18 @@ namespace SupportDesk.Infrastructure.Persistence.Database;
 public sealed class NpgsqlConnectionFactory : IDbConnectionFactory, IAsyncDisposable, IDisposable
 {
     private readonly NpgsqlDataSource _dataSource;
+    private readonly bool _ownsDataSource;
+
+    public NpgsqlConnectionFactory(NpgsqlDataSource dataSource)
+    {
+        _dataSource = dataSource;
+        _ownsDataSource = false;
+    }
 
     public NpgsqlConnectionFactory(string connectionString)
     {
         _dataSource = NpgsqlDataSource.Create(connectionString);
+        _ownsDataSource = true;
     }
 
     public DbConnection CreateConnection()
@@ -25,11 +33,17 @@ public sealed class NpgsqlConnectionFactory : IDbConnectionFactory, IAsyncDispos
 
     public void Dispose()
     {
-        _dataSource.Dispose();
+        if (_ownsDataSource)
+        {
+            _dataSource.Dispose();
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        await _dataSource.DisposeAsync();
+        if (_ownsDataSource)
+        {
+            await _dataSource.DisposeAsync();
+        }
     }
 }

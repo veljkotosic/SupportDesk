@@ -2,11 +2,9 @@ import { group } from 'k6';
 import { TicketService } from '../../services/ticketService.js';
 import { MessageService } from '../../services/messageService.js';
 import { OrganizationService } from '../../services/organizationService.js';
-import { RECORD_SEPARATOR, withSignalRHub } from '../../utils/signalR.js';
 import { waitBetween } from '../../utils/wait.js';
 import { startSession, finishSession } from '../shared/session.js';
 import { TicketStatus } from '../../utils/enums.js';
-import { ticketHubUrl } from '../../config/environment.js';
 
 /**
  * Support Agent Chat Journey (mapped from SupportAgentTicketDetailView.vue):
@@ -72,46 +70,34 @@ export function agentChatJourney(agentCredentials, explicitTicketId = null) {
     }
 
     if (targetTicketId) {
-        withSignalRHub(ticketHubUrl, (socket, stats) => {
-            socket.send(JSON.stringify({
-                type: 1,
-                target: 'JoinTicket',
-                arguments: [targetTicketId]
-            }) + RECORD_SEPARATOR);
+        let canSendMessage = false;
 
-            let canSendMessage = false;
+        group('Agent - View Ticket & Templates', () => {
+            const infoRes = TicketService.getTicketInfo(targetTicketId);
+            OrganizationService.getOrganizationTemplateAnswers();
 
-            group('Agent - View Ticket & Templates', () => {
-                const infoRes = TicketService.getTicketInfo(targetTicketId);
-                OrganizationService.getOrganizationTemplateAnswers();
-
-                if (infoRes && infoRes.ticket) {
-                    const t = infoRes.ticket;
-                    const matchesAgent = t.supportAgentId && agentUserId &&
-                        t.supportAgentId.toLowerCase() === agentUserId.toLowerCase();
-                    if (t.status === TicketStatus.Assigned && matchesAgent) {
-                        canSendMessage = true;
-                    }
+            if (infoRes && infoRes.ticket) {
+                const t = infoRes.ticket;
+                const matchesAgent = t.supportAgentId && agentUserId &&
+                    t.supportAgentId.toLowerCase() === agentUserId.toLowerCase();
+                if (t.status === TicketStatus.Assigned && matchesAgent) {
+                    canSendMessage = true;
                 }
-            });
-
-            if (canSendMessage) {
-                group('Agent - Send Response Message', () => {
-                    waitBetween(3, 6);
-
-                    MessageService.sendMessage(
-                        targetTicketId,
-                        'Hello! I am currently investigating this issue and will update you shortly.'
-                    );
-                });
-            } else {
-                waitBetween(2, 4);
-            }
-
-            if (stats && stats.incomingCount > 0) {
-                waitBetween(2, 4);
             }
         });
+
+        if (canSendMessage) {
+            group('Agent - Send Response Message', () => {
+                waitBetween(3, 6);
+
+                MessageService.sendMessage(
+                    targetTicketId,
+                    'Hello! I am currently investigating this issue and will update you shortly.'
+                );
+            });
+        } else {
+            waitBetween(2, 4);
+        }
     } else {
         waitBetween(2, 5);
     }

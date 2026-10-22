@@ -21,6 +21,7 @@ public static class SupportDeskRegistrationExtensions
             services.AddSupportDeskQueryDispatcher();
             
             services.AddSupportDeskPersistence(configuration);
+            services.AddSupportDeskCache();
             
             services.AddRabbitMqConnection();
 
@@ -39,6 +40,7 @@ public static class SupportDeskRegistrationExtensions
             services.AddSupportDeskDomainEventHandlers(typeof(IDomainEventHandler<>).Assembly);
 
             services.AddSupportDeskPersistence(configuration);
+            services.AddSupportDeskCache();
 
             services.AddWorkerExecutionContext();
 
@@ -54,6 +56,7 @@ public static class SupportDeskRegistrationExtensions
             services.AddSingleton(TimeProvider.System);
 
             services.AddSupportDeskPersistence(configuration);
+            services.AddSupportDeskCache();
 
             services.AddWorkerExecutionContext();
             

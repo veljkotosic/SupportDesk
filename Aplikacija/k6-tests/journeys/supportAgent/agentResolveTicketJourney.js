@@ -3,11 +3,9 @@ import { TicketService } from '../../services/ticketService.js';
 import { MessageService } from '../../services/messageService.js';
 import { NoteService } from '../../services/noteService.js';
 import { OrganizationService } from '../../services/organizationService.js';
-import { RECORD_SEPARATOR, withSignalRHub } from '../../utils/signalR.js';
 import { waitBetween } from '../../utils/wait.js';
 import { startSession, finishSession } from '../shared/session.js';
 import { TicketStatus } from '../../utils/enums.js';
-import { ticketHubUrl } from '../../config/environment.js';
 
 /**
  * Support Agent Resolve Ticket Journey (mapped from OrganizationTicketDetail.vue):
@@ -74,53 +72,41 @@ export function agentResolveTicketJourney(agentCredentials, explicitTicketId = n
     }
 
     if (targetTicketId) {
-        withSignalRHub(ticketHubUrl, (socket, stats) => {
-            socket.send(JSON.stringify({
-                type: 1,
-                target: 'JoinTicket',
-                arguments: [targetTicketId]
-            }) + RECORD_SEPARATOR);
+        let canModifyAndClose = false;
 
-            let canModifyAndClose = false;
+        group('Agent - Inspect Ticket & Templates', () => {
+            const infoRes = TicketService.getTicketInfo(targetTicketId);
+            OrganizationService.getOrganizationTemplateAnswers();
 
-            group('Agent - Inspect Ticket & Templates', () => {
-                const infoRes = TicketService.getTicketInfo(targetTicketId);
-                OrganizationService.getOrganizationTemplateAnswers();
-
-                if (infoRes && infoRes.ticket) {
-                    const t = infoRes.ticket;
-                    const matchesAgent = t.supportAgentId && agentUserId &&
-                        t.supportAgentId.toLowerCase() === agentUserId.toLowerCase();
-                    if (t.status === TicketStatus.Assigned && matchesAgent) {
-                        canModifyAndClose = true;
-                    }
+            if (infoRes && infoRes.ticket) {
+                const t = infoRes.ticket;
+                const matchesAgent = t.supportAgentId && agentUserId &&
+                    t.supportAgentId.toLowerCase() === agentUserId.toLowerCase();
+                if (t.status === TicketStatus.Assigned && matchesAgent) {
+                    canModifyAndClose = true;
                 }
-            });
-
-            if (canModifyAndClose) {
-                group('Agent - Add Internal Note', () => {
-                    waitBetween(2, 4);
-                    NoteService.addNote(targetTicketId, 'Verified diagnostic logs. Root cause identified.');
-                });
-
-                group('Agent - Reply & Resolve Ticket', () => {
-                    waitBetween(3, 5);
-                    MessageService.sendMessage(
-                        targetTicketId,
-                        'We have resolved your issue. Please let us know if you need anything else.'
-                    );
-
-                    waitBetween(1, 2);
-                    TicketService.closeTicket(targetTicketId);
-                });
-            } else {
-                waitBetween(2, 4);
-            }
-
-            if (stats.incomingCount > 0) {
-                waitBetween(1, 2);
             }
         });
+
+        if (canModifyAndClose) {
+            group('Agent - Add Internal Note', () => {
+                waitBetween(2, 4);
+                NoteService.addNote(targetTicketId, 'Verified diagnostic logs. Root cause identified.');
+            });
+
+            group('Agent - Reply & Resolve Ticket', () => {
+                waitBetween(3, 5);
+                MessageService.sendMessage(
+                    targetTicketId,
+                    'We have resolved your issue. Please let us know if you need anything else.'
+                );
+
+                waitBetween(1, 2);
+                TicketService.closeTicket(targetTicketId);
+            });
+        } else {
+            waitBetween(2, 4);
+        }
     } else {
         waitBetween(2, 5);
     }

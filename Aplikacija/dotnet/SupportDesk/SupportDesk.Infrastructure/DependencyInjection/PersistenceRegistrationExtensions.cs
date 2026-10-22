@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using SupportDesk.Application.Abstract.Auth;
 using SupportDesk.Application.Abstract.Database;
 using SupportDesk.Domain.Abstract;
@@ -16,15 +17,20 @@ public static class PersistenceRegistrationExtensions
     {
         public IServiceCollection AddSupportDeskPersistence(IConfiguration configuration)
         {
-            services.AddDbContext<SupportDeskDbContext>(options =>
+            var connectionString = configuration.GetEnvConnectionString();
+            var dataSource = NpgsqlDataSource.Create(connectionString);
+
+            services.AddSingleton(dataSource);
+
+            services.AddDbContext<SupportDeskDbContext>((sp, options) =>
             {
-                options.UseNpgsql(configuration.GetEnvConnectionString(), npgsql =>
+                options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>(), npgsql =>
                 {
                     npgsql.MigrationsAssembly(typeof(SupportDeskDbContext).Assembly.FullName);
                 });
             });
 
-            services.AddSingleton<IDbConnectionFactory>(_ => new NpgsqlConnectionFactory(configuration.GetEnvConnectionString()));
+            services.AddSingleton<IDbConnectionFactory>(sp => new NpgsqlConnectionFactory(sp.GetRequiredService<NpgsqlDataSource>()));
             
             services.AddScoped<IApplicationDbContext, SupportDeskDbContext>();
 

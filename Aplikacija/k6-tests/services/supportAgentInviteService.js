@@ -7,7 +7,10 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' };
 export class SupportAgentInviteService {
     static createSupportAgentInvite(email) {
         const payload = JSON.stringify({ email });
-        const res = http.post(`${apiUrl}/SupportAgentInvite`, payload, { headers: JSON_HEADERS });
+        const res = http.post(`${apiUrl}/SupportAgentInvite`, payload, {
+            headers: JSON_HEADERS,
+            tags: { name: 'POST /SupportAgentInvite' },
+        });
         
         check(res, {
             'createSupportAgentInvite status is 201': (r) => r.status === 201,
@@ -17,7 +20,9 @@ export class SupportAgentInviteService {
     }
 
     static revokeSupportAgentInvite(supportAgentInviteId) {
-        const res = http.del(`${apiUrl}/SupportAgentInvite/${supportAgentInviteId}`);
+        const res = http.del(http.url`${apiUrl}/SupportAgentInvite/${supportAgentInviteId}`, null, {
+            tags: { name: 'DELETE /SupportAgentInvite/:id' },
+        });
         
         check(res, {
             'revokeSupportAgentInvite status is 204': (r) => r.status === 204,

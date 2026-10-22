@@ -32,5 +32,8 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
         
         builder.Property(outboxMessage => outboxMessage.Error)
             .IsRequired(false);
+
+        builder.HasIndex(outboxMessage => outboxMessage.OccurredOnUtc)
+            .HasFilter("\"ProcessedOnUtc\" IS NULL");
     }
 }

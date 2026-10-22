@@ -35,5 +35,7 @@ public sealed class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMe
         
         builder.Property(inboxMessage => inboxMessage.Error)
             .IsRequired(false);
+
+        builder.HasIndex(inboxMessage => new { inboxMessage.OutboxMessageId, inboxMessage.HandlerType });
     }
 }

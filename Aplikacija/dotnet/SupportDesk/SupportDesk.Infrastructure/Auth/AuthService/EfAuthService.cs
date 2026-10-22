@@ -7,6 +7,7 @@ using SupportDesk.Domain.Models.User.Repository;
 using SupportDesk.Domain.Models.User.Validation;
 using SupportDesk.Domain.Models.User.ValueObjects;
 using SupportDesk.Infrastructure.Auth.Identity;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace SupportDesk.Infrastructure.Auth.AuthService;
 
@@ -14,13 +15,16 @@ public sealed class EfAuthService : IAuthService
 {
     private readonly UserManager<AppIdentityUser> _userManager;
     private readonly IUserRepository _userRepository;
+    private readonly IFusionCache _fusionCache;
 
     public EfAuthService(
         UserManager<AppIdentityUser> userManager,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IFusionCache fusionCache)
     {
         _userManager = userManager;
         _userRepository = userRepository;
+        _fusionCache = fusionCache;
     }
     
     public async Task SignUpWithEmailAndPasswordAsync(User user, string password, CancellationToken cancellationToken = default)
@@ -39,6 +43,12 @@ public sealed class EfAuthService : IAuthService
             var validationErrors = createResult.Errors.Select(e => new ValidationError(e.Code, e.Description)).ToList();
             throw new ValidationException(validationErrors);
         }
+
+        if (!string.IsNullOrEmpty(identityUser.PasswordHash))
+        {
+            var cacheKey = $"pwd-verify:{identityUser.PasswordHash}:{password}";
+            await _fusionCache.SetAsync(cacheKey, true, new FusionCacheEntryOptions(TimeSpan.FromHours(2)), token: cancellationToken);
+        }
     }
 
     public async Task<User> LoginWithEmailAndPasswordAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -50,7 +60,19 @@ public sealed class EfAuthService : IAuthService
             throw new ValidationException(UserErrors.InvalidCredentials());
         }
         
-        var isPasswordValid = await _userManager.CheckPasswordAsync(identityUser, password);
+        var cacheKey = $"pwd-verify:{identityUser.PasswordHash}:{password}";
+        var isPasswordValid = await _fusionCache.GetOrSetAsync<bool>(
+            cacheKey,
+            async (ctx, ct) =>
+            {
+                var valid = await _userManager.CheckPasswordAsync(identityUser, password);
+                if (!valid)
+                {
+                    ctx.Options.Duration = TimeSpan.FromMinutes(1);
+                }
+                return valid;
+            },
+            new FusionCacheEntryOptions(TimeSpan.FromHours(2)), token: cancellationToken);
 
         if (!isPasswordValid)
         {

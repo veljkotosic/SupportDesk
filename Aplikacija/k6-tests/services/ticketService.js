@@ -8,7 +8,10 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' };
 export class TicketService {
     static openTicket(organizationId, categoryId, priority, subject, initialMessage) {
         const payload = JSON.stringify({ organizationId, categoryId, priority, subject, initialMessage });
-        const res = http.post(`${apiUrl}/Ticket`, payload, { headers: JSON_HEADERS });
+        const res = http.post(`${apiUrl}/Ticket`, payload, {
+            headers: JSON_HEADERS,
+            tags: { name: 'POST /Ticket' },
+        });
         
         check(res, {
             'openTicket status is 201': (r) => r.status === 201,
@@ -18,7 +21,10 @@ export class TicketService {
     }
 
     static assignTicket(ticketId) {
-        const res = http.patch(`${apiUrl}/Ticket/${ticketId}/assign`, null, { headers: JSON_HEADERS });
+        const res = http.patch(http.url`${apiUrl}/Ticket/${ticketId}/assign`, null, {
+            headers: JSON_HEADERS,
+            tags: { name: 'PATCH /Ticket/:id/assign' },
+        });
         
         check(res, {
             'assignTicket status is 204': (r) => r.status === 204,
@@ -28,7 +34,10 @@ export class TicketService {
     }
 
     static closeTicket(ticketId) {
-        const res = http.patch(`${apiUrl}/Ticket/${ticketId}/close`, null, { headers: JSON_HEADERS });
+        const res = http.patch(http.url`${apiUrl}/Ticket/${ticketId}/close`, null, {
+            headers: JSON_HEADERS,
+            tags: { name: 'PATCH /Ticket/:id/close' },
+        });
         
         check(res, {
             'closeTicket status is 204': (r) => r.status === 204,
@@ -39,7 +48,10 @@ export class TicketService {
 
     static giveFeedback(ticketId, feedback) {
         const payload = JSON.stringify({ feedback });
-        const res = http.patch(`${apiUrl}/Ticket/${ticketId}/giveFeedback`, payload, { headers: JSON_HEADERS });
+        const res = http.patch(http.url`${apiUrl}/Ticket/${ticketId}/giveFeedback`, payload, {
+            headers: JSON_HEADERS,
+            tags: { name: 'PATCH /Ticket/:id/giveFeedback' },
+        });
         
         check(res, {
             'giveFeedback status is 204': (r) => r.status === 204,
@@ -49,7 +61,10 @@ export class TicketService {
     }
 
     static readAllNotifications(ticketId) {
-        const res = http.patch(`${apiUrl}/Ticket/${ticketId}/readAllNotifications`, null, { headers: JSON_HEADERS });
+        const res = http.patch(http.url`${apiUrl}/Ticket/${ticketId}/readAllNotifications`, null, {
+            headers: JSON_HEADERS,
+            tags: { name: 'PATCH /Ticket/:id/readAllNotifications' },
+        });
         
         check(res, {
             'readAllNotifications status is 204': (r) => r.status === 204,
@@ -63,7 +78,9 @@ export class TicketService {
         if (searchTerm) query += `&searchTerm=${encodeURIComponent(searchTerm)}`;
         if (status !== null) query += `&status=${status}`;
         
-        const res = http.get(`${apiUrl}/Ticket/customer?${query}`);
+        const res = http.get(http.url`${apiUrl}/Ticket/customer?${query}`, {
+            tags: { name: 'GET /Ticket/customer' },
+        });
         
         check(res, {
             'getCustomerTickets status is 200': (r) => r.status === 200,
@@ -78,7 +95,9 @@ export class TicketService {
         if (status !== null) query += `&status=${status}`;
         if (priority !== null) query += `&priority=${priority}`;
         
-        const res = http.get(`${apiUrl}/Ticket/organization?${query}`);
+        const res = http.get(http.url`${apiUrl}/Ticket/organization?${query}`, {
+            tags: { name: 'GET /Ticket/organization' },
+        });
         
         check(res, {
             'getOrganizationTickets status is 200': (r) => r.status === 200,
@@ -88,7 +107,9 @@ export class TicketService {
     }
 
     static getTicket(ticketId) {
-        const res = http.get(`${apiUrl}/Ticket/${ticketId}`);
+        const res = http.get(http.url`${apiUrl}/Ticket/${ticketId}`, {
+            tags: { name: 'GET /Ticket/:id' },
+        });
         
         check(res, {
             'getTicket status is 200': (r) => r.status === 200,
@@ -98,7 +119,9 @@ export class TicketService {
     }
 
     static getTicketInfo(ticketId) {
-        const res = http.get(`${apiUrl}/Ticket/${ticketId}/info`);
+        const res = http.get(http.url`${apiUrl}/Ticket/${ticketId}/info`, {
+            tags: { name: 'GET /Ticket/:id/info' },
+        });
         
         check(res, {
             'getTicketInfo status is 200': (r) => r.status === 200,
