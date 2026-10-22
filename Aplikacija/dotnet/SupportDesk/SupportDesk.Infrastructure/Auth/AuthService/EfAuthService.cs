@@ -43,6 +43,12 @@ public sealed class EfAuthService : IAuthService
             var validationErrors = createResult.Errors.Select(e => new ValidationError(e.Code, e.Description)).ToList();
             throw new ValidationException(validationErrors);
         }
+
+        if (!string.IsNullOrEmpty(identityUser.PasswordHash))
+        {
+            var cacheKey = $"pwd-verify:{identityUser.PasswordHash}:{password}";
+            await _fusionCache.SetAsync(cacheKey, true, new FusionCacheEntryOptions(TimeSpan.FromHours(2)), token: cancellationToken);
+        }
     }
 
     public async Task<User> LoginWithEmailAndPasswordAsync(string email, string password, CancellationToken cancellationToken = default)
