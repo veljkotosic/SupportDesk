@@ -51,7 +51,7 @@ export function getCustomerCredentials(index = 1) {
 }
 
 export function getOrgAdminCredentials(index = 1) {
-    const idx = Math.max(1, ((index - 1) % 275) + 1);
+    const idx = Math.max(1, ((index - 1) % 273) + 1);
     return {
         email: `admin${idx}@org${idx}.com`,
         password: DEFAULT_PASSWORD,

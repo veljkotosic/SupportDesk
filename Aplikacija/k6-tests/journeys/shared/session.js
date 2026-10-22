@@ -14,8 +14,10 @@ export function startSession(credentials, roleName) {
     const groupName = roleName ? `${roleName} - Login` : 'Login';
     let profile = null;
     group(groupName, () => {
-        AuthService.login(credentials.email, credentials.password);
-        profile = AuthService.getMe();
+        const res = AuthService.login(credentials.email, credentials.password);
+        if (res && res.status === 204) {
+            profile = AuthService.getMe();
+        }
     });
     return profile;
 }
