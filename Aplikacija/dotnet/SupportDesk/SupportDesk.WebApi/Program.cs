@@ -12,6 +12,8 @@ Env.TraversePath().NoClobber().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+ThreadPool.SetMinThreads(300, 300);
+
 builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new ApiVersion(1, 0);

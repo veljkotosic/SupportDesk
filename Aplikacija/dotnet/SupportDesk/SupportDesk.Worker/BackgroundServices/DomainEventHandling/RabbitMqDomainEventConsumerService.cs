@@ -69,11 +69,12 @@ public sealed class RabbitMqDomainEventConsumerService : BackgroundService
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.ReceivedAsync += async (sender, eventArgs) =>
                 {
+                    OutboxMessage? outboxMessage = null;
                     try
                     {
                         var body = eventArgs.Body.ToArray();
                         var json = Encoding.UTF8.GetString(body);
-                        var outboxMessage = JsonSerializer.Deserialize<OutboxMessage>(json);
+                        outboxMessage = JsonSerializer.Deserialize<OutboxMessage>(json);
 
                         if (outboxMessage is not null)
                         {
@@ -84,12 +85,23 @@ public sealed class RabbitMqDomainEventConsumerService : BackgroundService
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, "Error while processing domain event");
-                        
+                        var actualEx = e is System.Reflection.TargetInvocationException tie && tie.InnerException is not null
+                            ? tie.InnerException
+                            : e;
+
+                        if (actualEx is SupportDesk.Domain.Abstract.Validation.ValidationException)
+                        {
+                            _logger.LogWarning(actualEx, "Domain event processing failed with validation exception for event {EventId}. Discarding poison message without requeue.", outboxMessage?.Id);
+                        }
+                        else
+                        {
+                            _logger.LogError(e, "Error while processing domain event {EventId}. Discarding message without requeue.", outboxMessage?.Id);
+                        }
+
                         await channel.BasicNackAsync(
                             deliveryTag: eventArgs.DeliveryTag,
                             multiple: false,
-                            requeue: true,
+                            requeue: false,
                             cancellationToken: stoppingToken);
                     }
                 };
