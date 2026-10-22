@@ -16,7 +16,9 @@ export function handleSummary(data) {
 }
 
 export default function () {
-    const response = http.get(`${baseUrl}/health`);
+    const response = http.get(`${baseUrl}/health`, {
+        tags: { name: 'GET /health' },
+    });
 
     check(response, {
         'status is 200': (r) => r.status === 200,

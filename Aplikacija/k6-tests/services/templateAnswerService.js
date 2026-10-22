@@ -7,7 +7,10 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' };
 export class TemplateAnswerService {
     static addTemplateAnswer(title, text) {
         const payload = JSON.stringify({ title, text });
-        const res = http.post(`${apiUrl}/TemplateAnswer`, payload, { headers: JSON_HEADERS });
+        const res = http.post(`${apiUrl}/TemplateAnswer`, payload, {
+            headers: JSON_HEADERS,
+            tags: { name: 'POST /TemplateAnswer' },
+        });
         
         check(res, {
             'addTemplateAnswer status is 201': (r) => r.status === 201,
@@ -17,7 +20,9 @@ export class TemplateAnswerService {
     }
 
     static deleteTemplateAnswer(templateAnswerId) {
-        const res = http.del(`${apiUrl}/TemplateAnswer/${templateAnswerId}`);
+        const res = http.del(http.url`${apiUrl}/TemplateAnswer/${templateAnswerId}`, null, {
+            tags: { name: 'DELETE /TemplateAnswer/:id' },
+        });
         
         check(res, {
             'deleteTemplateAnswer status is 204': (r) => r.status === 204,
@@ -28,7 +33,10 @@ export class TemplateAnswerService {
 
     static updateTemplateAnswerDetails(templateAnswerId, title, text) {
         const payload = JSON.stringify({ title, text });
-        const res = http.patch(`${apiUrl}/TemplateAnswer/${templateAnswerId}`, payload, { headers: JSON_HEADERS });
+        const res = http.patch(http.url`${apiUrl}/TemplateAnswer/${templateAnswerId}`, payload, {
+            headers: JSON_HEADERS,
+            tags: { name: 'PATCH /TemplateAnswer/:id' },
+        });
         
         check(res, {
             'updateTemplateAnswerDetails status is 204': (r) => r.status === 204,

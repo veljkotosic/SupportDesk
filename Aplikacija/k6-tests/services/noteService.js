@@ -7,7 +7,10 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' };
 export class NoteService {
     static addNote(ticketId, text) {
         const payload = JSON.stringify({ ticketId, text });
-        const res = http.post(`${apiUrl}/Note`, payload, { headers: JSON_HEADERS });
+        const res = http.post(`${apiUrl}/Note`, payload, {
+            headers: JSON_HEADERS,
+            tags: { name: 'POST /Note' },
+        });
         
         check(res, {
             'addNote status is 201': (r) => r.status === 201,

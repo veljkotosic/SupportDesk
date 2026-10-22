@@ -4,7 +4,9 @@ import { apiUrl } from '../config/environment.js';
 
 export class OrganizationService {
     static getDashboard() {
-        const res = http.get(`${apiUrl}/Organization/dashboard`);
+        const res = http.get(`${apiUrl}/Organization/dashboard`, {
+            tags: { name: 'GET /Organization/dashboard' },
+        });
         
         check(res, {
             'getDashboard status is 200': (r) => r.status === 200,
@@ -14,7 +16,9 @@ export class OrganizationService {
     }
 
     static getKnowledgeBase() {
-        const res = http.get(`${apiUrl}/Organization/knowledgeBase`);
+        const res = http.get(`${apiUrl}/Organization/knowledgeBase`, {
+            tags: { name: 'GET /Organization/knowledgeBase' },
+        });
         
         check(res, {
             'getKnowledgeBase status is 200': (r) => r.status === 200,
@@ -24,7 +28,9 @@ export class OrganizationService {
     }
 
     static getSupportAgentsSummary() {
-        const res = http.get(`${apiUrl}/Organization/supportAgentsSummary`);
+        const res = http.get(`${apiUrl}/Organization/supportAgentsSummary`, {
+            tags: { name: 'GET /Organization/supportAgentsSummary' },
+        });
         
         check(res, {
             'getSupportAgentsSummary status is 200': (r) => r.status === 200,
@@ -34,7 +40,9 @@ export class OrganizationService {
     }
 
     static getAllOrganizations() {
-        const res = http.get(`${apiUrl}/Organization/all`);
+        const res = http.get(`${apiUrl}/Organization/all`, {
+            tags: { name: 'GET /Organization/all' },
+        });
         
         check(res, {
             'getAllOrganizations status is 200': (r) => r.status === 200,
@@ -44,7 +52,9 @@ export class OrganizationService {
     }
 
     static getOrganizationCategories(organizationId) {
-        const res = http.get(`${apiUrl}/Organization/${organizationId}/categories`);
+        const res = http.get(http.url`${apiUrl}/Organization/${organizationId}/categories`, {
+            tags: { name: 'GET /Organization/:id/categories' },
+        });
         
         check(res, {
             'getOrganizationCategories status is 200': (r) => r.status === 200,
@@ -54,7 +64,9 @@ export class OrganizationService {
     }
 
     static getOrganizationFaqs(organizationId) {
-        const res = http.get(`${apiUrl}/Organization/${organizationId}/faqs`);
+        const res = http.get(http.url`${apiUrl}/Organization/${organizationId}/faqs`, {
+            tags: { name: 'GET /Organization/:id/faqs' },
+        });
         
         check(res, {
             'getOrganizationFaqs status is 200': (r) => r.status === 200,
@@ -64,7 +76,9 @@ export class OrganizationService {
     }
 
     static getOrganizationTemplateAnswers() {
-        const res = http.get(`${apiUrl}/Organization/templateAnswers`);
+        const res = http.get(`${apiUrl}/Organization/templateAnswers`, {
+            tags: { name: 'GET /Organization/templateAnswers' },
+        });
         
         check(res, {
             'getOrganizationTemplateAnswers status is 200': (r) => r.status === 200,
