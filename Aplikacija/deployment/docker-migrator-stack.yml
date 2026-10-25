@@ -15,7 +15,7 @@ services:
         condition: none
       placement:
         constraints:
-          - node.labels.role == manager
+          - node.labels.role == primary
 
 
 networks:

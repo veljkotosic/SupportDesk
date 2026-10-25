@@ -36,11 +36,16 @@ docker build \
     -f ../dotnet/SupportDesk/Migrator.Dockerfile \
     ../dotnet/SupportDesk
 
+docker build \
+    -t "$REGISTRY/supportdesk-postgres:latest" \
+    ../docker/postgres
+
 docker push "$REGISTRY/supportdesk-nginx:latest"
 docker push "$REGISTRY/supportdesk-webapi:latest"
 docker push "$REGISTRY/supportdesk-worker:latest"
 docker push "$REGISTRY/supportdesk-outbox-processor:latest"
 docker push "$REGISTRY/supportdesk-migrator:latest"
+docker push "$REGISTRY/supportdesk-postgres:latest"
 
 echo
 echo "Build and push complete."

@@ -14,9 +14,13 @@ services:
       - seqdata:/data
   
   postgres:
-    image: postgres:18
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    image: supportdesk-postgres:latest
     container_name: supportdesk-postgres   
     restart: unless-stopped
+    command: postgres -c max_connections=1000 -c shared_buffers=512MB -c work_mem=16MB -c wal_level=replica -c max_wal_senders=10 -c wal_keep_size=1GB -c hot_standby=on
     env_file:
       - ../.env
     ports:
@@ -24,7 +28,31 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U SupportDeskUser -d SupportDeskDatabase"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-replica:
+    image: supportdesk-postgres:latest
+    container_name: supportdesk-postgres-replica
+    restart: unless-stopped
+    entrypoint: ["entrypoint-replica.sh"]
+    command: postgres -c max_connections=1000 -c shared_buffers=512MB -c work_mem=16MB -c max_parallel_workers_per_gather=0 -c max_parallel_workers=0 -c hot_standby=on -c hot_standby_feedback=on -c wal_receiver_status_interval=1s -c max_standby_streaming_delay=300s -c max_standby_archive_delay=300s
+    env_file:
+      - ../.env
+    environment:
+      PRIMARY_HOST: postgres
+      PRIMARY_PORT: 5432
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_replica:/var/lib/postgresql
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,4 +78,5 @@ services:
 volumes:
   seqdata:
   pgdata:
+  pgdata_replica:
   rabbitmqdata:
