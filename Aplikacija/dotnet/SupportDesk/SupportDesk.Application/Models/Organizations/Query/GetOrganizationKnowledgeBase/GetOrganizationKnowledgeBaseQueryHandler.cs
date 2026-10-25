@@ -11,12 +11,12 @@ internal sealed class GetOrganizationKnowledgeBaseQueryHandler
     : AbstractQueryHandler<GetOrganizationKnowledgeBaseQuery, GetOrganizationKnowledgeBaseQueryResult>
 {
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _dbConnectionFactory;
     
     public GetOrganizationKnowledgeBaseQueryHandler(
         PermissionChecker permissionChecker,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory) 
+        IReadDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
         _tenantContext = tenantContext;

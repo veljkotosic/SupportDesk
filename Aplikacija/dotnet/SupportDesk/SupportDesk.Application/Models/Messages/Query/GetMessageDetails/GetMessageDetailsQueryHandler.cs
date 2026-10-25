@@ -11,11 +11,11 @@ namespace SupportDesk.Application.Models.Messages.Query.GetMessageDetails;
 internal sealed class GetMessageDetailsQueryHandler
     : AbstractQueryHandler<GetMessageDetailsQuery, GetMessageDetailsQueryResult>
 {
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _dbConnectionFactory;
     
     public GetMessageDetailsQueryHandler(
         PermissionChecker permissionChecker,
-        IDbConnectionFactory dbConnectionFactory) 
+        IReadDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
         _dbConnectionFactory = dbConnectionFactory;
