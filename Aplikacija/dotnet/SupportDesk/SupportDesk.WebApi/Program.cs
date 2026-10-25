@@ -12,7 +12,7 @@ Env.TraversePath().NoClobber().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-ThreadPool.SetMinThreads(300, 300);
+ThreadPool.SetMinThreads(500, 500);
 
 builder.Services.AddApiVersioning(options =>
 {
