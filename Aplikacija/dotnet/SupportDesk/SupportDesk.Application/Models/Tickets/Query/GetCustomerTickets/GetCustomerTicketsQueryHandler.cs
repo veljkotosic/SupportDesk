@@ -15,12 +15,12 @@ internal sealed class GetCustomerTicketsQueryHandler
     : AbstractQueryHandler<GetCustomerTicketsQuery, GetCustomerTicketsQueryResult>
 {
     private readonly IUserContext _userContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _dbConnectionFactory;
 
     public GetCustomerTicketsQueryHandler(
         PermissionChecker permissionChecker,
         IUserContext userContext,
-        IDbConnectionFactory dbConnectionFactory)
+        IReadDbConnectionFactory dbConnectionFactory)
         : base(permissionChecker)
     {
         _userContext = userContext;

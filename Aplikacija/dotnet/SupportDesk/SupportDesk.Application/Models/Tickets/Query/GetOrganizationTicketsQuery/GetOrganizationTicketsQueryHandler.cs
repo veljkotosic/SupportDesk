@@ -14,12 +14,12 @@ internal sealed class GetOrganizationTicketsQueryHandler
     : AbstractQueryHandler<GetOrganizationTicketsQuery, GetOrganizationTicketsQueryResult>
 {
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _dbConnectionFactory;
 
     public GetOrganizationTicketsQueryHandler(
         PermissionChecker permissionChecker,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory)
+        IReadDbConnectionFactory dbConnectionFactory)
         : base(permissionChecker)
     {
         _tenantContext = tenantContext;

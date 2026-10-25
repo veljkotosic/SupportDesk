@@ -9,11 +9,11 @@ namespace SupportDesk.Application.Models.Organizations.Query.GetAllOrganizations
 internal sealed class GetAllOrganizationsQueryHandler
     : AbstractQueryHandler<GetAllOrganizationsQuery, GetAllOrganizationsQueryResult>
 {
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _dbConnectionFactory;
     
     public GetAllOrganizationsQueryHandler(
         PermissionChecker permissionChecker,
-        IDbConnectionFactory dbConnectionFactory) 
+        IReadDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
         _dbConnectionFactory = dbConnectionFactory;

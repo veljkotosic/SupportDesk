@@ -17,13 +17,13 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
 {
     private readonly TimeProvider _timeProvider;
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _dbConnectionFactory;
 
     public GetOrganizationAdminDashboardQueryHandler(
         PermissionChecker permissionChecker,
         TimeProvider timeProvider,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory)
+        IReadDbConnectionFactory dbConnectionFactory)
         : base(permissionChecker)
     {
         _timeProvider = timeProvider;

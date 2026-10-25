@@ -18,13 +18,13 @@ internal sealed class GetTicketQueryHandler
 {
     private readonly IUserContext _userContext;
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _dbConnectionFactory;
 
     public GetTicketQueryHandler(
         PermissionChecker permissionChecker,
         IUserContext userContext,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory)
+        IReadDbConnectionFactory dbConnectionFactory)
         : base(permissionChecker)
     {
         _userContext = userContext;

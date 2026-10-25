@@ -11,12 +11,12 @@ internal sealed class GetOrganizationTemplateAnswersQueryHandler
     : AbstractQueryHandler<GetOrganizationTemplateAnswersQuery, GetOrganizationTemplateAnswersQueryResult>
 {
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _dbConnectionFactory;
     
     public GetOrganizationTemplateAnswersQueryHandler(
         PermissionChecker permissionChecker,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory) 
+        IReadDbConnectionFactory dbConnectionFactory) 
         : base(permissionChecker)
     {
         _tenantContext = tenantContext;
