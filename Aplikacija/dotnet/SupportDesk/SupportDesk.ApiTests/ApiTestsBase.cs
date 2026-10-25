@@ -62,6 +62,8 @@ internal abstract class ApiTestsBase
         await _postgresContainer.StartAsync();
 
         Environment.SetEnvironmentVariable("DB_CONN_STRING", _postgresContainer.GetConnectionString());
+        Environment.SetEnvironmentVariable("DB_WRITE_CONN_STRING", _postgresContainer.GetConnectionString());
+        Environment.SetEnvironmentVariable("DB_READ_CONN_STRING", _postgresContainer.GetConnectionString());
         Environment.SetEnvironmentVariable("RABBITMQ_AMQP_URI", "amqp://guest:guest@localhost:5672/");
         Environment.SetEnvironmentVariable("JWT_ISSUER", "SupportDeskApiTest");
         Environment.SetEnvironmentVariable("JWT_AUDIENCE", "SupportDeskApiTest");
