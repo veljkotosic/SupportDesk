@@ -16,6 +16,7 @@ public static class HealthCheckRegistrationExtensions
 
             services.AddHealthChecks()
                 .AddDatabaseReadinessCheck()
+                .AddReadReplicaReadinessCheck()
                 .AddRabbitMqReadinessCheck();
             
             return services;
@@ -67,6 +68,11 @@ public static class HealthCheckRegistrationExtensions
         private IHealthChecksBuilder AddDatabaseReadinessCheck()
         {
             return builder.AddDbContextCheck<SupportDeskDbContext>(name: "database");
+        }
+
+        private IHealthChecksBuilder AddReadReplicaReadinessCheck()
+        {
+            return builder.AddCheck<ReadReplicaHealthCheck>("database-replica", tags: ["ready"]);
         }
 
         private IHealthChecksBuilder AddRabbitMqReadinessCheck()
