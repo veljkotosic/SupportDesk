@@ -17,20 +17,23 @@ public static class PersistenceRegistrationExtensions
     {
         public IServiceCollection AddSupportDeskPersistence(IConfiguration configuration)
         {
-            var connectionString = configuration.GetEnvConnectionString();
-            var dataSource = NpgsqlDataSource.Create(connectionString);
+            var writeConnectionString = configuration.GetEnvWriteConnectionString();
+            var writeDataSource = NpgsqlDataSource.Create(writeConnectionString);
 
-            services.AddSingleton(dataSource);
+            services.AddSingleton(writeDataSource);
 
             services.AddDbContext<SupportDeskDbContext>((sp, options) =>
             {
-                options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>(), npgsql =>
+                options.UseNpgsql(writeDataSource, npgsql =>
                 {
                     npgsql.MigrationsAssembly(typeof(SupportDeskDbContext).Assembly.FullName);
                 });
             });
 
-            services.AddSingleton<IDbConnectionFactory>(sp => new NpgsqlConnectionFactory(sp.GetRequiredService<NpgsqlDataSource>()));
+            var readConnectionString = configuration.GetEnvReadConnectionString();
+            var readDataSource = NpgsqlDataSource.Create(readConnectionString);
+
+            services.AddSingleton<IReadDbConnectionFactory>(sp => new ReadReplicaConnectionFactory(readDataSource));
             
             services.AddScoped<IApplicationDbContext, SupportDeskDbContext>();
 

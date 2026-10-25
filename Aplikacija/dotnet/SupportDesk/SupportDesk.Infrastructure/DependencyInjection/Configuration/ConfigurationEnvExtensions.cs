@@ -5,6 +5,8 @@ namespace SupportDesk.Infrastructure.DependencyInjection.Configuration;
 public static class ConfigurationEnvExtensions
 {
     private const string DbConnStringKey = "DB_CONN_STRING";
+    private const string DbWriteConnStringKey = "DB_WRITE_CONN_STRING";
+    private const string DbReadConnStringKey = "DB_READ_CONN_STRING";
 
     private const string RabbitMqAmqpUriKey = "RABBITMQ_AMQP_URI";
     
@@ -19,9 +21,25 @@ public static class ConfigurationEnvExtensions
 
     extension(IConfiguration configuration)
     {
+        public string GetEnvWriteConnectionString()
+        {
+            var writeConn = configuration[DbWriteConnStringKey];
+            if (!string.IsNullOrWhiteSpace(writeConn))
+            {
+                return writeConn;
+            }
+
+            return configuration.GetEnvForSure(DbConnStringKey);
+        }
+
+        public string GetEnvReadConnectionString()
+        {
+            return configuration.GetEnvForSure(DbReadConnStringKey);
+        }
+
         public string GetEnvConnectionString()
         {
-            return configuration.GetEnvForSure(DbConnStringKey);
+            return configuration.GetEnvWriteConnectionString();
         }
         
         public string GetEnvRabbitMqAmqpUri()
