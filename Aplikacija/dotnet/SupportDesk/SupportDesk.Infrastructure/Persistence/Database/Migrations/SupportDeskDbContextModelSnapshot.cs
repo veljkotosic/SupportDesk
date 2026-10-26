@@ -241,7 +241,7 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.HasIndex("TicketId", "CreatedAt");
+                    b.HasIndex("TicketId");
 
                     b.ToTable("Messages", (string)null);
                 });
@@ -274,7 +274,7 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasIndex("OrganizationId");
 
-                    b.HasIndex("TicketId", "CreatedAt");
+                    b.HasIndex("TicketId");
 
                     b.ToTable("Notes", (string)null);
                 });
@@ -417,30 +417,11 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("CustomerId", "LastMessageAt");
+                    b.HasIndex("CustomerId");
 
-                    b.HasIndex("OrganizationId", "OpenedAt");
+                    b.HasIndex("OrganizationId");
 
-                    b.HasIndex("OrganizationId", "Status");
-
-                    b.HasIndex("SupportAgentId", "Status");
-
-                    b.HasIndex("CustomerId", "LastMessageAt", "Id")
-                        .IsDescending(false, true, true);
-
-                    b.HasIndex("CustomerId", "Status", "LastMessageAt");
-
-                    b.HasIndex("OrganizationId", "LastMessageAt", "Id")
-                        .IsDescending(false, true, true);
-
-                    b.HasIndex("OrganizationId", "Status", "ClosedAt");
-
-                    b.HasIndex("OrganizationId", "Status", "LastMessageAt")
-                        .IsDescending(false, false, true);
-
-                    b.HasIndex("OrganizationId", "Status", "Priority");
-
-                    b.HasIndex("SupportAgentId", "Status", "LastMessageAt");
+                    b.HasIndex("SupportAgentId");
 
                     b.ToTable("Tickets", (string)null);
                 });
@@ -469,9 +450,9 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId", "Status");
+                    b.HasIndex("OrganizationId");
 
-                    b.HasIndex("TicketId", "Status");
+                    b.HasIndex("TicketId");
 
                     b.ToTable("TicketNotifications", (string)null);
                 });

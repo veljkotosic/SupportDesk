@@ -78,7 +78,5 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
         
         builder.HasQueryFilter(message => 
             message.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
-
-        builder.HasIndex(message => new { message.TicketId, message.CreatedAt });
     }
 }
