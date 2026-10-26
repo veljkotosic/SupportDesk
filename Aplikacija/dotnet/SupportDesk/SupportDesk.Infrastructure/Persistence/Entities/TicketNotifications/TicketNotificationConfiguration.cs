@@ -76,8 +76,5 @@ public class TicketNotificationConfiguration : IEntityTypeConfiguration<TicketNo
 
         builder.HasQueryFilter(ticketNotification => 
             ticketNotification.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
-
-        builder.HasIndex(notification => new { notification.TicketId, notification.Status });
-        builder.HasIndex(notification => new { notification.OrganizationId, notification.Status });
     }
 }

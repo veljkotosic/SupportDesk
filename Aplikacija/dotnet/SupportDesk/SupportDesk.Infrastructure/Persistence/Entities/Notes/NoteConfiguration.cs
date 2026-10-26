@@ -87,7 +87,5 @@ public class NoteConfiguration : IEntityTypeConfiguration<Note>
         
         builder.HasQueryFilter(note => 
             note.OrganizationId == (_context.OrganizationId != null ? new OrganizationId(_context.OrganizationId.Value) : null));
-
-        builder.HasIndex(note => new { note.TicketId, note.CreatedAt });
     }
 }
