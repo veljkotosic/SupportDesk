@@ -30,7 +30,7 @@ public sealed class SyncTicketSummariesProjectionTrigger : IEntityTrigger
 
             DROP TRIGGER IF EXISTS trg_users_sync_ticket_summaries ON public.""Users"";
             CREATE TRIGGER trg_users_sync_ticket_summaries
-            AFTER UPDATE ON public.""Users""
+            AFTER UPDATE OF ""UserName"", ""Email"" ON public.""Users""
             FOR EACH ROW EXECUTE FUNCTION projections.sync_users_ticket_summaries();
         ");
     }

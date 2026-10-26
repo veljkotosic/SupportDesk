@@ -34,7 +34,7 @@ public sealed class SyncCategoriesProjectionTrigger : IEntityTrigger
 
             DROP TRIGGER IF EXISTS trg_categories_sync_categories ON public.""Categories"";
             CREATE TRIGGER trg_categories_sync_categories
-            AFTER INSERT OR UPDATE OR DELETE ON public.""Categories""
+            AFTER INSERT OR DELETE OR UPDATE OF ""Name"", ""Description"", ""DeletedAt"" ON public.""Categories""
             FOR EACH ROW EXECUTE FUNCTION projections.sync_categories_categories();
         ");
     }
