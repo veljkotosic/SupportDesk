@@ -46,6 +46,17 @@ public sealed class SyncTicketSummariesProjectionTrigger : IEntityTrigger
                     RETURN NEW;
 
                 ELSIF (TG_OP = 'UPDATE') THEN
+                    IF NEW.""Status"" IS NOT DISTINCT FROM OLD.""Status""
+                       AND NEW.""Priority"" IS NOT DISTINCT FROM OLD.""Priority""
+                       AND NEW.""Feedback"" IS NOT DISTINCT FROM OLD.""Feedback""
+                       AND NEW.""Subject"" IS NOT DISTINCT FROM OLD.""Subject""
+                       AND NEW.""AssignedAt"" IS NOT DISTINCT FROM OLD.""AssignedAt""
+                       AND NEW.""ClosedAt"" IS NOT DISTINCT FROM OLD.""ClosedAt""
+                       AND NEW.""LastMessageAt"" IS NOT DISTINCT FROM OLD.""LastMessageAt""
+                       AND NEW.""SupportAgentId"" IS NOT DISTINCT FROM OLD.""SupportAgentId"" THEN
+                        RETURN NEW;
+                    END IF;
+
                     IF NEW.""SupportAgentId"" IS DISTINCT FROM OLD.""SupportAgentId"" THEN
                         IF NEW.""SupportAgentId"" IS NOT NULL THEN
                             SELECT ""UserName"" INTO v_agent_name FROM public.""Users"" WHERE ""Id"" = NEW.""SupportAgentId"";
@@ -87,7 +98,7 @@ public sealed class SyncTicketSummariesProjectionTrigger : IEntityTrigger
 
             DROP TRIGGER IF EXISTS trg_tickets_sync_ticket_summaries ON public.""Tickets"";
             CREATE TRIGGER trg_tickets_sync_ticket_summaries
-            AFTER INSERT OR UPDATE OR DELETE ON public.""Tickets""
+            AFTER INSERT OR DELETE OR UPDATE OF ""Status"", ""Priority"", ""Feedback"", ""Subject"", ""AssignedAt"", ""ClosedAt"", ""LastMessageAt"", ""SupportAgentId"" ON public.""Tickets""
             FOR EACH ROW EXECUTE FUNCTION projections.sync_tickets_ticket_summaries();
         ");
     }

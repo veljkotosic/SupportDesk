@@ -15,7 +15,8 @@ public sealed class SyncTicketSummariesProjectionTrigger : IEntityTrigger
                 IF (TG_OP = 'INSERT') THEN
                     UPDATE projections.ticket_summaries
                     SET last_message_at = NEW.""CreatedAt""
-                    WHERE id = NEW.""TicketId"";
+                    WHERE id = NEW.""TicketId""
+                      AND (last_message_at IS NULL OR last_message_at < NEW.""CreatedAt"");
                     RETURN NEW;
                 END IF;
                 RETURN NEW;

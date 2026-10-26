@@ -45,7 +45,7 @@ public sealed class SyncTicketSummariesProjectionTrigger : IEntityTrigger
 
             DROP TRIGGER IF EXISTS trg_ticket_notifications_sync_ticket_summaries ON public.""TicketNotifications"";
             CREATE TRIGGER trg_ticket_notifications_sync_ticket_summaries
-            AFTER INSERT OR UPDATE OR DELETE ON public.""TicketNotifications""
+            AFTER INSERT OR DELETE OR UPDATE OF ""Status"" ON public.""TicketNotifications""
             FOR EACH ROW EXECUTE FUNCTION projections.sync_ticket_notifications_ticket_summaries();
         ");
     }
