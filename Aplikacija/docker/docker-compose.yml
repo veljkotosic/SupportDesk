@@ -17,6 +17,8 @@ services:
     image: postgres:18
     container_name: supportdesk-postgres   
     restart: unless-stopped
+    command: postgres -c max_connections=1000 -c shared_buffers=512MB -c work_mem=16MB -c max_parallel_workers_per_gather=0 -c max_parallel_workers=0
+    shm_size: '1gb'
     env_file:
       - ../.env
     ports:

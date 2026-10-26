@@ -33,7 +33,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.role == manager
+          - node.labels.role == primary
       restart_policy:
         condition: any
 
@@ -71,7 +71,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.role == manager
+          - node.labels.role == primary
       restart_policy:
         condition: any
 
@@ -99,7 +99,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.role == manager
+          - node.labels.role == primary
       restart_policy:
         condition: on-failure
 
