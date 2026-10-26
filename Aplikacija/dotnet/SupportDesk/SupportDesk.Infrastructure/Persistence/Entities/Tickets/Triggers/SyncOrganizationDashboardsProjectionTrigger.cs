@@ -46,7 +46,7 @@ public sealed class SyncOrganizationDashboardsProjectionTrigger : IEntityTrigger
 
             DROP TRIGGER IF EXISTS trg_tickets_sync_organization_dashboards ON public.""Tickets"";
             CREATE TRIGGER trg_tickets_sync_organization_dashboards
-            AFTER INSERT OR UPDATE OR DELETE ON public.""Tickets""
+            AFTER INSERT OR DELETE OR UPDATE OF ""Status"" ON public.""Tickets""
             FOR EACH ROW EXECUTE FUNCTION projections.sync_tickets_organization_dashboards();
         ");
     }

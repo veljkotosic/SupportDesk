@@ -37,7 +37,7 @@ public sealed class SyncSupportAgentsProjectionTrigger : IEntityTrigger
 
             DROP TRIGGER IF EXISTS trg_users_sync_support_agents ON public.""Users"";
             CREATE TRIGGER trg_users_sync_support_agents
-            AFTER INSERT OR UPDATE OR DELETE ON public.""Users""
+            AFTER INSERT OR DELETE OR UPDATE OF ""UserName"", ""Email"" ON public.""Users""
             FOR EACH ROW EXECUTE FUNCTION projections.sync_users_support_agents();
         ");
     }

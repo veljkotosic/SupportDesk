@@ -26,7 +26,7 @@ public sealed class SyncTicketSummariesProjectionTrigger : IEntityTrigger
 
             DROP TRIGGER IF EXISTS trg_categories_sync_ticket_summaries ON public.""Categories"";
             CREATE TRIGGER trg_categories_sync_ticket_summaries
-            AFTER UPDATE ON public.""Categories""
+            AFTER UPDATE OF ""Name"" ON public.""Categories""
             FOR EACH ROW EXECUTE FUNCTION projections.sync_categories_ticket_summaries();
         ");
     }

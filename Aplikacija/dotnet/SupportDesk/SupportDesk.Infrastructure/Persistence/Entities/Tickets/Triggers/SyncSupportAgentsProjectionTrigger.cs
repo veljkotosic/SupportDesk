@@ -42,7 +42,7 @@ public sealed class SyncSupportAgentsProjectionTrigger : IEntityTrigger
 
             DROP TRIGGER IF EXISTS trg_tickets_sync_support_agents ON public.""Tickets"";
             CREATE TRIGGER trg_tickets_sync_support_agents
-            AFTER UPDATE ON public.""Tickets""
+            AFTER UPDATE OF ""Status"", ""SupportAgentId"" ON public.""Tickets""
             FOR EACH ROW EXECUTE FUNCTION projections.sync_tickets_support_agents();
         ");
     }
