@@ -46,23 +46,35 @@ public sealed class SyncTicketSummariesProjectionTrigger : IEntityTrigger
                     RETURN NEW;
 
                 ELSIF (TG_OP = 'UPDATE') THEN
-                    IF NEW.""SupportAgentId"" IS DISTINCT FROM OLD.""SupportAgentId"" AND NEW.""SupportAgentId"" IS NOT NULL THEN
-                        SELECT ""UserName"" INTO v_agent_name FROM public.""Users"" WHERE ""Id"" = NEW.""SupportAgentId"";
-                    ELSE
-                        SELECT support_agent_user_name INTO v_agent_name FROM projections.ticket_summaries WHERE id = OLD.""Id"";
-                    END IF;
+                    IF NEW.""SupportAgentId"" IS DISTINCT FROM OLD.""SupportAgentId"" THEN
+                        IF NEW.""SupportAgentId"" IS NOT NULL THEN
+                            SELECT ""UserName"" INTO v_agent_name FROM public.""Users"" WHERE ""Id"" = NEW.""SupportAgentId"";
+                        ELSE
+                            v_agent_name := NULL;
+                        END IF;
 
-                    UPDATE projections.ticket_summaries
-                    SET status = NEW.""Status"",
-                        priority = NEW.""Priority"",
-                        feedback = NEW.""Feedback"",
-                        subject = NEW.""Subject"",
-                        assigned_at = NEW.""AssignedAt"",
-                        closed_at = NEW.""ClosedAt"",
-                        last_message_at = NEW.""LastMessageAt"",
-                        support_agent_id = NEW.""SupportAgentId"",
-                        support_agent_user_name = v_agent_name
-                    WHERE id = NEW.""Id"";
+                        UPDATE projections.ticket_summaries
+                        SET status = NEW.""Status"",
+                            priority = NEW.""Priority"",
+                            feedback = NEW.""Feedback"",
+                            subject = NEW.""Subject"",
+                            assigned_at = NEW.""AssignedAt"",
+                            closed_at = NEW.""ClosedAt"",
+                            last_message_at = NEW.""LastMessageAt"",
+                            support_agent_id = NEW.""SupportAgentId"",
+                            support_agent_user_name = v_agent_name
+                        WHERE id = NEW.""Id"";
+                    ELSE
+                        UPDATE projections.ticket_summaries
+                        SET status = NEW.""Status"",
+                            priority = NEW.""Priority"",
+                            feedback = NEW.""Feedback"",
+                            subject = NEW.""Subject"",
+                            assigned_at = NEW.""AssignedAt"",
+                            closed_at = NEW.""ClosedAt"",
+                            last_message_at = NEW.""LastMessageAt""
+                        WHERE id = NEW.""Id"";
+                    END IF;
 
                     RETURN NEW;
 

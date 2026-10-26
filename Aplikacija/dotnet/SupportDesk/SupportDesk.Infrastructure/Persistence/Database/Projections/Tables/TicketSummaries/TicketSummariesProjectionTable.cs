@@ -32,8 +32,14 @@ public sealed class TicketSummariesProjectionTable : IProjectionTable
             CREATE INDEX IF NOT EXISTS idx_proj_tickets_customer_paged 
                 ON projections.ticket_summaries (customer_id, last_message_at DESC NULLS LAST, id DESC);
 
+            CREATE INDEX IF NOT EXISTS idx_proj_tickets_cust_status_paged 
+                ON projections.ticket_summaries (customer_id, status, last_message_at DESC NULLS LAST, id DESC);
+
             CREATE INDEX IF NOT EXISTS idx_proj_tickets_org_latest 
                 ON projections.ticket_summaries (organization_id, last_message_at DESC NULLS LAST, id DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_proj_tickets_org_status_paged 
+                ON projections.ticket_summaries (organization_id, status, last_message_at DESC NULLS LAST, id DESC);
 
             CREATE INDEX IF NOT EXISTS idx_proj_tickets_org_priority 
                 ON projections.ticket_summaries (organization_id, priority DESC, last_message_at DESC NULLS LAST, id DESC);
