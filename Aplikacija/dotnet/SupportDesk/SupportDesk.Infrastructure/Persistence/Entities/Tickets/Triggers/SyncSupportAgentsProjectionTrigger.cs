@@ -13,11 +13,26 @@ public sealed class SyncSupportAgentsProjectionTrigger : IEntityTrigger
             RETURNS TRIGGER AS $$
             BEGIN
                 IF (TG_OP = 'UPDATE') THEN
-                    IF NEW.""SupportAgentId"" IS NOT NULL THEN
-                        UPDATE projections.support_agents
-                        SET assigned_tickets = assigned_tickets + CASE WHEN NEW.""Status"" = 1 AND OLD.""Status"" <> 1 THEN 1 WHEN NEW.""Status"" <> 1 AND OLD.""Status"" = 1 THEN -1 ELSE 0 END,
-                            resolved_tickets = resolved_tickets + CASE WHEN NEW.""Status"" = 2 AND OLD.""Status"" <> 2 THEN 1 WHEN NEW.""Status"" <> 2 AND OLD.""Status"" = 2 THEN -1 ELSE 0 END
-                        WHERE id = NEW.""SupportAgentId"";
+                    IF NEW.""Status"" IS DISTINCT FROM OLD.""Status"" OR NEW.""SupportAgentId"" IS DISTINCT FROM OLD.""SupportAgentId"" THEN
+                        IF OLD.""SupportAgentId"" IS NOT NULL AND NEW.""SupportAgentId"" IS DISTINCT FROM OLD.""SupportAgentId"" THEN
+                            UPDATE projections.support_agents
+                            SET assigned_tickets = GREATEST(0, assigned_tickets - CASE WHEN OLD.""Status"" = 1 THEN 1 ELSE 0 END)
+                            WHERE id = OLD.""SupportAgentId"";
+                        END IF;
+
+                        IF NEW.""SupportAgentId"" IS NOT NULL THEN
+                            UPDATE projections.support_agents
+                            SET assigned_tickets = assigned_tickets + CASE 
+                                    WHEN NEW.""SupportAgentId"" IS DISTINCT FROM OLD.""SupportAgentId"" AND NEW.""Status"" = 1 THEN 1
+                                    WHEN NEW.""SupportAgentId"" = OLD.""SupportAgentId"" AND NEW.""Status"" = 1 AND OLD.""Status"" <> 1 THEN 1
+                                    WHEN NEW.""SupportAgentId"" = OLD.""SupportAgentId"" AND NEW.""Status"" <> 1 AND OLD.""Status"" = 1 THEN -1
+                                    ELSE 0 END,
+                                resolved_tickets = resolved_tickets + CASE 
+                                    WHEN NEW.""Status"" = 2 AND OLD.""Status"" <> 2 THEN 1 
+                                    WHEN NEW.""Status"" <> 2 AND OLD.""Status"" = 2 THEN -1 
+                                    ELSE 0 END
+                            WHERE id = NEW.""SupportAgentId"";
+                        END IF;
                     END IF;
                     RETURN NEW;
                 END IF;
