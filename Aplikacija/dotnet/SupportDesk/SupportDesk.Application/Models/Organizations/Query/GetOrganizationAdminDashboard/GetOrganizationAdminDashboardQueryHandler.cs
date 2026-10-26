@@ -8,7 +8,6 @@ using SupportDesk.Application.Models.Organizations.Query.GetOrganizationAdminDas
 using SupportDesk.Domain.Models.Organization.ValueObjects;
 using SupportDesk.Domain.Models.Ticket.Enums;
 using SupportDesk.Domain.Models.TicketNotification.Enums;
-using SupportDesk.Domain.Models.User.Enums;
 
 namespace SupportDesk.Application.Models.Organizations.Query.GetOrganizationAdminDashboard;
 
@@ -39,84 +38,58 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
 
         const string sql = """
             -- 1. Organization name
-            SELECT o."Name"
-            FROM "Organizations" o
-            WHERE o."Id" = @OrganizationId;
+            SELECT organization_name AS "Name"
+            FROM projections.organization_dashboards
+            WHERE organization_id = @OrganizationId;
             
             -- 2. Dashboard summary
             SELECT
-                COUNT(*) FILTER (WHERE t."Status" = @OpenStatus) AS "OpenTickets",
-                COUNT(*) FILTER (WHERE t."Status" = @AssignedStatus) AS "AssignedTickets",
-                COUNT(*) FILTER (WHERE t."Status" = @ClosedStatus) AS "ClosedTickets",
-                (
-                    SELECT COUNT(*)
-                    FROM "Users" u
-                    WHERE u."OrganizationId" = @OrganizationId
-                      AND u."Role" = @SupportAgentRole
-                ) AS "AgentCount"
-            FROM "Tickets" t
-            WHERE t."OrganizationId" = @OrganizationId;
+                open_tickets AS "OpenTickets",
+                assigned_tickets AS "AssignedTickets",
+                closed_tickets AS "ClosedTickets",
+                agent_count AS "AgentCount"
+            FROM projections.organization_dashboards
+            WHERE organization_id = @OrganizationId;
             
             -- 3. Support agents and assigned-ticket counts
             SELECT
-                u."Id" AS "Id",
-                u."UserName" AS "UserName",
-                COUNT(t."Id") AS "AssignedTicketCount"
-            FROM "Users" u
-            LEFT JOIN "Tickets" t
-                ON t."SupportAgentId" = u."Id"
-               AND t."OrganizationId" = @OrganizationId
-               AND t."Status" = @AssignedStatus
-            WHERE u."OrganizationId" = @OrganizationId
-              AND u."Role" = @SupportAgentRole
-            GROUP BY u."Id", u."UserName"
-            ORDER BY u."UserName";
+                id AS "Id",
+                user_name AS "UserName",
+                assigned_tickets AS "AssignedTicketCount"
+            FROM projections.support_agents
+            WHERE organization_id = @OrganizationId
+            ORDER BY user_name;
             
             -- 4. Six most recent tickets
-            WITH recent_tickets AS (
-                SELECT t."Id"
-                FROM "Tickets" t
-                WHERE t."OrganizationId" = @OrganizationId
-                ORDER BY t."LastMessageAt" DESC NULLS LAST
-                LIMIT 6
-            )
             SELECT
-                t."Id" AS "Id",
-                o."Id" AS "OrganizationId",
-                o."Name" AS "OrganizationName",
-                c."Id" AS "CategoryId",
-                c."Name" AS "CategoryName",
-                customer."Id" AS "CustomerId",
-                customer."UserName" AS "CustomerUserName",
-                agent."Id" AS "SupportAgentId",
-                agent."UserName" AS "SupportAgentUserName",
-                t."Status" AS "Status",
-                t."Priority" AS "Priority",
-                t."Subject" AS "Subject",
-                t."OpenedAt" AS "OpenedAt",
-                t."AssignedAt" AS "AssignedAt",
-                t."ClosedAt" AS "ClosedAt",
-                t."Feedback" AS "Feedback",
-                t."LastMessageAt" AS "LastMessageAt"
-            FROM recent_tickets rt
-            JOIN "Tickets" t
-                ON t."Id" = rt."Id"
-            JOIN "Organizations" o
-                ON o."Id" = t."OrganizationId"
-            JOIN "Categories" c
-                ON c."Id" = t."CategoryId"
-            JOIN "Users" customer
-                ON customer."Id" = t."CustomerId"
-            LEFT JOIN "Users" agent
-                ON agent."Id" = t."SupportAgentId"
-            ORDER BY t."LastMessageAt" DESC NULLS LAST;
+                id AS "Id",
+                organization_id AS "OrganizationId",
+                organization_name AS "OrganizationName",
+                category_id AS "CategoryId",
+                category_name AS "CategoryName",
+                customer_id AS "CustomerId",
+                customer_user_name AS "CustomerUserName",
+                support_agent_id AS "SupportAgentId",
+                support_agent_user_name AS "SupportAgentUserName",
+                status AS "Status",
+                priority AS "Priority",
+                subject AS "Subject",
+                opened_at AS "OpenedAt",
+                assigned_at AS "AssignedAt",
+                closed_at AS "ClosedAt",
+                feedback AS "Feedback",
+                last_message_at AS "LastMessageAt"
+            FROM projections.ticket_summaries
+            WHERE organization_id = @OrganizationId
+            ORDER BY last_message_at DESC NULLS LAST, id DESC
+            LIMIT 6;
             
             -- 5. Unread notifications for the six most recent tickets
             WITH recent_tickets AS (
-                SELECT t."Id"
-                FROM "Tickets" t
-                WHERE t."OrganizationId" = @OrganizationId
-                ORDER BY t."LastMessageAt" DESC NULLS LAST
+                SELECT id
+                FROM projections.ticket_summaries
+                WHERE organization_id = @OrganizationId
+                ORDER BY last_message_at DESC NULLS LAST, id DESC
                 LIMIT 6
             )
             SELECT
@@ -126,40 +99,22 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
                 n."Text" AS "Text",
                 n."Status" AS "Status",
                 n."CreatedAt" AS "CreatedAt"
-            FROM "TicketNotifications" n
-            JOIN recent_tickets rt
-                ON rt."Id" = n."TicketId"
+            FROM public."TicketNotifications" n
+            JOIN recent_tickets rt ON rt.id = n."TicketId"
             WHERE n."OrganizationId" = @OrganizationId
               AND n."Status" = @UnreadStatus;
             
             -- 6. Ticket volume per day
             WITH date_series AS (
                 SELECT generate_series(@StartDate::date, @StartDate::date + 6, INTERVAL '1 day')::date AS "Day"
-            ),
-            opened_counts AS (
-                SELECT "OpenedAt"::date AS "Day", COUNT(*)::int AS "Count"
-                FROM "Tickets"
-                WHERE "OrganizationId" = @OrganizationId
-                  AND "OpenedAt" >= @StartDate::date
-                  AND "OpenedAt" < (@StartDate::date + 7)
-                GROUP BY "OpenedAt"::date
-            ),
-            closed_counts AS (
-                SELECT "ClosedAt"::date AS "Day", COUNT(*)::int AS "Count"
-                FROM "Tickets"
-                WHERE "OrganizationId" = @OrganizationId
-                  AND "Status" = @ClosedStatus
-                  AND "ClosedAt" >= @StartDate::date
-                  AND "ClosedAt" < (@StartDate::date + 7)
-                GROUP BY "ClosedAt"::date
             )
             SELECT
                 ds."Day" AS "Date",
-                COALESCE(oc."Count", 0) AS "OpenedCount",
-                COALESCE(cc."Count", 0) AS "ClosedCount"
+                COALESCE(dv.opened_count, 0) AS "OpenedCount",
+                COALESCE(dv.closed_count, 0) AS "ClosedCount"
             FROM date_series ds
-            LEFT JOIN opened_counts oc ON ds."Day" = oc."Day"
-            LEFT JOIN closed_counts cc ON ds."Day" = cc."Day"
+            LEFT JOIN projections.daily_ticket_volumes dv 
+                ON dv.organization_id = @OrganizationId AND dv.day = ds."Day"
             ORDER BY ds."Day";
             """;
 
@@ -168,11 +123,7 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
         var parameters = new
         {
             OrganizationId = organizationId.IdValue,
-            OpenStatus = TicketStatus.Open,
-            AssignedStatus = TicketStatus.Assigned,
-            ClosedStatus = TicketStatus.Closed,
-            SupportAgentRole = UserRole.SupportAgent,
-            UnreadStatus = TicketNotificationStatus.Unread,
+            UnreadStatus = (short)TicketNotificationStatus.Unread,
             StartDate = startDate
         };
 

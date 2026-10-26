@@ -42,7 +42,7 @@ internal sealed class GetCustomerTicketsQueryHandler
         dynamicParams.Add("Skip", query.Skip);
         dynamicParams.Add("Take", query.Take);
 
-        var whereClause = new StringBuilder("WHERE t.\"CustomerId\" = @CustomerId");
+        var whereClause = new StringBuilder("WHERE customer_id = @CustomerId");
 
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
@@ -50,79 +50,66 @@ internal sealed class GetCustomerTicketsQueryHandler
             if (Guid.TryParse(search, out var parsedGuid))
             {
                 dynamicParams.Add("SearchGuid", parsedGuid);
-                whereClause.Append(" AND t.\"Id\" = @SearchGuid");
+                whereClause.Append(" AND id = @SearchGuid");
             }
             else
             {
                 dynamicParams.Add("SearchPattern", $"%{search}%");
-                whereClause.Append(" AND (t.\"Subject\" ILIKE @SearchPattern OR o.\"Name\" ILIKE @SearchPattern OR c.\"Name\" ILIKE @SearchPattern)");
+                whereClause.Append(" AND (subject ILIKE @SearchPattern OR organization_name ILIKE @SearchPattern OR category_name ILIKE @SearchPattern)");
             }
         }
 
         if (query.Status.HasValue)
         {
             dynamicParams.Add("Status", (short)query.Status.Value);
-            whereClause.Append(" AND t.\"Status\" = @Status");
+            whereClause.Append(" AND status = @Status");
         }
-
-        var hasSearch = !string.IsNullOrWhiteSpace(query.SearchTerm);
-        var countFromClause = hasSearch
-            ? "FROM \"Tickets\" t JOIN \"Organizations\" o ON t.\"OrganizationId\" = o.\"Id\" JOIN \"Categories\" c ON t.\"CategoryId\" = c.\"Id\" JOIN \"Users\" cu ON t.\"CustomerId\" = cu.\"Id\""
-            : "FROM \"Tickets\" t";
-
-        var paginatedPageFromClause = hasSearch
-            ? "FROM \"Tickets\" t JOIN \"Organizations\" o ON t.\"OrganizationId\" = o.\"Id\" JOIN \"Categories\" c ON t.\"CategoryId\" = c.\"Id\" JOIN \"Users\" cu ON t.\"CustomerId\" = cu.\"Id\""
-            : "FROM \"Tickets\" t";
 
         var sql = $"""
             -- 1. Status counts
             SELECT 
                 COUNT(*)::int AS "AllCount",
-                COUNT(*) FILTER (WHERE "Status" = @OpenStatus)::int AS "OpenCount",
-                COUNT(*) FILTER (WHERE "Status" = @AssignedStatus)::int AS "AssignedCount",
-                COUNT(*) FILTER (WHERE "Status" = @ClosedStatus)::int AS "ClosedCount"
-            FROM "Tickets"
-            WHERE "CustomerId" = @CustomerId;
+                COUNT(*) FILTER (WHERE status = @OpenStatus)::int AS "OpenCount",
+                COUNT(*) FILTER (WHERE status = @AssignedStatus)::int AS "AssignedCount",
+                COUNT(*) FILTER (WHERE status = @ClosedStatus)::int AS "ClosedCount"
+            FROM projections.ticket_summaries
+            WHERE customer_id = @CustomerId;
 
             -- 2. Total filtered count
             SELECT COUNT(*)::int
-            {countFromClause}
+            FROM projections.ticket_summaries
             {whereClause};
 
             -- 3. Paginated tickets
             SELECT 
-                t."Id" AS "Id",
-                t."OrganizationId" AS "OrganizationId",
-                o."Name" AS "OrganizationName",
-                t."CategoryId" AS "CategoryId",
-                c."Name" AS "CategoryName",
-                t."CustomerId" AS "CustomerId",
-                cu."UserName" AS "CustomerUserName",
-                t."SupportAgentId" AS "SupportAgentId",
-                sa."UserName" AS "SupportAgentUserName",
-                t."Status" AS "Status",
-                t."Priority" AS "Priority",
-                t."Feedback" AS "Feedback",
-                t."Subject" AS "Subject",
-                t."OpenedAt" AS "OpenedAt",
-                t."AssignedAt" AS "AssignedAt",
-                t."ClosedAt" AS "ClosedAt",
-                t."LastMessageAt" AS "LastMessageAt"
-            FROM "Tickets" t
-            JOIN "Organizations" o ON t."OrganizationId" = o."Id"
-            JOIN "Categories" c ON t."CategoryId" = c."Id"
-            JOIN "Users" cu ON t."CustomerId" = cu."Id"
-            LEFT JOIN "Users" sa ON t."SupportAgentId" = sa."Id"
+                id AS "Id",
+                organization_id AS "OrganizationId",
+                organization_name AS "OrganizationName",
+                category_id AS "CategoryId",
+                category_name AS "CategoryName",
+                customer_id AS "CustomerId",
+                customer_user_name AS "CustomerUserName",
+                support_agent_id AS "SupportAgentId",
+                support_agent_user_name AS "SupportAgentUserName",
+                status AS "Status",
+                priority AS "Priority",
+                feedback AS "Feedback",
+                subject AS "Subject",
+                opened_at AS "OpenedAt",
+                assigned_at AS "AssignedAt",
+                closed_at AS "ClosedAt",
+                last_message_at AS "LastMessageAt"
+            FROM projections.ticket_summaries
             {whereClause}
-            ORDER BY t."LastMessageAt" DESC NULLS LAST, t."Id" DESC
+            ORDER BY last_message_at DESC NULLS LAST, id DESC
             LIMIT @Take OFFSET @Skip;
 
             -- 4. Unread notifications for paginated tickets
             WITH paginated_page AS (
-                SELECT t."Id"
-                {paginatedPageFromClause}
+                SELECT id
+                FROM projections.ticket_summaries
                 {whereClause}
-                ORDER BY t."LastMessageAt" DESC NULLS LAST, t."Id" DESC
+                ORDER BY last_message_at DESC NULLS LAST, id DESC
                 LIMIT @Take OFFSET @Skip
             )
             SELECT 
@@ -132,8 +119,8 @@ internal sealed class GetCustomerTicketsQueryHandler
                 n."Text" AS "Text",
                 n."Status" AS "Status",
                 n."CreatedAt" AS "CreatedAt"
-            FROM "TicketNotifications" n
-            JOIN paginated_page p ON n."TicketId" = p."Id"
+            FROM public."TicketNotifications" n
+            JOIN paginated_page p ON n."TicketId" = p.id
             WHERE n."Status" = @UnreadNotificationStatus;
             """;
 
