@@ -71,7 +71,7 @@ public class DbPermissionService : IPermissionService
                 return permissions.ToList();
             },
             
-            new FusionCacheEntryOptions(TimeSpan.FromMinutes(2)), token: cancellationToken);
+            new FusionCacheEntryOptions(TimeSpan.FromHours(24)), token: cancellationToken);
     }
 
     public async Task GrantPermissionAsync(Guid userId, Application.Abstract.Auth.Permission.Permission permission, CancellationToken cancellationToken = default)
