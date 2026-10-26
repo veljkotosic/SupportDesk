@@ -40,7 +40,7 @@ internal sealed class GetOrganizationTicketsQueryHandler
         dynamicParams.Add("Skip", query.Skip);
         dynamicParams.Add("Take", query.Take);
 
-        var whereClause = new StringBuilder("WHERE t.\"OrganizationId\" = @OrganizationId");
+        var whereClause = new StringBuilder("WHERE organization_id = @OrganizationId");
 
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
@@ -48,110 +48,68 @@ internal sealed class GetOrganizationTicketsQueryHandler
             if (Guid.TryParse(search, out var parsedGuid))
             {
                 dynamicParams.Add("SearchGuid", parsedGuid);
-                whereClause.Append(" AND t.\"Id\" = @SearchGuid");
+                whereClause.Append(" AND id = @SearchGuid");
             }
             else
             {
                 dynamicParams.Add("SearchPattern", $"%{search}%");
-                whereClause.Append(" AND (t.\"Subject\" ILIKE @SearchPattern OR cu.\"UserName\" ILIKE @SearchPattern OR c.\"Name\" ILIKE @SearchPattern)");
+                whereClause.Append(" AND (subject ILIKE @SearchPattern OR customer_user_name ILIKE @SearchPattern OR category_name ILIKE @SearchPattern)");
             }
         }
 
         if (query.Status.HasValue)
         {
             dynamicParams.Add("Status", (short)query.Status.Value);
-            whereClause.Append(" AND t.\"Status\" = @Status");
+            whereClause.Append(" AND status = @Status");
         }
 
         if (query.Priority.HasValue)
         {
             dynamicParams.Add("Priority", (short)query.Priority.Value);
-            whereClause.Append(" AND t.\"Priority\" = @Priority");
+            whereClause.Append(" AND priority = @Priority");
         }
 
         var orderByClause = query.SortBy switch
         {
-            TicketSortOption.Oldest => "ORDER BY t.\"LastMessageAt\" ASC NULLS LAST, t.\"Id\" ASC",
-            TicketSortOption.Priority => "ORDER BY t.\"Priority\" DESC, t.\"LastMessageAt\" DESC NULLS LAST, t.\"Id\" DESC",
-            TicketSortOption.Latest or _ => "ORDER BY t.\"LastMessageAt\" DESC NULLS LAST, t.\"Id\" DESC"
+            TicketSortOption.Oldest => "ORDER BY last_message_at ASC NULLS LAST, id ASC",
+            TicketSortOption.Priority => "ORDER BY priority DESC, last_message_at DESC NULLS LAST, id DESC",
+            TicketSortOption.Latest or _ => "ORDER BY last_message_at DESC NULLS LAST, id DESC"
         };
-
-        var hasSearch = !string.IsNullOrWhiteSpace(query.SearchTerm);
-        var countFromClause = hasSearch
-            ? "FROM \"Tickets\" t JOIN \"Categories\" c ON t.\"CategoryId\" = c.\"Id\" JOIN \"Users\" cu ON t.\"CustomerId\" = cu.\"Id\""
-            : "FROM \"Tickets\" t";
-
-        var dataQuery = hasSearch
-            ? $"""
-                SELECT 
-                    t."Id" AS "Id",
-                    t."CategoryId" AS "CategoryId",
-                    c."Name" AS "CategoryName",
-                    t."CustomerId" AS "CustomerId",
-                    cu."UserName" AS "CustomerUserName",
-                    cu."Email" AS "CustomerEmail",
-                    t."SupportAgentId" AS "SupportAgentId",
-                    sa."UserName" AS "SupportAgentUserName",
-                    t."Status" AS "Status",
-                    t."Priority" AS "Priority",
-                    t."Feedback" AS "Feedback",
-                    t."Subject" AS "Subject",
-                    t."LastMessageAt" AS "LastMessageAt"
-                FROM "Tickets" t
-                JOIN "Categories" c ON t."CategoryId" = c."Id"
-                JOIN "Users" cu ON t."CustomerId" = cu."Id"
-                LEFT JOIN "Users" sa ON t."SupportAgentId" = sa."Id"
-                {whereClause}
-                {orderByClause}
-                LIMIT @Take OFFSET @Skip;
-                """
-            : $"""
-                WITH paged AS (
-                    SELECT t."Id"
-                    FROM "Tickets" t
-                    {whereClause}
-                    {orderByClause}
-                    LIMIT @Take OFFSET @Skip
-                )
-                SELECT 
-                    t."Id" AS "Id",
-                    t."CategoryId" AS "CategoryId",
-                    c."Name" AS "CategoryName",
-                    t."CustomerId" AS "CustomerId",
-                    cu."UserName" AS "CustomerUserName",
-                    cu."Email" AS "CustomerEmail",
-                    t."SupportAgentId" AS "SupportAgentId",
-                    sa."UserName" AS "SupportAgentUserName",
-                    t."Status" AS "Status",
-                    t."Priority" AS "Priority",
-                    t."Feedback" AS "Feedback",
-                    t."Subject" AS "Subject",
-                    t."LastMessageAt" AS "LastMessageAt"
-                FROM paged p
-                JOIN "Tickets" t ON t."Id" = p."Id"
-                JOIN "Categories" c ON t."CategoryId" = c."Id"
-                JOIN "Users" cu ON t."CustomerId" = cu."Id"
-                LEFT JOIN "Users" sa ON t."SupportAgentId" = sa."Id"
-                {orderByClause};
-                """;
 
         var sql = $"""
             -- 1. Status counts
             SELECT 
                 COUNT(*)::int AS "AllCount",
-                COUNT(*) FILTER (WHERE "Status" = @OpenStatus)::int AS "OpenCount",
-                COUNT(*) FILTER (WHERE "Status" = @AssignedStatus)::int AS "AssignedCount",
-                COUNT(*) FILTER (WHERE "Status" = @ClosedStatus)::int AS "ClosedCount"
-            FROM "Tickets"
-            WHERE "OrganizationId" = @OrganizationId;
+                COUNT(*) FILTER (WHERE status = @OpenStatus)::int AS "OpenCount",
+                COUNT(*) FILTER (WHERE status = @AssignedStatus)::int AS "AssignedCount",
+                COUNT(*) FILTER (WHERE status = @ClosedStatus)::int AS "ClosedCount"
+            FROM projections.ticket_summaries
+            WHERE organization_id = @OrganizationId;
 
             -- 2. Total filtered count
             SELECT COUNT(*)::int
-            {countFromClause}
+            FROM projections.ticket_summaries
             {whereClause};
 
             -- 3. Paginated tickets
-            {dataQuery}
+            SELECT 
+                id AS "Id",
+                category_id AS "CategoryId",
+                category_name AS "CategoryName",
+                customer_id AS "CustomerId",
+                customer_user_name AS "CustomerUserName",
+                customer_email AS "CustomerEmail",
+                support_agent_id AS "SupportAgentId",
+                support_agent_user_name AS "SupportAgentUserName",
+                status AS "Status",
+                priority AS "Priority",
+                feedback AS "Feedback",
+                subject AS "Subject",
+                last_message_at AS "LastMessageAt"
+            FROM projections.ticket_summaries
+            {whereClause}
+            {orderByClause}
+            LIMIT @Take OFFSET @Skip;
             """;
 
         await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);

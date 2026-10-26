@@ -42,19 +42,13 @@ internal sealed class GetOrganizationKnowledgeBaseQueryHandler
 
             -- 3. Categories with ticket count
             SELECT 
-                c."Id",
-                c."Name",
-                c."Description",
-                COALESCE(tc."TicketCount", 0)::int AS "TicketCount"
-            FROM "Categories" c
-            LEFT JOIN (
-                SELECT "CategoryId", COUNT(*)::int AS "TicketCount"
-                FROM "Tickets"
-                WHERE "OrganizationId" = @OrganizationId
-                GROUP BY "CategoryId"
-            ) tc ON c."Id" = tc."CategoryId"
-            WHERE c."OrganizationId" = @OrganizationId AND c."DeletedAt" IS NULL
-            ORDER BY c."Name";
+                id AS "Id",
+                name AS "Name",
+                description AS "Description",
+                ticket_count AS "TicketCount"
+            FROM projections.categories
+            WHERE organization_id = @OrganizationId AND deleted_at IS NULL
+            ORDER BY name;
             """;
 
         await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
