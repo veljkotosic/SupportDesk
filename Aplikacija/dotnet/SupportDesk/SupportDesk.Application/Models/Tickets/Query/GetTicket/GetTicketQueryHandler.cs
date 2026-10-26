@@ -43,29 +43,25 @@ internal sealed class GetTicketQueryHandler
         const string sql = """
             -- 1. Ticket details
             SELECT 
-                t."Id" AS "Id",
-                o."Id" AS "OrganizationId",
-                o."Name" AS "OrganizationName",
-                c."Id" AS "CategoryId",
-                c."Name" AS "CategoryName",
-                customer."Id" AS "CustomerId",
-                customer."UserName" AS "CustomerUserName",
-                agent."Id" AS "SupportAgentId",
-                agent."UserName" AS "SupportAgentUserName",
-                t."Status" AS "Status",
-                t."Priority" AS "Priority",
-                t."Feedback" AS "Feedback",
-                t."Subject" AS "Subject",
-                t."OpenedAt" AS "OpenedAt",
-                t."AssignedAt" AS "AssignedAt",
-                t."ClosedAt" AS "ClosedAt",
-                t."LastMessageAt" AS "LastMessageAt"
-            FROM "Tickets" t
-            JOIN "Organizations" o ON o."Id" = t."OrganizationId"
-            JOIN "Categories" c ON c."Id" = t."CategoryId"
-            JOIN "Users" customer ON customer."Id" = t."CustomerId"
-            LEFT JOIN "Users" agent ON agent."Id" = t."SupportAgentId"
-            WHERE t."Id" = @TicketId;
+                id AS "Id",
+                organization_id AS "OrganizationId",
+                organization_name AS "OrganizationName",
+                category_id AS "CategoryId",
+                category_name AS "CategoryName",
+                customer_id AS "CustomerId",
+                customer_user_name AS "CustomerUserName",
+                support_agent_id AS "SupportAgentId",
+                support_agent_user_name AS "SupportAgentUserName",
+                status AS "Status",
+                priority AS "Priority",
+                feedback AS "Feedback",
+                subject AS "Subject",
+                opened_at AS "OpenedAt",
+                assigned_at AS "AssignedAt",
+                closed_at AS "ClosedAt",
+                last_message_at AS "LastMessageAt"
+            FROM projections.ticket_summaries
+            WHERE id = @TicketId;
 
             -- 2. Unread notifications
             SELECT 

@@ -27,14 +27,13 @@ internal sealed class GetMessageDetailsQueryHandler
 
         const string sql = """
             SELECT 
-                m."Id",
-                s."Id" AS "SenderId",
-                s."UserName" AS "SenderUsername",
-                m."Text",
-                m."CreatedAt"
-            FROM "Messages" m
-            JOIN "Users" s ON m."SenderId" = s."Id"
-            WHERE m."Id" = @MessageId
+                id AS "Id",
+                sender_id AS "SenderId",
+                sender_user_name AS "SenderUsername",
+                text AS "Text",
+                created_at AS "CreatedAt"
+            FROM projections.ticket_messages
+            WHERE id = @MessageId
             LIMIT 1;
             """;
 
