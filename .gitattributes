@@ -2,3 +2,6 @@
 *.mdj linguist-generated=true
 *.mdj linguist-vendored
 *.mdj -diff
+
+# Ensure bash scripts always retain LF line endings on all OSes
+*.sh text eol=lf

@@ -60,9 +60,9 @@ The deployment consists of three Docker Swarm stacks:
    ```
 
 2. **Node Labeling**:
-   Infrastructure and single-instance services are constrained to run on nodes with the `role=manager` label:
+   Infrastructure and single-instance services are constrained to run on nodes with the `role=primary` label:
    ```bash
-   docker node update --label-add role=manager <NODE-HOSTNAME>
+   docker node update --label-add role=primary <NODE-HOSTNAME>
    ```
 
 3. **Insecure Registry Setup**:
