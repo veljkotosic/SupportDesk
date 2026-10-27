@@ -37,13 +37,9 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
         var startDate = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-6);
 
         const string sql = """
-            -- 1. Organization name
-            SELECT organization_name AS "Name"
-            FROM projections.organization_dashboards
-            WHERE organization_id = @OrganizationId;
-            
-            -- 2. Dashboard summary
+            -- 1. Dashboard summary and organization name
             SELECT
+                organization_name AS "Name",
                 open_tickets AS "OpenTickets",
                 assigned_tickets AS "AssignedTickets",
                 closed_tickets AS "ClosedTickets",
@@ -51,7 +47,7 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
             FROM projections.organization_dashboards
             WHERE organization_id = @OrganizationId;
             
-            -- 3. Support agents and assigned-ticket counts
+            -- 2. Support agents and assigned-ticket counts
             SELECT
                 id AS "Id",
                 user_name AS "UserName",
@@ -60,7 +56,7 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
             WHERE organization_id = @OrganizationId
             ORDER BY user_name;
             
-            -- 4. Six most recent tickets
+            -- 3. Six most recent tickets
             SELECT
                 id AS "Id",
                 organization_id AS "OrganizationId",
@@ -78,44 +74,22 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
                 assigned_at AS "AssignedAt",
                 closed_at AS "ClosedAt",
                 feedback AS "Feedback",
-                last_message_at AS "LastMessageAt"
+                last_message_at AS "LastMessageAt",
+                unread_notifications_count AS "UnreadNotificationsCount"
             FROM projections.ticket_summaries
             WHERE organization_id = @OrganizationId
             ORDER BY last_message_at DESC NULLS LAST, id DESC
             LIMIT 6;
             
-            -- 5. Unread notifications for the six most recent tickets
-            WITH recent_tickets AS (
-                SELECT id
-                FROM projections.ticket_summaries
-                WHERE organization_id = @OrganizationId
-                ORDER BY last_message_at DESC NULLS LAST, id DESC
-                LIMIT 6
-            )
+            -- 4. Ticket volume per day
             SELECT
-                n."Id" AS "Id",
-                n."OrganizationId" AS "OrganizationId",
-                n."TicketId" AS "TicketId",
-                n."Text" AS "Text",
-                n."Status" AS "Status",
-                n."CreatedAt" AS "CreatedAt"
-            FROM public."TicketNotifications" n
-            JOIN recent_tickets rt ON rt.id = n."TicketId"
-            WHERE n."OrganizationId" = @OrganizationId
-              AND n."Status" = @UnreadStatus;
-            
-            -- 6. Ticket volume per day
-            WITH date_series AS (
-                SELECT generate_series(@StartDate::date, @StartDate::date + 6, INTERVAL '1 day')::date AS "Day"
-            )
-            SELECT
-                ds."Day" AS "Date",
-                COALESCE(dv.opened_count, 0) AS "OpenedCount",
-                COALESCE(dv.closed_count, 0) AS "ClosedCount"
-            FROM date_series ds
-            LEFT JOIN projections.daily_ticket_volumes dv 
-                ON dv.organization_id = @OrganizationId AND dv.day = ds."Day"
-            ORDER BY ds."Day";
+                day AS "Date",
+                opened_count AS "OpenedCount",
+                closed_count AS "ClosedCount"
+            FROM projections.daily_ticket_volumes
+            WHERE organization_id = @OrganizationId
+              AND day >= @StartDate::date
+              AND day <= (@StartDate::date + 6);
             """;
 
         await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
@@ -123,7 +97,6 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
         var parameters = new
         {
             OrganizationId = organizationId.IdValue,
-            UnreadStatus = (short)TicketNotificationStatus.Unread,
             StartDate = startDate
         };
 
@@ -133,8 +106,6 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
             cancellationToken: cancellationToken);
 
         await using var results = await connection.QueryMultipleAsync(command);
-
-        var organization = await results.ReadSingleAsync<OrganizationRow>();
 
         var summaryRow = await results.ReadSingleAsync<SummaryRow>();
 
@@ -155,7 +126,34 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
 
         var ticketRows = (await results.ReadAsync<TicketRow>()).ToList();
 
-        var notificationRows = (await results.ReadAsync<NotificationRow>()).ToList();
+        var ticketIdsWithUnread = ticketRows
+            .Where(t => t.UnreadNotificationsCount > 0)
+            .Select(t => t.Id)
+            .ToArray();
+
+        List<NotificationRow> notificationRows = [];
+        if (ticketIdsWithUnread.Length > 0)
+        {
+            const string notifSql = """
+                SELECT
+                    n."Id" AS "Id",
+                    n."OrganizationId" AS "OrganizationId",
+                    n."TicketId" AS "TicketId",
+                    n."Text" AS "Text",
+                    n."Status" AS "Status",
+                    n."CreatedAt" AS "CreatedAt"
+                FROM public."TicketNotifications" n
+                WHERE n."TicketId" = ANY(@TicketIds)
+                  AND n."Status" = @UnreadStatus;
+                """;
+
+            var notifCommand = new CommandDefinition(
+                notifSql,
+                new { TicketIds = ticketIdsWithUnread, UnreadStatus = (short)TicketNotificationStatus.Unread },
+                cancellationToken: cancellationToken);
+
+            notificationRows = (await connection.QueryAsync<NotificationRow>(notifCommand)).ToList();
+        }
 
         var notificationsByTicket = notificationRows
             .GroupBy(notification => notification.TicketId)
@@ -193,30 +191,37 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
                 notificationsByTicket.GetValueOrDefault(ticket.Id) ?? []))
             .ToList();
 
-        var volumeRows = (await results.ReadAsync<VolumeRow>()).ToList();
+        var volumeRows = (await results.ReadAsync<VolumeRow>()).ToDictionary(r => r.Date);
 
-        var ticketVolume = volumeRows
-            .Select(row => new OrganizationAdminDashboardTicketVolumeEntryDto(
-                row.Date,
-                row.OpenedCount,
-                row.ClosedCount))
-            .ToList();
+        var startDateOnly = DateOnly.FromDateTime(startDate);
+        var ticketVolume = new List<OrganizationAdminDashboardTicketVolumeEntryDto>(7);
+        for (var i = 0; i < 7; i++)
+        {
+            var day = startDateOnly.AddDays(i);
+            if (volumeRows.TryGetValue(day, out var existing))
+            {
+                ticketVolume.Add(new OrganizationAdminDashboardTicketVolumeEntryDto(
+                    existing.Date,
+                    existing.OpenedCount,
+                    existing.ClosedCount));
+            }
+            else
+            {
+                ticketVolume.Add(new OrganizationAdminDashboardTicketVolumeEntryDto(day, 0, 0));
+            }
+        }
 
         return new GetOrganizationAdminDashboardQueryResult(
-            organization.Name,
+            summaryRow.Name,
             summary,
             ticketVolume,
             agents,
             recentTickets);
     }
 
-    private sealed record OrganizationRow
-    {
-        public string Name { get; set; } = null!;
-    }
-
     private sealed record SummaryRow
     {
+        public string Name { get; set; } = null!;
         public int OpenTickets { get; set; }
         public int AssignedTickets { get; set; }
         public int ClosedTickets { get; set; }
@@ -249,6 +254,7 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
         public DateTime? ClosedAt { get; set; }
         public TicketFeedback Feedback { get; set; }
         public DateTime? LastMessageAt { get; set; }
+        public int UnreadNotificationsCount { get; set; }
     }
 
     private sealed record NotificationRow
