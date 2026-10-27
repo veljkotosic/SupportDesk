@@ -30,6 +30,8 @@ public static class SupportDeskRegistrationExtensions
             services.AddSupportDeskAuth(configuration);
             services.AddHttpExecutionContext();
             
+            services.AddSupportDeskElasticsearch(configuration);
+
             return services;
         }
 
@@ -45,6 +47,9 @@ public static class SupportDeskRegistrationExtensions
             services.AddWorkerExecutionContext();
 
             services.AddRabbitMqRealtimePublisher();
+
+            services.AddSupportDeskElasticsearch(configuration);
+            services.AddSupportDeskElasticsearchBackfill();
 
             services.AddSupportDeskWorkerHealthChecks(configuration);
             

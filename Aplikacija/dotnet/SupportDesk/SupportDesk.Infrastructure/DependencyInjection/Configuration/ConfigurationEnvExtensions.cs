@@ -9,6 +9,8 @@ public static class ConfigurationEnvExtensions
     private const string RabbitMqAmqpUriKey = "RABBITMQ_AMQP_URI";
     
     private const string OtelExporterOtlpEndpointKey = "OTEL_EXPORTER_OTLP_ENDPOINT";
+
+    private const string ElasticsearchUrlKey = "ELASTICSEARCH_URL";
     
     private const string JwtIssuer = "JWT_ISSUER";
     private const string JwtAudience = "JWT_AUDIENCE";
@@ -32,6 +34,16 @@ public static class ConfigurationEnvExtensions
         public string GetEnvOtelExporterOtlpEndpoint()
         {
             return configuration.GetEnvForSure(OtelExporterOtlpEndpointKey);
+        }
+
+        public string GetEnvElasticsearchUrl()
+        {
+            var url = configuration.GetEnvOrDefault(ElasticsearchUrlKey, "http://127.0.0.1:9200");
+            if (url.Contains("localhost", StringComparison.OrdinalIgnoreCase))
+            {
+                url = url.Replace("localhost", "127.0.0.1", StringComparison.OrdinalIgnoreCase);
+            }
+            return url;
         }
 
         public string GetEnvJwtIssuer()
