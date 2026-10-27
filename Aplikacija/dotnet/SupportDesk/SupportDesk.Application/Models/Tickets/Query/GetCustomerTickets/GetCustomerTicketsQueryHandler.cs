@@ -65,8 +65,12 @@ internal sealed class GetCustomerTicketsQueryHandler
             whereClause.Append(" AND status = @Status");
         }
 
-        var sql = $"""
-            -- 1. Status counts
+        var hasSearchTerm = !string.IsNullOrWhiteSpace(query.SearchTerm);
+
+        var sqlBuilder = new StringBuilder();
+
+        // 1. Status counts
+        sqlBuilder.AppendLine("""
             SELECT 
                 COUNT(*)::int AS "AllCount",
                 COUNT(*) FILTER (WHERE status = @OpenStatus)::int AS "OpenCount",
@@ -74,13 +78,20 @@ internal sealed class GetCustomerTicketsQueryHandler
                 COUNT(*) FILTER (WHERE status = @ClosedStatus)::int AS "ClosedCount"
             FROM projections.ticket_summaries
             WHERE customer_id = @CustomerId;
+            """);
 
-            -- 2. Total filtered count
-            SELECT COUNT(*)::int
-            FROM projections.ticket_summaries
-            {whereClause};
+        // 2. Total filtered count (only needed when searching)
+        if (hasSearchTerm)
+        {
+            sqlBuilder.AppendLine($"""
+                SELECT COUNT(*)::int
+                FROM projections.ticket_summaries
+                {whereClause};
+                """);
+        }
 
-            -- 3. Paginated tickets
+        // 3. Paginated tickets
+        sqlBuilder.AppendLine($"""
             SELECT 
                 id AS "Id",
                 organization_id AS "OrganizationId",
@@ -98,45 +109,75 @@ internal sealed class GetCustomerTicketsQueryHandler
                 opened_at AS "OpenedAt",
                 assigned_at AS "AssignedAt",
                 closed_at AS "ClosedAt",
-                last_message_at AS "LastMessageAt"
+                last_message_at AS "LastMessageAt",
+                unread_notifications_count AS "UnreadNotificationsCount"
             FROM projections.ticket_summaries
             {whereClause}
             ORDER BY last_message_at DESC NULLS LAST, id DESC
             LIMIT @Take OFFSET @Skip;
-
-            -- 4. Unread notifications for paginated tickets
-            WITH paginated_page AS (
-                SELECT id
-                FROM projections.ticket_summaries
-                {whereClause}
-                ORDER BY last_message_at DESC NULLS LAST, id DESC
-                LIMIT @Take OFFSET @Skip
-            )
-            SELECT 
-                n."Id" AS "Id",
-                n."OrganizationId" AS "OrganizationId",
-                n."TicketId" AS "TicketId",
-                n."Text" AS "Text",
-                n."Status" AS "Status",
-                n."CreatedAt" AS "CreatedAt"
-            FROM public."TicketNotifications" n
-            JOIN paginated_page p ON n."TicketId" = p.id
-            WHERE n."Status" = @UnreadNotificationStatus;
-            """;
+            """);
 
         await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
 
         var command = new CommandDefinition(
-            sql,
+            sqlBuilder.ToString(),
             dynamicParams,
             cancellationToken: cancellationToken);
 
         await using var multi = await connection.QueryMultipleAsync(command);
 
         var statusCounts = await multi.ReadSingleAsync<StatusCountsRow>();
-        var totalCount = await multi.ReadSingleAsync<int>();
+
+        int totalCount;
+        if (hasSearchTerm)
+        {
+            totalCount = await multi.ReadSingleAsync<int>();
+        }
+        else if (query.Status.HasValue)
+        {
+            totalCount = query.Status.Value switch
+            {
+                TicketStatus.Open => statusCounts.OpenCount,
+                TicketStatus.Assigned => statusCounts.AssignedCount,
+                TicketStatus.Closed => statusCounts.ClosedCount,
+                _ => statusCounts.AllCount
+            };
+        }
+        else
+        {
+            totalCount = statusCounts.AllCount;
+        }
+
         var rawTickets = (await multi.ReadAsync<RawCustomerTicketRow>()).ToList();
-        var rawNotifications = (await multi.ReadAsync<RawNotificationRow>()).ToList();
+
+        var ticketIdsWithUnread = rawTickets
+            .Where(t => t.UnreadNotificationsCount > 0)
+            .Select(t => t.Id)
+            .ToArray();
+
+        List<RawNotificationRow> rawNotifications = [];
+        if (ticketIdsWithUnread.Length > 0)
+        {
+            const string notifSql = """
+                SELECT 
+                    n."Id" AS "Id",
+                    n."OrganizationId" AS "OrganizationId",
+                    n."TicketId" AS "TicketId",
+                    n."Text" AS "Text",
+                    n."Status" AS "Status",
+                    n."CreatedAt" AS "CreatedAt"
+                FROM public."TicketNotifications" n
+                WHERE n."TicketId" = ANY(@TicketIds)
+                  AND n."Status" = @UnreadNotificationStatus;
+                """;
+
+            var notifCommand = new CommandDefinition(
+                notifSql,
+                new { TicketIds = ticketIdsWithUnread, UnreadNotificationStatus = (short)TicketNotificationStatus.Unread },
+                cancellationToken: cancellationToken);
+
+            rawNotifications = (await connection.QueryAsync<RawNotificationRow>(notifCommand)).ToList();
+        }
 
         var notificationsByTicket = rawNotifications
             .GroupBy(n => n.TicketId)
@@ -207,6 +248,7 @@ internal sealed class GetCustomerTicketsQueryHandler
         public DateTime? AssignedAt { get; set; }
         public DateTime? ClosedAt { get; set; }
         public DateTime? LastMessageAt { get; set; }
+        public int UnreadNotificationsCount { get; set; }
     }
 
     private sealed record RawNotificationRow
