@@ -33,7 +33,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.role == manager
+          - node.labels.role == primary
       restart_policy:
         condition: any
 
@@ -71,7 +71,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.role == manager
+          - node.labels.role == primary
       restart_policy:
         condition: any
 
@@ -99,15 +99,57 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.role == manager
+          - node.labels.role == primary
       restart_policy:
         condition: on-failure
+
+
+  elasticsearch:
+    image: elasticsearch:8.17.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+      - cluster.routing.allocation.disk.watermark.low=95%
+      - cluster.routing.allocation.disk.watermark.high=97%
+      - cluster.routing.allocation.disk.watermark.flood_stage=98%
+
+    ports:
+      - target: 9200
+        published: 9200
+        protocol: tcp
+        mode: host
+
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+    networks:
+      - backend
+
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.role == secondary
+      resources:
+        limits:
+          memory: 7G
+      restart_policy:
+        condition: any
 
 
 volumes:
   postgres_data:
   rabbitmq_data:
   seq_data:
+  elasticsearch_data:
 
 
 networks:

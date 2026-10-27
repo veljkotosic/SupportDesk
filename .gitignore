@@ -480,3 +480,9 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Large seed dumps
+seed.sql
+seed-es.ndjson
+*.ndjson
+

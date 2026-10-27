@@ -47,7 +47,30 @@ services:
       retries: 5
       start_period: 30s
 
+  elasticsearch:
+    image: elasticsearch:8.17.0
+    container_name: supportdesk-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+      - cluster.routing.allocation.disk.watermark.low=95%
+      - cluster.routing.allocation.disk.watermark.high=97%
+      - cluster.routing.allocation.disk.watermark.flood_stage=98%
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 volumes:
   seqdata:
   pgdata:
   rabbitmqdata:
+  esdata:
