@@ -74,14 +74,34 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
                 assigned_at AS "AssignedAt",
                 closed_at AS "ClosedAt",
                 feedback AS "Feedback",
-                last_message_at AS "LastMessageAt",
-                unread_notifications_count AS "UnreadNotificationsCount"
+                last_message_at AS "LastMessageAt"
             FROM projections.ticket_summaries
             WHERE organization_id = @OrganizationId
             ORDER BY last_message_at DESC NULLS LAST, id DESC
             LIMIT 6;
             
-            -- 4. Ticket volume per day
+            -- 4. Unread notifications for the six most recent tickets
+            WITH recent_tickets AS (
+                SELECT id, unread_notifications_count
+                FROM projections.ticket_summaries
+                WHERE organization_id = @OrganizationId
+                ORDER BY last_message_at DESC NULLS LAST, id DESC
+                LIMIT 6
+            )
+            SELECT
+                n."Id" AS "Id",
+                n."OrganizationId" AS "OrganizationId",
+                n."TicketId" AS "TicketId",
+                n."Text" AS "Text",
+                n."Status" AS "Status",
+                n."CreatedAt" AS "CreatedAt"
+            FROM public."TicketNotifications" n
+            JOIN recent_tickets rt ON rt.id = n."TicketId"
+            WHERE rt.unread_notifications_count > 0
+              AND n."OrganizationId" = @OrganizationId
+              AND n."Status" = @UnreadStatus;
+            
+            -- 5. Ticket volume per day (pure single-table select, no join)
             SELECT
                 day AS "Date",
                 opened_count AS "OpenedCount",
@@ -97,6 +117,7 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
         var parameters = new
         {
             OrganizationId = organizationId.IdValue,
+            UnreadStatus = (short)TicketNotificationStatus.Unread,
             StartDate = startDate
         };
 
@@ -126,34 +147,7 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
 
         var ticketRows = (await results.ReadAsync<TicketRow>()).ToList();
 
-        var ticketIdsWithUnread = ticketRows
-            .Where(t => t.UnreadNotificationsCount > 0)
-            .Select(t => t.Id)
-            .ToArray();
-
-        List<NotificationRow> notificationRows = [];
-        if (ticketIdsWithUnread.Length > 0)
-        {
-            const string notifSql = """
-                SELECT
-                    n."Id" AS "Id",
-                    n."OrganizationId" AS "OrganizationId",
-                    n."TicketId" AS "TicketId",
-                    n."Text" AS "Text",
-                    n."Status" AS "Status",
-                    n."CreatedAt" AS "CreatedAt"
-                FROM public."TicketNotifications" n
-                WHERE n."TicketId" = ANY(@TicketIds)
-                  AND n."Status" = @UnreadStatus;
-                """;
-
-            var notifCommand = new CommandDefinition(
-                notifSql,
-                new { TicketIds = ticketIdsWithUnread, UnreadStatus = (short)TicketNotificationStatus.Unread },
-                cancellationToken: cancellationToken);
-
-            notificationRows = (await connection.QueryAsync<NotificationRow>(notifCommand)).ToList();
-        }
+        var notificationRows = (await results.ReadAsync<NotificationRow>()).ToList();
 
         var notificationsByTicket = notificationRows
             .GroupBy(notification => notification.TicketId)
