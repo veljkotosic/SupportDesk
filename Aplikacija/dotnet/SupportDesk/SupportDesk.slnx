@@ -2,6 +2,7 @@
   <Project Path="SupportDesk.ApiTests/SupportDesk.ApiTests.csproj" />
   <Project Path="SupportDesk.Application/SupportDesk.Application.csproj" />
   <Project Path="SupportDesk.Domain/SupportDesk.Domain.csproj" />
+  <Project Path="SupportDesk.ElasticSync/SupportDesk.ElasticSync.csproj" />
   <Project Path="SupportDesk.Infrastructure/SupportDesk.Infrastructure.csproj" />
   <Project Path="SupportDesk.WebApi/SupportDesk.WebApi.csproj" />
   <Project Path="SupportDesk.ArchitectureTests/SupportDesk.ArchitectureTests.csproj" />
