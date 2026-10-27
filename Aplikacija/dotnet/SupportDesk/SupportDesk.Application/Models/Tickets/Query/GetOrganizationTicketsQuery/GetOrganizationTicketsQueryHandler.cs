@@ -76,22 +76,33 @@ internal sealed class GetOrganizationTicketsQueryHandler
             TicketSortOption.Latest or _ => "ORDER BY last_message_at DESC NULLS LAST, id DESC"
         };
 
-        var sql = $"""
-            -- 1. Status counts
+        var hasSearchOrPriority = !string.IsNullOrWhiteSpace(query.SearchTerm) || query.Priority.HasValue;
+
+        var sqlBuilder = new StringBuilder();
+
+        // 1. Status counts from pre-aggregated organization dashboard projection (O(1) PK lookup)
+        sqlBuilder.AppendLine("""
             SELECT 
-                COUNT(*)::int AS "AllCount",
-                COUNT(*) FILTER (WHERE status = @OpenStatus)::int AS "OpenCount",
-                COUNT(*) FILTER (WHERE status = @AssignedStatus)::int AS "AssignedCount",
-                COUNT(*) FILTER (WHERE status = @ClosedStatus)::int AS "ClosedCount"
-            FROM projections.ticket_summaries
+                COALESCE(open_tickets + assigned_tickets + closed_tickets, 0)::int AS "AllCount",
+                COALESCE(open_tickets, 0)::int AS "OpenCount",
+                COALESCE(assigned_tickets, 0)::int AS "AssignedCount",
+                COALESCE(closed_tickets, 0)::int AS "ClosedCount"
+            FROM projections.organization_dashboards
             WHERE organization_id = @OrganizationId;
+            """);
 
-            -- 2. Total filtered count
-            SELECT COUNT(*)::int
-            FROM projections.ticket_summaries
-            {whereClause};
+        // 2. Filtered count query only needed when filtering by search term or priority
+        if (hasSearchOrPriority)
+        {
+            sqlBuilder.AppendLine($"""
+                SELECT COUNT(*)::int
+                FROM projections.ticket_summaries
+                {whereClause};
+                """);
+        }
 
-            -- 3. Paginated tickets
+        // 3. Paginated tickets
+        sqlBuilder.AppendLine($"""
             SELECT 
                 id AS "Id",
                 category_id AS "CategoryId",
@@ -110,19 +121,39 @@ internal sealed class GetOrganizationTicketsQueryHandler
             {whereClause}
             {orderByClause}
             LIMIT @Take OFFSET @Skip;
-            """;
+            """);
 
         await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
 
         var command = new CommandDefinition(
-            sql,
+            sqlBuilder.ToString(),
             dynamicParams,
             cancellationToken: cancellationToken);
 
         await using var multi = await connection.QueryMultipleAsync(command);
 
-        var statusCounts = await multi.ReadSingleAsync<StatusCountsRow>();
-        var totalCount = await multi.ReadSingleAsync<int>();
+        var statusCounts = (await multi.ReadFirstOrDefaultAsync<StatusCountsRow>()) ?? new StatusCountsRow();
+
+        int totalCount;
+        if (hasSearchOrPriority)
+        {
+            totalCount = await multi.ReadSingleAsync<int>();
+        }
+        else if (query.Status.HasValue)
+        {
+            totalCount = query.Status.Value switch
+            {
+                TicketStatus.Open => statusCounts.OpenCount,
+                TicketStatus.Assigned => statusCounts.AssignedCount,
+                TicketStatus.Closed => statusCounts.ClosedCount,
+                _ => statusCounts.AllCount
+            };
+        }
+        else
+        {
+            totalCount = statusCounts.AllCount;
+        }
+
         var rawTickets = (await multi.ReadAsync<RawOrganizationTicketRow>()).ToList();
 
         var ticketRows = rawTickets.Select(t => new OrganizationTicketListingDto(
