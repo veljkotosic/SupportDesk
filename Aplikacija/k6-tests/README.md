@@ -53,16 +53,50 @@ $env:DB_CONN_STRING="Host=<host>;Port=5432;Database=SupportDeskDatabase;Username
 dotnet run --project SupportDesk.TestDataGenerator
 ```
 
-### Seeding from SQL Dump
+### Seeding PostgreSQL & Elasticsearch
 
-Alternatively, import the pre-generated database dump:
+In this CQRS approach, PostgreSQL stores the write model and Elasticsearch stores the read model. You can restore both simultaneously or individually:
 
+#### 1. Unified Reseed (PostgreSQL + Elasticsearch)
+
+To restore both datastores with a single command:
+
+**PowerShell:**
+```powershell
+# Local Docker
+.\scripts\reseed.ps1
+
+# Remote / Docker Swarm
+.\scripts\reseed.ps1 -PostgresHost "<HOST-IP>" -ElasticsearchUrl "http://<ES-HOST-IP>:9200" -Remote
+```
+
+**Bash:**
+```bash
+# Local Docker
+./scripts/reseed.sh
+
+# Remote / Docker Swarm
+./scripts/reseed.sh "<HOST-IP>" "http://<ES-HOST-IP>:9200"
+```
+
+#### 2. Individual Seeding
+
+**PostgreSQL only (`data/seed.sql`):**
 ```bash
 # Docker local
 docker exec -i supportdesk-postgres psql -U SupportDeskUser -d SupportDeskDatabase < data/seed.sql
 
 # Remote PostgreSQL
 psql -h <host> -p 5432 -U SupportDeskUser -d SupportDeskDatabase -f data/seed.sql
+```
+
+**Elasticsearch only (`data/seed-es.ndjson`):**
+```bash
+# PowerShell
+.\scripts\restore-es.ps1 -ElasticsearchUrl "http://localhost:9200"
+
+# Bash
+./scripts/restore-es.sh "http://localhost:9200"
 ```
 
 ---
