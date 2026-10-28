@@ -60,8 +60,6 @@ internal sealed class GetCustomerTicketsQueryHandler
             }
             else
             {
-                var searchPattern = $"*{search.ToLowerInvariant()}*";
-
                 postFilterQueries.Add(new BoolQuery
                 {
                     Should = new ElasticQuery[]
@@ -77,10 +75,10 @@ internal sealed class GetCustomerTicketsQueryHandler
                             },
                             Type = TextQueryType.PhrasePrefix
                         },
-                        new WildcardQuery(Infer.Field<TicketDocument>(f => f.Subject)) { Value = searchPattern },
-                        new WildcardQuery(Infer.Field<TicketDocument>(f => f.OrganizationName)) { Value = searchPattern },
-                        new WildcardQuery(Infer.Field<TicketDocument>(f => f.CategoryName)) { Value = searchPattern },
-                        new WildcardQuery(Infer.Field<TicketDocument>(f => f.Id)) { Value = searchPattern }
+                        new PrefixQuery(Infer.Field<TicketDocument>(f => f.Id))
+                        {
+                            Value = search.ToLowerInvariant()
+                        }
                     },
                     MinimumShouldMatch = 1
                 });
@@ -90,7 +88,7 @@ internal sealed class GetCustomerTicketsQueryHandler
         var searchResponse = await _client.SearchAsync<TicketDocument>(s =>
         {
             s.Index(ElasticsearchIndices.Tickets)
-             .Query(q => q.Term(t => t.Field(f => f.CustomerId).Value(customerId.ToString())));
+             .Query(q => q.Bool(b => b.Filter(f => f.Term(t => t.Field(doc => doc.CustomerId).Value(customerId.ToString())))));
 
             if (postFilterQueries.Count > 0)
             {
@@ -107,7 +105,7 @@ internal sealed class GetCustomerTicketsQueryHandler
                 .Add("assigned_count", agg => agg.Filter(q => q.Term(t => t.Field(doc => doc.Status).Value((short)TicketStatus.Assigned))))
                 .Add("closed_count", agg => agg.Filter(q => q.Term(t => t.Field(doc => doc.Status).Value((short)TicketStatus.Closed))))
             );
-        }, cancellationToken);
+        }, cancellationToken).ConfigureAwait((false));
 
         if (!searchResponse.IsValidResponse)
         {
@@ -140,7 +138,7 @@ internal sealed class GetCustomerTicketsQueryHandler
             doc.AssignedAt,
             doc.ClosedAt,
             doc.LastMessageAt,
-            doc.UnreadNotifications.Select(n => new TicketNotificationDetailsDto(
+            (doc.UnreadNotifications ?? []).Select(n => new TicketNotificationDetailsDto(
                 n.Id,
                 n.OrganizationId,
                 n.TicketId,

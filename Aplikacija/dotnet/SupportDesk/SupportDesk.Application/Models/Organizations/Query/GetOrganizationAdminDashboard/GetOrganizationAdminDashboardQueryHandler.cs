@@ -1,5 +1,6 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Aggregations;
+using Elastic.Clients.Elasticsearch.Core.Search;
 using Microsoft.Extensions.Logging;
 using SupportDesk.Application.Abstract.Auth.Permission;
 using SupportDesk.Application.Abstract.Auth.TenantContext;
@@ -43,30 +44,25 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
         var nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
         var startDateUtc = nowUtc.Date.AddDays(-6);
 
-        // 1. Get Organization Name
-        var orgDocResponse = await _client.GetAsync<OrganizationDocument>(
+        // 1. Initiate queries in parallel
+        var orgDocTask = _client.GetAsync<OrganizationDocument>(
             ElasticsearchIndices.Organizations,
             organizationId.ToString(),
             cancellationToken);
 
-        var organizationName = orgDocResponse.Source?.Name ?? string.Empty;
-
-        // 2. Query all support agents for this organization from users index
-        var agentsResponse = await _client.SearchAsync<UserDocument>(s => s
+        var agentsTask = _client.SearchAsync<UserDocument>(s => s
             .Index(ElasticsearchIndices.Users)
             .Query(q => q.Bool(b => b.Filter(
                 f => f.Term(t => t.Field(u => u.OrganizationId).Value(organizationId.ToString())),
                 f => f.Term(t => t.Field(u => u.Role).Value((short)UserRole.SupportAgent))
             )))
             .Size(1000)
+            .Source(new SourceConfig(new SourceFilter { Includes = new[] { "id", "userName" } }))
             .Sort(so => so.Field(f => f.UserName, new FieldSort { Order = SortOrder.Asc })), cancellationToken);
 
-        var agentsList = agentsResponse.IsValidResponse ? agentsResponse.Documents.ToList() : [];
-
-        // 3. Query tickets index: 6 recent tickets + aggregations
-        var ticketsResponse = await _client.SearchAsync<TicketDocument>(s => s
+        var ticketsTask = _client.SearchAsync<TicketDocument>(s => s
             .Index(ElasticsearchIndices.Tickets)
-            .Query(q => q.Term(t => t.Field(f => f.OrganizationId).Value(organizationId.ToString())))
+            .Query(q => q.Bool(b => b.Filter(f => f.Term(t => t.Field(doc => doc.OrganizationId).Value(organizationId.ToString())))))
             .Size(6)
             .Sort(so =>
             {
@@ -90,6 +86,15 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
                     )))
                     .Aggregations(sub => sub.Add("histogram", h => h.DateHistogram(dh => dh.Field(doc => doc.ClosedAt).CalendarInterval(CalendarInterval.Day).MinDocCount(0)))))
             ), cancellationToken);
+
+        await Task.WhenAll(orgDocTask, agentsTask, ticketsTask).ConfigureAwait(false);
+
+        var orgDocResponse = await orgDocTask;
+        var agentsResponse = await agentsTask;
+        var ticketsResponse = await ticketsTask;
+
+        var organizationName = orgDocResponse.Source?.Name ?? string.Empty;
+        var agentsList = agentsResponse.IsValidResponse ? agentsResponse.Documents.ToList() : [];
 
         if (!ticketsResponse.IsValidResponse)
         {

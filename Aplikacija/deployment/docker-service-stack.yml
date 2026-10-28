@@ -9,6 +9,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
+      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL:-http://elasticsearch:9200}
 
     networks:
       - backend
@@ -48,6 +49,7 @@ services:
 
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL:-http://elasticsearch:9200}
 
     networks:
       - backend

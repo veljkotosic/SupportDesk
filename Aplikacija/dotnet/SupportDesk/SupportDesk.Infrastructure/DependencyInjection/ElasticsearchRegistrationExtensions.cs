@@ -1,4 +1,4 @@
-using System.Net.Sockets;
+using System.Net;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 using Microsoft.Extensions.Configuration;
@@ -18,48 +18,26 @@ public static class ElasticsearchRegistrationExtensions
         public IServiceCollection AddSupportDeskElasticsearch(IConfiguration configuration)
         {
             var elasticsearchUrl = configuration.GetEnvElasticsearchUrl();
-
             var elasticsearchUri = new Uri(elasticsearchUrl);
             var nodePool = new SingleNodePool(elasticsearchUri);
 
-            var invoker = new HttpRequestInvoker((_, _) =>
+            var customHandler = new SocketsHttpHandler
             {
-                return new SocketsHttpHandler
-                {
-                    PooledConnectionIdleTimeout = TimeSpan.FromSeconds(15),
-                    PooledConnectionLifetime = TimeSpan.FromMinutes(2),
-                    
-                    ConnectTimeout = TimeSpan.FromSeconds(2),
-                    
-                    KeepAlivePingDelay = TimeSpan.FromSeconds(5),
-                    KeepAlivePingTimeout = TimeSpan.FromSeconds(2),
-                    KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
-                    
-                    EnableMultipleHttp2Connections = true,
-                    
-                    ConnectCallback = async (context, cancellationToken) =>
-                    {
-                        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp)
-                        {
-                            NoDelay = true
-                        };
-                        
-                        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-                        socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 5);
-                        socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 1);
-                        socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 3);
-                        
-                        await socket.ConnectAsync(context.DnsEndPoint, cancellationToken).ConfigureAwait(false);
-                        
-                        return new NetworkStream(socket, ownsSocket: true);
-                    }
-                };
-            });
+                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(15),
+                PooledConnectionLifetime = TimeSpan.FromHours(1),
+                ConnectTimeout = TimeSpan.FromSeconds(15),
+                MaxConnectionsPerServer = 1000,          
+                EnableMultipleHttp2Connections = false  
+            };
 
-            var settings = new ElasticsearchClientSettings(nodePool, invoker)
+            var customInvoker = new HttpRequestInvoker((_, _) => customHandler);
+            
+            var settings = new ElasticsearchClientSettings(nodePool, customInvoker)
                 .DefaultIndex(ElasticsearchIndices.Tickets)
                 .RequestTimeout(TimeSpan.FromSeconds(30))
-                .DisableAutomaticProxyDetection(true);
+                .DisableAutomaticProxyDetection(true)
+                .DisableMetaHeader()
+                .ConnectionLimit(1000); 
 
             var client = new ElasticsearchClient(settings);
 
@@ -73,13 +51,15 @@ public static class ElasticsearchRegistrationExtensions
 
             return services;
         }
-
+        
         public IServiceCollection AddSupportDeskElasticsearchBackfill()
         {
             services.AddSingleton<ElasticsearchBackfillService>();
             services.AddHostedService(sp => sp.GetRequiredService<ElasticsearchBackfillService>());
-            
+        
             return services;
         }
     }
 }
+
+

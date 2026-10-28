@@ -47,6 +47,7 @@ public sealed class ElasticsearchBackfillService : BackgroundService
         if (forceReindex)
         {
             _logger.LogInformation("Force reindex requested. Deleting existing Elasticsearch indices...");
+            
             await _client.Indices.DeleteAsync(ElasticsearchIndices.Tickets, cancellationToken);
             await _client.Indices.DeleteAsync(ElasticsearchIndices.Users, cancellationToken);
             await _client.Indices.DeleteAsync(ElasticsearchIndices.Organizations, cancellationToken);
