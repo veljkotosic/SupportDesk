@@ -1,7 +1,7 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Microsoft.Extensions.Logging;
-using SupportDesk.Infrastructure.Elasticsearch.Documents;
+using SupportDesk.Application.ReadModels;
 
 namespace SupportDesk.Infrastructure.Elasticsearch.Initialization;
 

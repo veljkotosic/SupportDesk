@@ -1,4 +1,4 @@
-namespace SupportDesk.Infrastructure.Elasticsearch;
+namespace SupportDesk.Application.ReadModels;
 
 public static class ElasticsearchIndices
 {

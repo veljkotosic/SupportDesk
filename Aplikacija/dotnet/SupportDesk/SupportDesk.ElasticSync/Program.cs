@@ -7,9 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SupportDesk.Application.Abstract.Database;
+using SupportDesk.Application.ReadModels;
 using SupportDesk.Infrastructure.DependencyInjection;
-using SupportDesk.Infrastructure.Elasticsearch;
-using SupportDesk.Infrastructure.Elasticsearch.Documents;
 using SupportDesk.Infrastructure.Elasticsearch.Initialization;
 
 Env.TraversePath().NoClobber().Load();

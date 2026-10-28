@@ -3,7 +3,7 @@ using Elastic.Clients.Elasticsearch;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SupportDesk.Application.Abstract.Database;
-using SupportDesk.Infrastructure.Elasticsearch.Documents;
+using SupportDesk.Application.ReadModels;
 
 namespace SupportDesk.Infrastructure.Elasticsearch.Initialization;
 

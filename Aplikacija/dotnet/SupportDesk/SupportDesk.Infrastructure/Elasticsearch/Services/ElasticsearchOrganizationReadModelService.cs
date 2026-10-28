@@ -1,6 +1,6 @@
 using Elastic.Clients.Elasticsearch;
 using SupportDesk.Application.Abstract.ReadModels;
-using SupportDesk.Infrastructure.Elasticsearch.Documents;
+using SupportDesk.Application.ReadModels;
 
 namespace SupportDesk.Infrastructure.Elasticsearch.Services;
 

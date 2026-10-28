@@ -1,4 +1,4 @@
-namespace SupportDesk.Infrastructure.Elasticsearch.Documents;
+namespace SupportDesk.Application.ReadModels;
 
 public sealed class OrganizationDocument
 {

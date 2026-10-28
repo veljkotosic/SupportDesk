@@ -4,8 +4,8 @@ using Elastic.Transport;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SupportDesk.Application.Abstract.ReadModels;
+using SupportDesk.Application.ReadModels;
 using SupportDesk.Infrastructure.DependencyInjection.Configuration;
-using SupportDesk.Infrastructure.Elasticsearch;
 using SupportDesk.Infrastructure.Elasticsearch.Initialization;
 using SupportDesk.Infrastructure.Elasticsearch.Services;
 
