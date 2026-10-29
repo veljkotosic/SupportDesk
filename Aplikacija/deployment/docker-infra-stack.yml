@@ -137,6 +137,7 @@ services:
 
     deploy:
       replicas: 1
+      endpoint_mode: dnsrr
       placement:
         constraints:
           - node.labels.role == secondary

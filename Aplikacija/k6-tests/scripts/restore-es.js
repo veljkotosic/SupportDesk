@@ -20,7 +20,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ES_URL = process.argv[2] || process.env.ELASTICSEARCH_URL || 'http://localhost:9200';
-const DATA_DIR = path.resolve(__dirname, '..', 'data');
+const DATA_DIR = fs.existsSync(path.join(__dirname, 'seed-es.ndjson')) 
+  ? __dirname 
+  : path.resolve(__dirname, '..', 'data');
 const DUMP_FILE = path.join(DATA_DIR, 'seed-es.ndjson');
 
 const BATCH_SIZE = 5000; // 5000 docs = 10000 lines per bulk request (~4 MB)
@@ -119,6 +121,7 @@ async function main() {
 
   // 1. Delete and recreate indices with schema mappings
   console.log('[*] Resetting indices with schema mappings...');
+  await fetch(`${ES_URL}/dashboards`, { method: 'DELETE' }).catch(() => {});
   for (const [indexName, schema] of Object.entries(INDICES)) {
     await fetch(`${ES_URL}/${indexName}`, { method: 'DELETE' }).catch(() => {});
     const res = await fetch(`${ES_URL}/${indexName}`, {
