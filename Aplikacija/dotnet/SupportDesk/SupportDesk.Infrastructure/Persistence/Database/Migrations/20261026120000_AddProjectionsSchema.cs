@@ -14,102 +14,35 @@ namespace SupportDesk.Infrastructure.Persistence.Database.Migrations
         {
             var infrastructureAssembly = typeof(SupportDeskDbContext).Assembly;
 
-            // 1. Drop redundant composite query indexes on public tables
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_CustomerId_LastMessageAt",
-                table: "Tickets");
+            // 1. Drop redundant composite query indexes on public tables (if they exist)
+            migrationBuilder.Sql(@"
+                DROP INDEX IF EXISTS ""IX_Tickets_CustomerId_LastMessageAt"";
+                DROP INDEX IF EXISTS ""IX_Tickets_CustomerId_LastMessageAt_Id"";
+                DROP INDEX IF EXISTS ""IX_Tickets_CustomerId_Status_LastMessageAt"";
+                DROP INDEX IF EXISTS ""IX_Tickets_OrganizationId_LastMessageAt_Id"";
+                DROP INDEX IF EXISTS ""IX_Tickets_OrganizationId_OpenedAt"";
+                DROP INDEX IF EXISTS ""IX_Tickets_OrganizationId_Status"";
+                DROP INDEX IF EXISTS ""IX_Tickets_OrganizationId_Status_ClosedAt"";
+                DROP INDEX IF EXISTS ""IX_Tickets_OrganizationId_Status_LastMessageAt"";
+                DROP INDEX IF EXISTS ""IX_Tickets_OrganizationId_Status_Priority"";
+                DROP INDEX IF EXISTS ""IX_Tickets_SupportAgentId_Status"";
+                DROP INDEX IF EXISTS ""IX_Tickets_SupportAgentId_Status_LastMessageAt"";
+                DROP INDEX IF EXISTS ""IX_TicketNotifications_OrganizationId_Status"";
+                DROP INDEX IF EXISTS ""IX_TicketNotifications_TicketId_Status"";
+                DROP INDEX IF EXISTS ""IX_Notes_TicketId_CreatedAt"";
+                DROP INDEX IF EXISTS ""IX_Messages_TicketId_CreatedAt"";
+            ");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_CustomerId_LastMessageAt_Id",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_CustomerId_Status_LastMessageAt",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_OrganizationId_LastMessageAt_Id",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_OrganizationId_OpenedAt",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_OrganizationId_Status",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_OrganizationId_Status_ClosedAt",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_OrganizationId_Status_LastMessageAt",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_OrganizationId_Status_Priority",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_SupportAgentId_Status",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Tickets_SupportAgentId_Status_LastMessageAt",
-                table: "Tickets");
-
-            migrationBuilder.DropIndex(
-                name: "IX_TicketNotifications_OrganizationId_Status",
-                table: "TicketNotifications");
-
-            migrationBuilder.DropIndex(
-                name: "IX_TicketNotifications_TicketId_Status",
-                table: "TicketNotifications");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Notes_TicketId_CreatedAt",
-                table: "Notes");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Messages_TicketId_CreatedAt",
-                table: "Messages");
-
-            // 2. Create lean single-column FK indexes on public tables
-            migrationBuilder.CreateIndex(
-                name: "IX_Tickets_CustomerId",
-                table: "Tickets",
-                column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tickets_OrganizationId",
-                table: "Tickets",
-                column: "OrganizationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tickets_SupportAgentId",
-                table: "Tickets",
-                column: "SupportAgentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TicketNotifications_OrganizationId",
-                table: "TicketNotifications",
-                column: "OrganizationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TicketNotifications_TicketId",
-                table: "TicketNotifications",
-                column: "TicketId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Notes_TicketId",
-                table: "Notes",
-                column: "TicketId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Messages_TicketId",
-                table: "Messages",
-                column: "TicketId");
+            // 2. Create lean single-column FK indexes on public tables (if they don't exist)
+            migrationBuilder.Sql(@"
+                CREATE INDEX IF NOT EXISTS ""IX_Tickets_CustomerId"" ON public.""Tickets"" (""CustomerId"");
+                CREATE INDEX IF NOT EXISTS ""IX_Tickets_OrganizationId"" ON public.""Tickets"" (""OrganizationId"");
+                CREATE INDEX IF NOT EXISTS ""IX_Tickets_SupportAgentId"" ON public.""Tickets"" (""SupportAgentId"");
+                CREATE INDEX IF NOT EXISTS ""IX_TicketNotifications_OrganizationId"" ON public.""TicketNotifications"" (""OrganizationId"");
+                CREATE INDEX IF NOT EXISTS ""IX_TicketNotifications_TicketId"" ON public.""TicketNotifications"" (""TicketId"");
+                CREATE INDEX IF NOT EXISTS ""IX_Notes_TicketId"" ON public.""Notes"" (""TicketId"");
+                CREATE INDEX IF NOT EXISTS ""IX_Messages_TicketId"" ON public.""Messages"" (""TicketId"");
+            ");
 
             // 3. Discover and create all projection schema and tables via assembly scanning
             migrationBuilder.ApplyProjectionTablesFromAssembly(infrastructureAssembly);

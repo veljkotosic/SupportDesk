@@ -16,18 +16,18 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
 {
     private readonly TimeProvider _timeProvider;
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _readDbConnectionFactory;
 
     public GetOrganizationAdminDashboardQueryHandler(
         PermissionChecker permissionChecker,
         TimeProvider timeProvider,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory)
+        IReadDbConnectionFactory readDbConnectionFactory)
         : base(permissionChecker)
     {
         _timeProvider = timeProvider;
         _tenantContext = tenantContext;
-        _dbConnectionFactory = dbConnectionFactory;
+        _readDbConnectionFactory = readDbConnectionFactory;
     }
 
     protected override async Task<GetOrganizationAdminDashboardQueryResult> ExecuteAsync(GetOrganizationAdminDashboardQuery query, CancellationToken cancellationToken)
@@ -112,7 +112,7 @@ internal sealed class GetOrganizationAdminDashboardQueryHandler
               AND day <= (@StartDate::date + 6);
             """;
 
-        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var connection = await _readDbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
 
         var parameters = new
         {

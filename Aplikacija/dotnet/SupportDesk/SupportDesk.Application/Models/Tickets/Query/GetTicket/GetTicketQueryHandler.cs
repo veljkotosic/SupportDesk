@@ -18,18 +18,18 @@ internal sealed class GetTicketQueryHandler
 {
     private readonly IUserContext _userContext;
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _readDbConnectionFactory;
 
     public GetTicketQueryHandler(
         PermissionChecker permissionChecker,
         IUserContext userContext,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory)
+        IReadDbConnectionFactory readDbConnectionFactory)
         : base(permissionChecker)
     {
         _userContext = userContext;
         _tenantContext = tenantContext;
-        _dbConnectionFactory = dbConnectionFactory;
+        _readDbConnectionFactory = readDbConnectionFactory;
     }
 
     protected override async Task<GetTicketQueryResult> ExecuteAsync(
@@ -76,7 +76,7 @@ internal sealed class GetTicketQueryHandler
               AND n."Status" = @UnreadStatus;
             """;
 
-        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var connection = await _readDbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
 
         var command = new CommandDefinition(
             sql,

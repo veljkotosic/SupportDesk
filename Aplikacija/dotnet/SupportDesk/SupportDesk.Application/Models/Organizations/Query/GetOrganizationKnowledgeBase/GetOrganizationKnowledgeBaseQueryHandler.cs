@@ -11,16 +11,16 @@ internal sealed class GetOrganizationKnowledgeBaseQueryHandler
     : AbstractQueryHandler<GetOrganizationKnowledgeBaseQuery, GetOrganizationKnowledgeBaseQueryResult>
 {
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _readDbConnectionFactory;
     
     public GetOrganizationKnowledgeBaseQueryHandler(
         PermissionChecker permissionChecker,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory) 
+        IReadDbConnectionFactory readDbConnectionFactory) 
         : base(permissionChecker)
     {
         _tenantContext = tenantContext;
-        _dbConnectionFactory = dbConnectionFactory;
+        _readDbConnectionFactory = readDbConnectionFactory;
     }
 
     protected override async Task<GetOrganizationKnowledgeBaseQueryResult> ExecuteAsync(GetOrganizationKnowledgeBaseQuery query, CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ internal sealed class GetOrganizationKnowledgeBaseQueryHandler
             ORDER BY name;
             """;
 
-        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var connection = await _readDbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var command = new CommandDefinition(sql, new { OrganizationId = organizationId }, cancellationToken: cancellationToken);
 
         using var multi = await connection.QueryMultipleAsync(command);
