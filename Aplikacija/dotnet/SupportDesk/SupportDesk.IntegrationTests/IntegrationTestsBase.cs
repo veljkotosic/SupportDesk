@@ -71,6 +71,8 @@ internal abstract class IntegrationTestsBase
         var inMemorySettings = new Dictionary<string, string?>
         {
             ["DB_CONN_STRING"] = _postgresSqlContainer.GetConnectionString(),
+            ["DB_WRITE_CONN_STRING"] = _postgresSqlContainer.GetConnectionString(),
+            ["DB_READ_CONN_STRING"] = _postgresSqlContainer.GetConnectionString(),
             ["RABBITMQ_AMQP_URI"] = "amqp://guest:guest@localhost:5672/",
             ["JWT_ISSUER"] = "SupportDeskIntegrationTest",
             ["JWT_AUDIENCE"] = "SupportDeskIntegrationTest",

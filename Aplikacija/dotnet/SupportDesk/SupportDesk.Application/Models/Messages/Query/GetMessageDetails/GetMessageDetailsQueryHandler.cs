@@ -11,14 +11,14 @@ namespace SupportDesk.Application.Models.Messages.Query.GetMessageDetails;
 internal sealed class GetMessageDetailsQueryHandler
     : AbstractQueryHandler<GetMessageDetailsQuery, GetMessageDetailsQueryResult>
 {
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _readDbConnectionFactory;
     
     public GetMessageDetailsQueryHandler(
         PermissionChecker permissionChecker,
-        IDbConnectionFactory dbConnectionFactory) 
+        IReadDbConnectionFactory readDbConnectionFactory) 
         : base(permissionChecker)
     {
-        _dbConnectionFactory = dbConnectionFactory;
+        _readDbConnectionFactory = readDbConnectionFactory;
     }
 
     protected override async Task<GetMessageDetailsQueryResult> ExecuteAsync(GetMessageDetailsQuery query, CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ internal sealed class GetMessageDetailsQueryHandler
             LIMIT 1;
             """;
 
-        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var connection = await _readDbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var command = new CommandDefinition(sql, new { MessageId = query.MessageId }, cancellationToken: cancellationToken);
 
         var result = await connection.QueryFirstOrDefaultAsync<GetMessageDetailsQueryResult>(command);

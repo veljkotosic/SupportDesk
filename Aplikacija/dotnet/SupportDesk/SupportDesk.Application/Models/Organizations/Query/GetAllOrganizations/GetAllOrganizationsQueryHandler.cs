@@ -9,14 +9,14 @@ namespace SupportDesk.Application.Models.Organizations.Query.GetAllOrganizations
 internal sealed class GetAllOrganizationsQueryHandler
     : AbstractQueryHandler<GetAllOrganizationsQuery, GetAllOrganizationsQueryResult>
 {
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _readDbConnectionFactory;
     
     public GetAllOrganizationsQueryHandler(
         PermissionChecker permissionChecker,
-        IDbConnectionFactory dbConnectionFactory) 
+        IReadDbConnectionFactory readDbConnectionFactory) 
         : base(permissionChecker)
     {
-        _dbConnectionFactory = dbConnectionFactory;
+        _readDbConnectionFactory = readDbConnectionFactory;
     }
 
     protected override async Task<GetAllOrganizationsQueryResult> ExecuteAsync(GetAllOrganizationsQuery query, CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ internal sealed class GetAllOrganizationsQueryHandler
             ORDER BY "Name";
             """;
 
-        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var connection = await _readDbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
 
         var organizations = (await connection.QueryAsync<OrganizationListingDto>(command)).AsList();

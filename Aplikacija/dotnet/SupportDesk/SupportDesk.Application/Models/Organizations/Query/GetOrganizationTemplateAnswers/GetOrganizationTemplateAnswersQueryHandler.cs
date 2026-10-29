@@ -11,16 +11,16 @@ internal sealed class GetOrganizationTemplateAnswersQueryHandler
     : AbstractQueryHandler<GetOrganizationTemplateAnswersQuery, GetOrganizationTemplateAnswersQueryResult>
 {
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _readDbConnectionFactory;
     
     public GetOrganizationTemplateAnswersQueryHandler(
         PermissionChecker permissionChecker,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory) 
+        IReadDbConnectionFactory readDbConnectionFactory) 
         : base(permissionChecker)
     {
         _tenantContext = tenantContext;
-        _dbConnectionFactory = dbConnectionFactory;
+        _readDbConnectionFactory = readDbConnectionFactory;
     }
 
     protected override async Task<GetOrganizationTemplateAnswersQueryResult> ExecuteAsync(GetOrganizationTemplateAnswersQuery query, CancellationToken cancellationToken)
@@ -34,7 +34,7 @@ internal sealed class GetOrganizationTemplateAnswersQueryHandler
             ORDER BY "Title";
             """;
 
-        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var connection = await _readDbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var command = new CommandDefinition(sql, new { OrganizationId = organizationId }, cancellationToken: cancellationToken);
 
         var templateAnswers = (await connection.QueryAsync<TemplateAnswerListingDto>(command)).AsList();

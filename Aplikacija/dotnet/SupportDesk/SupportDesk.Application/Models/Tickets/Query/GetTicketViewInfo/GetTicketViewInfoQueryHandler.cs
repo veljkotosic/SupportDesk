@@ -17,18 +17,18 @@ internal sealed class GetTicketViewInfoQueryHandler
 {
     private readonly IUserContext _userContext;
     private readonly ITenantContext _tenantContext;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IReadDbConnectionFactory _readDbConnectionFactory;
 
     public GetTicketViewInfoQueryHandler(
         PermissionChecker permissionChecker,
         IUserContext userContext,
         ITenantContext tenantContext,
-        IDbConnectionFactory dbConnectionFactory)
+        IReadDbConnectionFactory readDbConnectionFactory)
         : base(permissionChecker)
     {
         _userContext = userContext;
         _tenantContext = tenantContext;
-        _dbConnectionFactory = dbConnectionFactory;
+        _readDbConnectionFactory = readDbConnectionFactory;
     }
 
     protected override async Task<GetTicketViewInfoQueryResult> ExecuteAsync(
@@ -121,7 +121,7 @@ internal sealed class GetTicketViewInfoQueryHandler
             ORDER BY created_at;
             """;
 
-        await using var connection = await _dbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var connection = await _readDbConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
 
         var command = new CommandDefinition(
             sql,
