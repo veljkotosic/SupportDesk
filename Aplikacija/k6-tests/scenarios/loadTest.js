@@ -1,3 +1,5 @@
+import { sleep } from 'k6';
+import exec from 'k6/execution';
 import { executeWorkloadIteration } from './workloadRunner.js';
 import { standardSummaryTrendStats } from '../config/summaryTrendStats.js';
 import { textSummary } from '../utils/k6-summary.js';
@@ -103,6 +105,16 @@ export function rampUpIteration() {
 }
 
 export function steadyStateIteration() {
+    const vuId = (typeof exec !== 'undefined' && exec && exec.vu && exec.vu.idInScenario) ? exec.vu.idInScenario : (typeof __VU !== 'undefined' ? __VU : 1);
+    const iter = (typeof exec !== 'undefined' && exec && exec.vu && exec.vu.iterationInScenario) ? exec.vu.iterationInScenario : (typeof __ITER !== 'undefined' ? __ITER : 0);
+
+    // Smooth transition from ramp-up: on iteration 0 of steady-state, stagger VUs uniformly across 5s
+    // to prevent a 1,000-VU thundering herd at the exact start of steady state.
+    if (iter === 0 && targetVUs > 1) {
+        const staggerSeconds = ((vuId - 1) / targetVUs) * 5.0;
+        sleep(staggerSeconds);
+    }
+
     executeWorkloadIteration(profileKey, true);
 }
 
