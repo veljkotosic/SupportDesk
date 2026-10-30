@@ -15,8 +15,8 @@ public sealed class SyncOrganizationDashboardsProjectionTrigger : IEntityTrigger
                 IF (TG_OP = 'INSERT') THEN
                     UPDATE projections.organization_dashboards
                     SET open_tickets = open_tickets + CASE WHEN NEW.""Status"" = 0 THEN 1 ELSE 0 END,
-                        assigned_tickets = assigned_tickets + CASE WHEN NEW.""Status"" = 1 THEN 1 ELSE 0 END,
-                        closed_tickets = closed_tickets + CASE WHEN NEW.""Status"" = 2 THEN 1 ELSE 0 END,
+                        assigned_tickets = assigned_tickets + CASE WHEN NEW.""Status"" = 2 THEN 1 ELSE 0 END,
+                        closed_tickets = closed_tickets + CASE WHEN NEW.""Status"" = 1 THEN 1 ELSE 0 END,
                         last_updated_at = NOW()
                     WHERE organization_id = NEW.""OrganizationId"";
                     RETURN NEW;
@@ -25,8 +25,8 @@ public sealed class SyncOrganizationDashboardsProjectionTrigger : IEntityTrigger
                     IF NEW.""Status"" IS DISTINCT FROM OLD.""Status"" THEN
                         UPDATE projections.organization_dashboards
                         SET open_tickets = open_tickets + CASE WHEN NEW.""Status"" = 0 THEN 1 WHEN OLD.""Status"" = 0 THEN -1 ELSE 0 END,
-                            assigned_tickets = assigned_tickets + CASE WHEN NEW.""Status"" = 1 THEN 1 WHEN OLD.""Status"" = 1 THEN -1 ELSE 0 END,
-                            closed_tickets = closed_tickets + CASE WHEN NEW.""Status"" = 2 THEN 1 WHEN OLD.""Status"" = 2 THEN -1 ELSE 0 END,
+                            assigned_tickets = assigned_tickets + CASE WHEN NEW.""Status"" = 2 THEN 1 WHEN OLD.""Status"" = 2 THEN -1 ELSE 0 END,
+                            closed_tickets = closed_tickets + CASE WHEN NEW.""Status"" = 1 THEN 1 WHEN OLD.""Status"" = 1 THEN -1 ELSE 0 END,
                             last_updated_at = NOW()
                         WHERE organization_id = NEW.""OrganizationId"";
                     END IF;
@@ -35,8 +35,8 @@ public sealed class SyncOrganizationDashboardsProjectionTrigger : IEntityTrigger
                 ELSIF (TG_OP = 'DELETE') THEN
                     UPDATE projections.organization_dashboards
                     SET open_tickets = open_tickets - CASE WHEN OLD.""Status"" = 0 THEN 1 ELSE 0 END,
-                        assigned_tickets = assigned_tickets - CASE WHEN OLD.""Status"" = 1 THEN 1 ELSE 0 END,
-                        closed_tickets = closed_tickets - CASE WHEN OLD.""Status"" = 2 THEN 1 ELSE 0 END,
+                        assigned_tickets = assigned_tickets - CASE WHEN OLD.""Status"" = 2 THEN 1 ELSE 0 END,
+                        closed_tickets = closed_tickets - CASE WHEN OLD.""Status"" = 1 THEN 1 ELSE 0 END,
                         last_updated_at = NOW()
                     WHERE organization_id = OLD.""OrganizationId"";
                     RETURN OLD;

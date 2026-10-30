@@ -23,7 +23,7 @@ public sealed class DailyTicketVolumesBackfill : IProjectionBackfill
             closed AS (
                 SELECT ""OrganizationId"", ""ClosedAt""::date AS day, COUNT(*)::int AS cnt
                 FROM public.""Tickets""
-                WHERE ""Status"" = 2 AND ""ClosedAt"" IS NOT NULL
+                WHERE ""Status"" = 1 AND ""ClosedAt"" IS NOT NULL
                 GROUP BY ""OrganizationId"", ""ClosedAt""::date
             )
             SELECT 

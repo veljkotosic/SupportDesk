@@ -20,7 +20,7 @@ public sealed class SyncDailyTicketVolumesProjectionTrigger : IEntityTrigger
                     RETURN NEW;
 
                 ELSIF (TG_OP = 'UPDATE') THEN
-                    IF NEW.""Status"" = 2 AND (OLD.""Status"" IS DISTINCT FROM 2) AND NEW.""ClosedAt"" IS NOT NULL THEN
+                    IF NEW.""Status"" = 1 AND (OLD.""Status"" IS DISTINCT FROM 1) AND NEW.""ClosedAt"" IS NOT NULL THEN
                         INSERT INTO projections.daily_ticket_volumes (organization_id, day, opened_count, closed_count)
                         VALUES (NEW.""OrganizationId"", NEW.""ClosedAt""::date, 0, 1)
                         ON CONFLICT (organization_id, day) DO UPDATE

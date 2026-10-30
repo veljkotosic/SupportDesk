@@ -1,32 +1,22 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Npgsql;
-using SupportDesk.Infrastructure.DependencyInjection.Configuration;
+using SupportDesk.Application.Abstract.Database;
 
 namespace SupportDesk.Infrastructure.Persistence.Database;
 
 public sealed class ReadReplicaHealthCheck : IHealthCheck
 {
-    private readonly string _connectionString;
+    private readonly IReadDbConnectionFactory _connectionFactory;
 
-    public ReadReplicaHealthCheck(IConfiguration configuration)
+    public ReadReplicaHealthCheck(IReadDbConnectionFactory connectionFactory)
     {
-        var rawConnStr = configuration.GetEnvReadConnectionString();
-        var builder = new NpgsqlConnectionStringBuilder(rawConnStr)
-        {
-            Pooling = false,
-            Timeout = 3,
-            CommandTimeout = 3
-        };
-        _connectionString = builder.ConnectionString;
+        _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         try
         {
-            await using var connection = new NpgsqlConnection(_connectionString);
-            await connection.OpenAsync(cancellationToken);
+            await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
             await using var cmd = connection.CreateCommand();
             
             cmd.CommandText = "SELECT pg_is_in_recovery();";
