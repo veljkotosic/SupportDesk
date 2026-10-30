@@ -13,8 +13,8 @@ public sealed class OrganizationDashboardsBackfill : IProjectionBackfill
             SELECT 
                 o.""Id"", o.""Name"",
                 COALESCE(COUNT(t.""Id"") FILTER (WHERE t.""Status"" = 0), 0)::int,
-                COALESCE(COUNT(t.""Id"") FILTER (WHERE t.""Status"" = 1), 0)::int,
                 COALESCE(COUNT(t.""Id"") FILTER (WHERE t.""Status"" = 2), 0)::int,
+                COALESCE(COUNT(t.""Id"") FILTER (WHERE t.""Status"" = 1), 0)::int,
                 COALESCE((SELECT COUNT(*) FROM public.""Users"" u WHERE u.""OrganizationId"" = o.""Id"" AND u.""Role"" = 1), 0)::int,
                 NOW()
             FROM public.""Organizations"" o

@@ -31,6 +31,7 @@ public static class ObservabilityRegistrationExtensions
                 builder.AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning);
                 builder.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
                 builder.AddFilter("Microsoft.AspNetCore.Routing", LogLevel.Warning);
+                builder.AddFilter("ZiggyCreatures.Caching.Fusion", LogLevel.Warning);
 
                 builder.AddOpenTelemetry(options =>
                 {

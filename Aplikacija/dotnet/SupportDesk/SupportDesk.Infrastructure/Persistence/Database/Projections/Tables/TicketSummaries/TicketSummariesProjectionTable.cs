@@ -20,7 +20,7 @@ public sealed class TicketSummariesProjectionTable : IProjectionTable
                 support_agent_user_name VARCHAR(256) NULL,
                 status INT NOT NULL,
                 priority INT NOT NULL,
-                feedback VARCHAR(2048) NULL,
+                feedback smallint NOT NULL DEFAULT 0,
                 subject VARCHAR(256) NOT NULL,
                 opened_at TIMESTAMPTZ NOT NULL,
                 assigned_at TIMESTAMPTZ NULL,

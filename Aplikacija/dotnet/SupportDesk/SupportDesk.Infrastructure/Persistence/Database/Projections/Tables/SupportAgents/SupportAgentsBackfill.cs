@@ -11,8 +11,8 @@ public sealed class SupportAgentsBackfill : IProjectionBackfill
         migrationBuilder.Sql(@"
             INSERT INTO projections.support_agents (id, organization_id, user_name, email, assigned_tickets, resolved_tickets, joined_at)
             SELECT u.""Id"", u.""OrganizationId"", u.""UserName"", u.""Email"",
-                   COALESCE(COUNT(t.""Id"") FILTER (WHERE t.""Status"" = 1), 0)::int,
                    COALESCE(COUNT(t.""Id"") FILTER (WHERE t.""Status"" = 2), 0)::int,
+                   COALESCE(COUNT(t.""Id"") FILTER (WHERE t.""Status"" = 1), 0)::int,
                    u.""CreatedAt""
             FROM public.""Users"" u
             LEFT JOIN public.""Tickets"" t ON t.""SupportAgentId"" = u.""Id""
