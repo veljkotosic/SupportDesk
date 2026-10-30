@@ -43,6 +43,12 @@ internal sealed class RefreshLoginCommandHandler
         var loginResult = await _authService.LoginWithRefreshTokenAsync(refreshToken, cancellationToken);
 
         var newAccessToken = _tokenProvider.GenerateAccessToken(loginResult);
+        
+        if (command.RefreshToken.StartsWith("rt_"))
+        {
+            return new RefreshLoginCommandResult(newAccessToken, refreshToken);
+        }
+
         var newRefreshTokenValue = _tokenProvider.GenerateRefreshToken();
         
         await _refreshTokenManager.RevokeAsync(refreshToken.Value, cancellationToken);
