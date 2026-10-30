@@ -60,35 +60,15 @@ const TOTAL_ORGS = 273;
 
 /**
  * Returns customer credentials.
- * Automatically draws from the global monotonic iteration stream across all VUs,
- * guaranteeing 100% unique customers across ANY number of VUs (10, 500, 1000, 5000+)
- * with zero bucket sharing or collisions.
+ * Keeps the customer consistent for 30 iterations per session, then rotates
+ * to the next customer in the VU's dedicated partition.
  * @param {number} [vuOrIndex=1] VU ID or direct index
- * @param {number} [iter=null] Iteration index
+ * @param {number} [iter=0] Iteration index
  */
-export function getCustomerCredentials(vuOrIndex = 1, iter = null) {
-    let customerNum = null;
-
-    // 1. Preferred: globally unique monotonic iteration across all VUs in the test
-    try {
-        if (typeof exec !== 'undefined' && exec && exec.scenario && typeof exec.scenario.iterationInTest === 'number') {
-            const scenarioOffset = exec.scenario.name === 'steady_state' ? 10000 : (exec.scenario.name === 'ramp_down' ? 300000 : 0);
-            customerNum = ((exec.scenario.iterationInTest + scenarioOffset) % TOTAL_CUSTOMERS) + 1;
-        }
-    } catch (_) {
-        // Fallback if exec is unavailable
-    }
-
-    // 2. Fallback: VU-partitioned sharding or direct index
-    if (!customerNum) {
-        if (iter === null || iter === undefined) {
-            customerNum = Math.max(1, ((vuOrIndex - 1) % TOTAL_CUSTOMERS) + 1);
-        } else {
-            const safeVu = Math.max(1, vuOrIndex || 1);
-            const safeIter = Math.max(0, iter || 0);
-            customerNum = (((safeVu - 1) * CUSTOMER_SHARD_SIZE) + (safeIter % CUSTOMER_SHARD_SIZE)) % TOTAL_CUSTOMERS + 1;
-        }
-    }
+export function getCustomerCredentials(vuOrIndex = 1, iter = 0) {
+    const safeVu = Math.max(1, vuOrIndex || 1);
+    const sessionIndex = Math.floor((iter || 0) / 30);
+    const customerNum = (((safeVu - 1) * 300) + sessionIndex) % TOTAL_CUSTOMERS + 1;
 
     const email = `customer${customerNum}@test.com`;
     return {

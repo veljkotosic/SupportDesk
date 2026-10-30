@@ -24,6 +24,23 @@ export function selectWeightedJourney(calibratedJourneys) {
 }
 
 /**
+ * Assigns a stable role to a VU to maintain strict percentage breakdown:
+ * - 65% Customers (13/20)
+ * - 20% Support Agents (4/20)
+ * - 15% Org Admins (3/20)
+ * Works consistently across any number of VUs.
+ * @param {number} vuId 
+ * @returns {'Customer' | 'Agent' | 'Org Admin'}
+ */
+export function getRoleForVu(vuId) {
+    const safeVu = Math.max(1, vuId || 1);
+    const mod = (safeVu - 1) % 20;
+    if (mod < 13) return 'Customer';
+    if (mod < 17) return 'Agent';
+    return 'Org Admin';
+}
+
+/**
  * Executes a single weighted iteration for the given workload profile.
  * Automatically resolves credentials and records operational metrics.
  * 
@@ -31,11 +48,12 @@ export function selectWeightedJourney(calibratedJourneys) {
  * @param {boolean} [isSteadyState=true] Whether this iteration belongs to the steady-state test phase
  */
 export function executeWorkloadIteration(profileKeyOrConfig, isSteadyState = true) {
-    const calibratedJourneys = getCalibratedJourneys(profileKeyOrConfig);
-    const selected = selectWeightedJourney(calibratedJourneys);
-
     const vuId = (typeof exec !== 'undefined' && exec && exec.vu && exec.vu.idInScenario) ? exec.vu.idInScenario : (typeof __VU !== 'undefined' ? __VU : 1);
-    const iter = typeof __ITER !== 'undefined' ? __ITER : 0;
+    const iter = (typeof exec !== 'undefined' && exec && exec.vu && exec.vu.iterationInScenario) ? exec.vu.iterationInScenario : (typeof __ITER !== 'undefined' ? __ITER : 0);
+
+    const role = getRoleForVu(vuId);
+    const calibratedJourneys = getCalibratedJourneys(profileKeyOrConfig, role);
+    const selected = selectWeightedJourney(calibratedJourneys);
 
     if (isSteadyState) {
         if (selected.category === 'read') {
@@ -48,7 +66,7 @@ export function executeWorkloadIteration(profileKeyOrConfig, isSteadyState = tru
     const start = Date.now();
     try {
         if (selected.requiresCredentials) {
-            const credentials = getCredentialsForRole(selected.role, vuId, iter);
+            const credentials = getCredentialsForRole(role, vuId, iter);
             selected.fn(credentials);
         } else {
             selected.fn();

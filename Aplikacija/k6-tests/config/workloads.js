@@ -181,11 +181,13 @@ export const WORKLOAD_PROFILES = {
 };
 
 /**
- * Computes calibrated journey weights for a given read/write ratio or profile name.
+ * Computes calibrated journey weights for a given read/write ratio or profile name,
+ * optionally filtered to a specific user role.
  * @param {string | { readRatio: number, writeRatio: number }} profileOrRatio 
+ * @param {string} [role=null] Optional role to filter journeys by ('Customer', 'Agent', 'Org Admin')
  * @returns {Array<Object>} List of journeys with calibrated absolute weights and cumulative thresholds
  */
-export function getCalibratedJourneys(profileOrRatio) {
+export function getCalibratedJourneys(profileOrRatio, role = null) {
     let profile = null;
 
     if (typeof profileOrRatio === 'string') {
@@ -203,15 +205,28 @@ export function getCalibratedJourneys(profileOrRatio) {
     const readRatio = profile.readRatio ?? 0.5;
     const writeRatio = profile.writeRatio ?? 0.5;
 
+    const candidateJourneys = role ? JOURNEY_METADATA.filter(j => j.role === role) : JOURNEY_METADATA;
+
+    const readSubSum = candidateJourneys
+        .filter(j => j.category === 'read')
+        .reduce((sum, j) => sum + j.subWeight, 0) || 1.0;
+
+    const writeSubSum = candidateJourneys
+        .filter(j => j.category === 'write')
+        .reduce((sum, j) => sum + j.subWeight, 0) || 1.0;
+
     let cumulative = 0;
-    return JOURNEY_METADATA.map((journeys) => {
-        const ratio = journeys.category === 'read' ? readRatio : writeRatio;
-        const weight = ratio * journeys.subWeight;
+    return candidateJourneys.map((journey) => {
+        const isRead = journey.category === 'read';
+        const ratio = isRead ? readRatio : writeRatio;
+        const subSum = isRead ? readSubSum : writeSubSum;
+        const normalizedSubWeight = journey.subWeight / subSum;
+        const weight = ratio * normalizedSubWeight;
         
         cumulative += weight;
 
         return {
-            ...journeys,
+            ...journey,
             weight: Number(weight.toFixed(6)),
             cumulativeWeight: Number(cumulative.toFixed(6)),
         };
