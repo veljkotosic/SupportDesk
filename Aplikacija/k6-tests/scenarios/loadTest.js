@@ -54,8 +54,8 @@ export const options = {
             startVUs: 0,
             stages: [{ duration: '1m', target: targetVUs }],
             exec: 'rampUpIteration',
-            gracefulRampDown: '30s',
-            gracefulStop: '30s',
+            gracefulRampDown: '0s',
+            gracefulStop: '0s',
         },
         steady_state: {
             executor: 'constant-vus',
@@ -63,7 +63,7 @@ export const options = {
             duration: `${steadyDurationSec}s`,
             startTime: '1m',
             exec: 'steadyStateIteration',
-            gracefulStop: '30s',
+            gracefulStop: '0s',
         },
         ramp_down: {
             executor: 'ramping-vus',
@@ -71,8 +71,8 @@ export const options = {
             stages: [{ duration: '30s', target: 0 }],
             startTime: `${rampDownStartTimeSec}s`,
             exec: 'rampDownIteration',
-            gracefulRampDown: '30s',
-            gracefulStop: '30s',
+            gracefulRampDown: '0s',
+            gracefulStop: '0s',
         },
     },
     thresholds: {
