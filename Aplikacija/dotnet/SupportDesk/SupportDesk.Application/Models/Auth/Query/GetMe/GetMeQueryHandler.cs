@@ -13,7 +13,6 @@ internal sealed class GetMeQueryHandler : AbstractQueryHandler<GetMeQuery, GetMe
 {
     private readonly IUserContext _userContext;
     private readonly IApplicationDbContext _dbContext;
-    
     public GetMeQueryHandler(
         PermissionChecker permissionChecker,
         IUserContext userContext, 
@@ -27,6 +26,7 @@ internal sealed class GetMeQueryHandler : AbstractQueryHandler<GetMeQuery, GetMe
     protected override async Task<GetMeQueryResult> ExecuteAsync(GetMeQuery query, CancellationToken cancellationToken)
     {
         var currentUserId = _userContext.GetCurrentUserId();
+
         var userId = new UserId(currentUserId);
 
         var user = await _dbContext.DomainUsers

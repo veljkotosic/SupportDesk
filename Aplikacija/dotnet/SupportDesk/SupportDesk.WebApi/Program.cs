@@ -10,6 +10,8 @@ using SupportDesk.WebApi.Hubs;
 
 Env.TraversePath().NoClobber().Load();
 
+ThreadPool.SetMinThreads(500, 500);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApiVersioning(options =>
