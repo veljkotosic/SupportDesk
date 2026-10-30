@@ -28,6 +28,7 @@ internal sealed class GetMeQueryHandler : AbstractQueryHandler<GetMeQuery, GetMe
     protected override async Task<GetMeQueryResult> ExecuteAsync(GetMeQuery query, CancellationToken cancellationToken)
     {
         var currentUserId = _userContext.GetCurrentUserId();
+
         var userId = new UserId(currentUserId);
 
         const string sql = """
