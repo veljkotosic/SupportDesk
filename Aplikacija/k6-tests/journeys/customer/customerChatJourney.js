@@ -26,16 +26,8 @@ export function customerChatJourney(customerCredentials, explicitTicketId = null
 
     if (!targetTicketId) {
         group('Customer - Locate Active Ticket', () => {
-            const skip = ((vuId + iter) % 10);
-            // Search for Open tickets first
-            let list = TicketService.getCustomerTickets(skip, 10, '', TicketStatus.Open);
-            if (!list || !list.tickets || list.tickets.length === 0) {
-                list = TicketService.getCustomerTickets(0, 10, '', TicketStatus.Open);
-            }
-            if (!list || !list.tickets || list.tickets.length === 0) {
-                // Then Assigned tickets
-                list = TicketService.getCustomerTickets(skip, 10, '', TicketStatus.Assigned);
-            }
+            // Search for Open tickets first, then Assigned
+            let list = TicketService.getCustomerTickets(0, 10, '', TicketStatus.Open);
             if (!list || !list.tickets || list.tickets.length === 0) {
                 list = TicketService.getCustomerTickets(0, 10, '', TicketStatus.Assigned);
             }

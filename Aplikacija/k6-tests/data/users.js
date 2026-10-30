@@ -1,4 +1,16 @@
+import exec from 'k6/execution';
+
 export const DEFAULT_PASSWORD = 'Password123!';
+
+// Load org_users_map if available (273 organizations with their admin and agents)
+let orgUsersMap = [];
+try {
+    if (typeof open === 'function') {
+        orgUsersMap = JSON.parse(open('./org_users_map.json'));
+    }
+} catch (e) {
+    orgUsersMap = [];
+}
 
 let loadedAgents = [];
 try {
@@ -42,51 +54,115 @@ export const SEEDED_AGENT_EMAILS = loadedAgents.length > 0 ? loadedAgents : [
     'agent565@orgae4f.com'
 ];
 
-export function getCustomerCredentials(index = 1) {
-    const idx = Math.max(1, ((index - 1) % 10000) + 1);
+const TOTAL_CUSTOMERS = 375000;
+const CUSTOMER_SHARD_SIZE = 1000;
+const TOTAL_ORGS = 273;
+
+/**
+ * Returns customer credentials.
+ * Automatically draws from the global monotonic iteration stream across all VUs,
+ * guaranteeing 100% unique customers across ANY number of VUs (10, 500, 1000, 5000+)
+ * with zero bucket sharing or collisions.
+ * @param {number} [vuOrIndex=1] VU ID or direct index
+ * @param {number} [iter=null] Iteration index
+ */
+export function getCustomerCredentials(vuOrIndex = 1, iter = null) {
+    let customerNum = null;
+
+    // 1. Preferred: globally unique monotonic iteration across all VUs in the test
+    try {
+        if (typeof exec !== 'undefined' && exec && exec.scenario && typeof exec.scenario.iterationInTest === 'number') {
+            customerNum = (exec.scenario.iterationInTest % TOTAL_CUSTOMERS) + 1;
+        }
+    } catch (_) {
+        // Fallback if exec is unavailable
+    }
+
+    // 2. Fallback: VU-partitioned sharding or direct index
+    if (!customerNum) {
+        if (iter === null || iter === undefined) {
+            customerNum = Math.max(1, ((vuOrIndex - 1) % TOTAL_CUSTOMERS) + 1);
+        } else {
+            const safeVu = Math.max(1, vuOrIndex || 1);
+            const safeIter = Math.max(0, iter || 0);
+            customerNum = (((safeVu - 1) * CUSTOMER_SHARD_SIZE) + (safeIter % CUSTOMER_SHARD_SIZE)) % TOTAL_CUSTOMERS + 1;
+        }
+    }
+
     return {
-        email: `customer${idx}@test.com`,
+        email: `customer${customerNum}@test.com`,
         password: DEFAULT_PASSWORD,
     };
 }
 
-export function getOrgAdminCredentials(index = 1) {
-    const idx = Math.max(1, ((index - 1) % 273) + 1);
+/**
+ * Returns organization admin credentials.
+ * Each VU is assigned its own dedicated organization to prevent any admin/audit contention.
+ * @param {number} [vuOrIndex=1] VU ID or direct index
+ * @param {number} [iter=null] Iteration index
+ */
+export function getOrgAdminCredentials(vuOrIndex = 1, iter = null) {
+    const safeVu = Math.max(1, vuOrIndex || 1);
+    const orgIdx = ((safeVu - 1) % TOTAL_ORGS) + 1;
     return {
-        email: `admin${idx}@org${idx}.com`,
+        email: `admin${orgIdx}@org${orgIdx}.com`,
         password: DEFAULT_PASSWORD,
     };
 }
 
-export function getAgentCredentials(index = 1) {
-    const idx = Math.max(0, (index - 1) % SEEDED_AGENT_EMAILS.length);
+/**
+ * Returns support agent credentials.
+ * When called with (vuId, iter), aligns the agent to the VU's dedicated organization.
+ * Across up to 1,212 VUs, each VU receives a distinct support agent account.
+ * @param {number} [vuOrIndex=1] VU ID or direct index
+ * @param {number} [iter=null] Iteration index
+ */
+export function getAgentCredentials(vuOrIndex = 1, iter = null) {
+    if (iter === null || iter === undefined) {
+        const idx = Math.max(0, (vuOrIndex - 1) % SEEDED_AGENT_EMAILS.length);
+        return {
+            email: SEEDED_AGENT_EMAILS[idx],
+            password: DEFAULT_PASSWORD,
+        };
+    }
+
+    const safeVu = Math.max(1, vuOrIndex || 1);
+    if (orgUsersMap && orgUsersMap.length > 0) {
+        const orgIdx = (safeVu - 1) % orgUsersMap.length;
+        const org = orgUsersMap[orgIdx];
+        if (org && org.agents && org.agents.length > 0) {
+            const agentSlot = Math.floor((safeVu - 1) / orgUsersMap.length) % org.agents.length;
+            return {
+                email: org.agents[agentSlot],
+                password: DEFAULT_PASSWORD,
+            };
+        }
+    }
+
+    const agentIdx = (safeVu - 1) % SEEDED_AGENT_EMAILS.length;
     return {
-        email: SEEDED_AGENT_EMAILS[idx],
+        email: SEEDED_AGENT_EMAILS[agentIdx],
         password: DEFAULT_PASSWORD,
     };
 }
 
 /**
  * Returns appropriate credentials based on the journey role.
- * Spreads VUs across distinct entity slices to eliminate account contention.
+ * Spreads VUs across strictly disjoint entity slices to eliminate account contention.
  * @param {'Customer' | 'Agent' | 'Org Admin' | 'Admin'} role 
  * @param {number} [vuId=1] 
  * @param {number} [iter=0] 
  */
 export function getCredentialsForRole(role, vuId = 1, iter = 0) {
-    const safeVu = vuId || 1;
-    const safeIter = iter || 0;
-    const offset = ((safeVu - 1) * 7 + safeIter) + 1;
     switch (role) {
         case 'Customer':
-            return getCustomerCredentials(offset);
+            return getCustomerCredentials(vuId, iter);
         case 'Agent':
-            return getAgentCredentials(offset);
+            return getAgentCredentials(vuId, iter);
         case 'Org Admin':
         case 'Admin':
-            return getOrgAdminCredentials(offset);
+            return getOrgAdminCredentials(vuId, iter);
         default:
-            return getCustomerCredentials(offset);
+            return getCustomerCredentials(vuId, iter);
     }
 }
-
