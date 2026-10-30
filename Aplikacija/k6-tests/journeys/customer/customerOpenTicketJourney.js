@@ -2,7 +2,7 @@ import { group } from 'k6';
 import { TicketService } from '../../services/ticketService.js';
 import { OrganizationService } from '../../services/organizationService.js';
 import { waitBetween } from '../../utils/wait.js';
-import { startSession, finishSession } from '../shared/session.js';
+import { initSession, finishSession } from '../shared/session.js';
 import { TicketPriority } from '../../utils/enums.js';
 
 /**
@@ -14,7 +14,7 @@ import { TicketPriority } from '../../utils/enums.js';
  * 5. Conclude session.
  */
 export function customerOpenTicketJourney(customerCredentials, targetOrgIndex = null) {
-    startSession(customerCredentials, 'Customer');
+    initSession(customerCredentials, 'Customer');
 
     const vuId = typeof __VU !== 'undefined' ? __VU : 1;
     const iter = typeof __ITER !== 'undefined' ? __ITER : 0;

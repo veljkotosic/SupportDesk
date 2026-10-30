@@ -1,4 +1,5 @@
 import { Counter, Trend } from 'k6/metrics';
+import exec from 'k6/execution';
 import { getCalibratedJourneys, WORKLOAD_PROFILES } from '../config/workloads.js';
 import { getCredentialsForRole } from '../data/users.js';
 
@@ -27,18 +28,21 @@ export function selectWeightedJourney(calibratedJourneys) {
  * Automatically resolves credentials and records operational metrics.
  * 
  * @param {string | { readRatio: number, writeRatio: number }} profileKeyOrConfig 
+ * @param {boolean} [isSteadyState=true] Whether this iteration belongs to the steady-state test phase
  */
-export function executeWorkloadIteration(profileKeyOrConfig) {
+export function executeWorkloadIteration(profileKeyOrConfig, isSteadyState = true) {
     const calibratedJourneys = getCalibratedJourneys(profileKeyOrConfig);
     const selected = selectWeightedJourney(calibratedJourneys);
 
-    const vuId = typeof __VU !== 'undefined' ? __VU : 1;
+    const vuId = (typeof exec !== 'undefined' && exec && exec.vu && exec.vu.idInScenario) ? exec.vu.idInScenario : (typeof __VU !== 'undefined' ? __VU : 1);
     const iter = typeof __ITER !== 'undefined' ? __ITER : 0;
 
-    if (selected.category === 'read') {
-        readOperationsTotal.add(1, { journey: selected.id });
-    } else {
-        writeOperationsTotal.add(1, { journey: selected.id });
+    if (isSteadyState) {
+        if (selected.category === 'read') {
+            readOperationsTotal.add(1, { journey: selected.id });
+        } else {
+            writeOperationsTotal.add(1, { journey: selected.id });
+        }
     }
 
     const start = Date.now();
@@ -50,11 +54,13 @@ export function executeWorkloadIteration(profileKeyOrConfig) {
             selected.fn();
         }
     } finally {
-        const duration = Date.now() - start;
-        journeyExecutionDuration.add(duration, {
-            journey: selected.id,
-            category: selected.category,
-            role: selected.role,
-        });
+        if (isSteadyState) {
+            const duration = Date.now() - start;
+            journeyExecutionDuration.add(duration, {
+                journey: selected.id,
+                category: selected.category,
+                role: selected.role,
+            });
+        }
     }
 }

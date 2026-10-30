@@ -3,7 +3,7 @@ import { TicketService } from '../../services/ticketService.js';
 import { MessageService } from '../../services/messageService.js';
 import { OrganizationService } from '../../services/organizationService.js';
 import { waitBetween } from '../../utils/wait.js';
-import { startSession, finishSession } from '../shared/session.js';
+import { initSession, finishSession } from '../shared/session.js';
 import { TicketStatus } from '../../utils/enums.js';
 
 /**
@@ -20,7 +20,7 @@ import { TicketStatus } from '../../utils/enums.js';
 export function agentChatJourney(agentCredentials, explicitTicketId = null) {
     let targetTicketId = explicitTicketId;
 
-    const profile = startSession(agentCredentials, 'Agent');
+    const profile = initSession(agentCredentials, 'Agent');
     const agentUserId = profile && (profile.userId || profile.id);
 
     const vuId = typeof __VU !== 'undefined' ? __VU : 1;

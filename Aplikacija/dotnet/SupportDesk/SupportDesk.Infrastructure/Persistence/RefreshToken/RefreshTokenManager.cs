@@ -64,6 +64,11 @@ public class RefreshTokenManager : IRefreshTokenManager
 
     public async Task RevokeAsync(string token, CancellationToken cancellationToken = default)
     {
+        if (token.StartsWith("rt_"))
+        {
+            return;
+        }
+
         await _dbContext.RefreshTokens
             .Where(x => x.Token == token)
             .ExecuteDeleteAsync(cancellationToken);
@@ -72,7 +77,7 @@ public class RefreshTokenManager : IRefreshTokenManager
     public async Task RevokeAllAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         await _dbContext.RefreshTokens
-            .Where(x => x.UserId == userId)
+            .Where(x => x.UserId == userId && !x.Token.StartsWith("rt_"))
             .ExecuteDeleteAsync(cancellationToken);
     }
 }

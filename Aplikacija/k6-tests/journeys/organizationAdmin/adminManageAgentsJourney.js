@@ -2,7 +2,7 @@ import { group } from 'k6';
 import { OrganizationService } from '../../services/organizationService.js';
 import { SupportAgentInviteService } from '../../services/supportAgentInviteService.js';
 import { waitBetween } from '../../utils/wait.js';
-import { startSession, finishSession } from '../shared/session.js';
+import { initSession, finishSession } from '../shared/session.js';
 
 /**
  * Organization Admin Manage Agents Journey (mapped from OrganizationAdminAgentsView.vue):
@@ -12,7 +12,7 @@ import { startSession, finishSession } from '../shared/session.js';
  * 4. Conclude session.
  */
 export function adminManageAgentsJourney(adminCredentials) {
-    startSession(adminCredentials, 'Admin');
+    initSession(adminCredentials, 'Admin');
 
     group('Admin - View Support Agents Summary', () => {
         OrganizationService.getSupportAgentsSummary();

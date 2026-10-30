@@ -1,7 +1,7 @@
 import { group } from 'k6';
 import { TicketService } from '../../services/ticketService.js';
 import { waitBetween } from '../../utils/wait.js';
-import { startSession, finishSession } from '../shared/session.js';
+import { initSession, finishSession } from '../shared/session.js';
 import { TicketStatus, TicketPriority, TicketSortOption } from '../../utils/enums.js';
 
 /**
@@ -14,7 +14,7 @@ import { TicketStatus, TicketPriority, TicketSortOption } from '../../utils/enum
  * 4. Conclude session.
  */
 export function agentBrowseTicketsJourney(agentCredentials) {
-    startSession(agentCredentials, 'Agent');
+    initSession(agentCredentials, 'Agent');
 
     group('Agent - Load Default Ticket Queue', () => {
         TicketService.getOrganizationTickets(0, 10, '', null, null, TicketSortOption.Latest);

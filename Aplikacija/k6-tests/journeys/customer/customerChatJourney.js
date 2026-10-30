@@ -3,7 +3,7 @@ import { TicketService } from '../../services/ticketService.js';
 import { MessageService } from '../../services/messageService.js';
 import { OrganizationService } from '../../services/organizationService.js';
 import { waitBetween } from '../../utils/wait.js';
-import { startSession, finishSession } from '../shared/session.js';
+import { initSession, finishSession } from '../shared/session.js';
 import { TicketStatus, TicketPriority } from '../../utils/enums.js';
 
 /**
@@ -19,23 +19,15 @@ import { TicketStatus, TicketPriority } from '../../utils/enums.js';
 export function customerChatJourney(customerCredentials, explicitTicketId = null) {
     let targetTicketId = explicitTicketId;
 
-    startSession(customerCredentials, 'Customer');
+    initSession(customerCredentials, 'Customer');
 
     const vuId = typeof __VU !== 'undefined' ? __VU : 1;
     const iter = typeof __ITER !== 'undefined' ? __ITER : 0;
 
     if (!targetTicketId) {
         group('Customer - Locate Active Ticket', () => {
-            const skip = ((vuId + iter) % 10);
-            // Search for Open tickets first
-            let list = TicketService.getCustomerTickets(skip, 10, '', TicketStatus.Open);
-            if (!list || !list.tickets || list.tickets.length === 0) {
-                list = TicketService.getCustomerTickets(0, 10, '', TicketStatus.Open);
-            }
-            if (!list || !list.tickets || list.tickets.length === 0) {
-                // Then Assigned tickets
-                list = TicketService.getCustomerTickets(skip, 10, '', TicketStatus.Assigned);
-            }
+            // Search for Open tickets first, then Assigned
+            let list = TicketService.getCustomerTickets(0, 10, '', TicketStatus.Open);
             if (!list || !list.tickets || list.tickets.length === 0) {
                 list = TicketService.getCustomerTickets(0, 10, '', TicketStatus.Assigned);
             }

@@ -3,7 +3,7 @@ import { OrganizationService } from '../../services/organizationService.js';
 import { FaqService } from '../../services/faqService.js';
 import { TemplateAnswerService } from '../../services/templateAnswerService.js';
 import { waitBetween } from '../../utils/wait.js';
-import { startSession, finishSession } from '../shared/session.js';
+import { initSession, finishSession } from '../shared/session.js';
 
 /**
  * Organization Admin Knowledge Base Journey (mapped from OrganizationAdminSettingsView.vue):
@@ -14,7 +14,7 @@ import { startSession, finishSession } from '../shared/session.js';
  * 5. Conclude session.
  */
 export function adminKnowledgeBaseJourney(adminCredentials) {
-    startSession(adminCredentials, 'Admin');
+    initSession(adminCredentials, 'Admin');
 
     const vuId = typeof __VU !== 'undefined' ? __VU : 1;
     const iter = typeof __ITER !== 'undefined' ? __ITER : 0;

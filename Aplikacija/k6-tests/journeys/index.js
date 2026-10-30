@@ -20,5 +20,5 @@ export { adminViewTicketJourney } from './organizationAdmin/adminViewTicketJourn
 export { orgRegistrationJourney } from './organizationAdmin/orgRegistrationJourney.js';
 
 // Shared Utilities
-export { startSession, finishSession } from './shared/session.js';
+export { startSession, restartSession, initSession, finishSession } from './shared/session.js';
 

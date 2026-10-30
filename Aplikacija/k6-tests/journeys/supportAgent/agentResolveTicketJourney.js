@@ -4,7 +4,7 @@ import { MessageService } from '../../services/messageService.js';
 import { NoteService } from '../../services/noteService.js';
 import { OrganizationService } from '../../services/organizationService.js';
 import { waitBetween } from '../../utils/wait.js';
-import { startSession, finishSession } from '../shared/session.js';
+import { initSession, finishSession } from '../shared/session.js';
 import { TicketStatus } from '../../utils/enums.js';
 
 /**
@@ -22,7 +22,7 @@ import { TicketStatus } from '../../utils/enums.js';
 export function agentResolveTicketJourney(agentCredentials, explicitTicketId = null) {
     let targetTicketId = explicitTicketId;
 
-    const profile = startSession(agentCredentials, 'Agent');
+    const profile = initSession(agentCredentials, 'Agent');
     const agentUserId = profile && (profile.userId || profile.id);
 
     const vuId = typeof __VU !== 'undefined' ? __VU : 1;

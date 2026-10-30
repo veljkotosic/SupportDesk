@@ -1,10 +1,10 @@
 import { group } from 'k6';
 import { OrganizationService } from '../services/organizationService.js';
 import { waitBetween } from '../utils/wait.js';
-import { startSession, finishSession } from './shared/session.js';
+import { initSession, finishSession } from './shared/session.js';
 
 export function orgAdminDashboardJourney(credentials) {
-    startSession(credentials, 'Org Admin');
+    initSession(credentials, 'Org Admin');
 
     group('Org Admin - View Dashboard', () => {
         OrganizationService.getDashboard();

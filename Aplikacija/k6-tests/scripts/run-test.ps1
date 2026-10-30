@@ -31,7 +31,11 @@ Write-Host " Profile   : $Profile"
 if ($BaseUrl)    { Write-Host " BaseUrl   : $BaseUrl" }
 if ($VUs -gt 0)    { Write-Host " VUs       : $VUs" }
 if ($MaxVUs -gt 0) { Write-Host " Max VUs   : $MaxVUs" }
-if ($Duration)     { Write-Host " Duration  : $Duration" }
+if ($Scenario -match "loadTest") {
+    if ($Duration) { Write-Host " Steady Dur: $Duration (Ramp-up: 1m, Ramp-down: 30s)" } else { Write-Host " Steady Dur: 8m (Ramp-up: 1m, Ramp-down: 30s)" }
+} else {
+    if ($Duration) { Write-Host " Duration  : $Duration" }
+}
 Write-Host "==========================================================`n"
 
 $monitorJob = $null
@@ -44,10 +48,19 @@ if (-not $NoMonitor) {
 $k6Args = @("run")
 if ($Profile)      { $k6Args += @("-e", "PROFILE=$Profile") }
 if ($BaseUrl)      { $k6Args += @("-e", "BASE_URL=$BaseUrl") }
-if ($VUs -gt 0)    { $k6Args += @("--vus", $VUs) }
-if ($MaxVUs -gt 0) { $k6Args += @("-e", "MAX_VUS=$MaxVUs") }
-if ($Duration)     { $k6Args += @("--duration", $Duration) }
-$k6Args += @("--summary-export", $summaryJson)
+
+if ($Scenario -match "loadTest") {
+    if ($VUs -gt 0)    { $k6Args += @("-e", "VUS=$VUs") }
+    if ($MaxVUs -gt 0) { $k6Args += @("-e", "MAX_VUS=$MaxVUs") }
+    if ($Duration)     { $k6Args += @("-e", "DURATION=$Duration", "-e", "STEADY_DURATION=$Duration") }
+    $k6Args += @("-e", "SUMMARY_PATH=$summaryJson")
+} else {
+    if ($VUs -gt 0)    { $k6Args += @("--vus", $VUs) }
+    if ($MaxVUs -gt 0) { $k6Args += @("-e", "MAX_VUS=$MaxVUs") }
+    if ($Duration)     { $k6Args += @("--duration", $Duration) }
+    $k6Args += @("--summary-export", $summaryJson)
+}
+
 $k6Args += $Scenario
 
 try {

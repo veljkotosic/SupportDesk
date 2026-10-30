@@ -80,7 +80,11 @@ echo " Profile   : $PROFILE"
 [[ -n "$BASE_URL" ]] && echo " BaseUrl   : $BASE_URL"
 [[ $VUS -gt 0 ]]     && echo " VUs       : $VUS"
 [[ $MAX_VUS -gt 0 ]] && echo " Max VUs   : $MAX_VUS"
-[[ -n "$DURATION" ]] && echo " Duration  : $DURATION"
+if [[ "$SCENARIO" =~ loadTest ]]; then
+  [[ -n "$DURATION" ]] && echo " Steady Dur: $DURATION (Ramp-up: 1m, Ramp-down: 30s)" || echo " Steady Dur: 8m (Ramp-up: 1m, Ramp-down: 30s)"
+else
+  [[ -n "$DURATION" ]] && echo " Duration  : $DURATION"
+fi
 echo -e "==========================================================\n"
 
 MONITOR_PID=""
@@ -103,10 +107,19 @@ fi
 K6_ARGS=("run")
 [[ -n "$PROFILE" ]]  && K6_ARGS+=("-e" "PROFILE=$PROFILE")
 [[ -n "$BASE_URL" ]] && K6_ARGS+=("-e" "BASE_URL=$BASE_URL")
-[[ $VUS -gt 0 ]]     && K6_ARGS+=("--vus" "$VUS")
-[[ $MAX_VUS -gt 0 ]] && K6_ARGS+=("-e" "MAX_VUS=$MAX_VUS")
-[[ -n "$DURATION" ]] && K6_ARGS+=("--duration" "$DURATION")
-K6_ARGS+=("--summary-export" "$SUMMARY_JSON")
+
+if [[ "$SCENARIO" =~ loadTest ]]; then
+  [[ $VUS -gt 0 ]]     && K6_ARGS+=("-e" "VUS=$VUS")
+  [[ $MAX_VUS -gt 0 ]] && K6_ARGS+=("-e" "MAX_VUS=$MAX_VUS")
+  [[ -n "$DURATION" ]] && K6_ARGS+=("-e" "DURATION=$DURATION" "-e" "STEADY_DURATION=$DURATION")
+  K6_ARGS+=("-e" "SUMMARY_PATH=$SUMMARY_JSON")
+else
+  [[ $VUS -gt 0 ]]     && K6_ARGS+=("--vus" "$VUS")
+  [[ $MAX_VUS -gt 0 ]] && K6_ARGS+=("-e" "MAX_VUS=$MAX_VUS")
+  [[ -n "$DURATION" ]] && K6_ARGS+=("--duration" "$DURATION")
+  K6_ARGS+=("--summary-export" "$SUMMARY_JSON")
+fi
+
 K6_ARGS+=("$SCENARIO")
 
 echo -e "[*] Starting k6 execution...\n"

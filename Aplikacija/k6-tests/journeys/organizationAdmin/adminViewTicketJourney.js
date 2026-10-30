@@ -2,7 +2,7 @@ import { group } from 'k6';
 import { TicketService } from '../../services/ticketService.js';
 import { NoteService } from '../../services/noteService.js';
 import { waitBetween } from '../../utils/wait.js';
-import { startSession, finishSession } from '../shared/session.js';
+import { initSession, finishSession } from '../shared/session.js';
 
 /**
  * Organization Admin View Ticket Journey (mapped from OrganizationAdminTicketDetailView.vue):
@@ -15,7 +15,7 @@ import { startSession, finishSession } from '../shared/session.js';
 export function adminViewTicketJourney(adminCredentials, explicitTicketId = null) {
     let targetTicketId = explicitTicketId;
 
-    startSession(adminCredentials, 'Org Admin');
+    initSession(adminCredentials, 'Org Admin');
 
     const vuId = typeof __VU !== 'undefined' ? __VU : 1;
     const iter = typeof __ITER !== 'undefined' ? __ITER : 0;

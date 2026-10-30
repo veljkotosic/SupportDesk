@@ -39,7 +39,6 @@ internal sealed class UpdateCategoryDetailsCommandHandler
         var categoryWithSameName = await _categoryRepository.GetByNameAsync(newCategoryName, cancellationToken);
             
         return new UpdateCategoryDetailsCommandHandlerContext(category, categoryId, newCategoryName, categoryWithSameName);
-
     }
 
     protected override async Task ExecuteAsync(UpdateCategoryDetailsCommand command, UpdateCategoryDetailsCommandHandlerContext context, CancellationToken cancellationToken)
