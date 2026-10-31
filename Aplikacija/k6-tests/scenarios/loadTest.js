@@ -46,35 +46,24 @@ function parseDurationSeconds(dur) {
 const targetVUs = Number(__ENV.MAX_VUS || __ENV.VUS || 30);
 const steadyDurationRaw = __ENV.STEADY_DURATION || __ENV.DURATION || '8m';
 const steadyDurationSec = parseDurationSeconds(steadyDurationRaw);
-const rampDownStartTimeSec = 60 + steadyDurationSec;
+const rampUpDurationRaw = __ENV.RAMP_UP || '1m';
+const rampUpDurationSec = parseDurationSeconds(rampUpDurationRaw);
+const rampDownDurationRaw = __ENV.RAMP_DOWN || '30s';
+const rampDownDurationSec = parseDurationSeconds(rampDownDurationRaw);
 
 export const options = {
     summaryTrendStats: standardSummaryTrendStats,
     scenarios: {
-        ramp_up: {
+        load_test: {
             executor: 'ramping-vus',
             startVUs: 0,
-            stages: [{ duration: '1m', target: targetVUs }],
-            exec: 'rampUpIteration',
-            gracefulRampDown: '0s',
-            gracefulStop: '0s',
-        },
-        steady_state: {
-            executor: 'constant-vus',
-            vus: targetVUs,
-            duration: `${steadyDurationSec}s`,
-            startTime: '1m',
-            exec: 'steadyStateIteration',
-            gracefulStop: '0s',
-        },
-        ramp_down: {
-            executor: 'ramping-vus',
-            startVUs: targetVUs,
-            stages: [{ duration: '30s', target: 0 }],
-            startTime: `${rampDownStartTimeSec}s`,
-            exec: 'rampDownIteration',
-            gracefulRampDown: '0s',
-            gracefulStop: '0s',
+            stages: [
+                { duration: `${rampUpDurationSec}s`, target: targetVUs },
+                { duration: `${steadyDurationSec}s`, target: targetVUs },
+                { duration: `${rampDownDurationSec}s`, target: 0 },
+            ],
+            gracefulRampDown: '30s',
+            gracefulStop: '30s',
         },
     },
     thresholds: {
@@ -100,30 +89,18 @@ export const options = {
 
 const profileKey = __ENV.PROFILE || 'balanced';
 
-export function rampUpIteration() {
-    executeWorkloadIteration(profileKey, false);
-}
+export default function () {
+    const elapsedMs = (typeof exec !== 'undefined' && exec && exec.instance && typeof exec.instance.currentTestRunDuration === 'number')
+        ? exec.instance.currentTestRunDuration
+        : ((typeof exec !== 'undefined' && exec && exec.scenario && exec.scenario.startTime) ? Date.now() - exec.scenario.startTime : 0);
+    const elapsedSec = elapsedMs / 1000;
+    const isSteadyState = elapsedSec >= rampUpDurationSec && elapsedSec < (rampUpDurationSec + steadyDurationSec);
 
-export function steadyStateIteration() {
-    const vuId = (typeof exec !== 'undefined' && exec && exec.vu && exec.vu.idInScenario) ? exec.vu.idInScenario : (typeof __VU !== 'undefined' ? __VU : 1);
-    const iter = (typeof exec !== 'undefined' && exec && exec.vu && exec.vu.iterationInScenario) ? exec.vu.iterationInScenario : (typeof __ITER !== 'undefined' ? __ITER : 0);
-
-    // Smooth transition from ramp-up: on iteration 0 of steady-state, stagger VUs uniformly across 5s
-    // to prevent a 1,000-VU thundering herd at the exact start of steady state.
-    if (iter === 0 && targetVUs > 1) {
-        const staggerSeconds = ((vuId - 1) / targetVUs) * 5.0;
-        sleep(staggerSeconds);
+    if (typeof exec !== 'undefined' && exec && exec.vu && exec.vu.tags) {
+        exec.vu.tags['scenario'] = isSteadyState ? 'steady_state' : 'ramp';
     }
 
-    executeWorkloadIteration(profileKey, true);
-}
-
-export function rampDownIteration() {
-    executeWorkloadIteration(profileKey, false);
-}
-
-export default function () {
-    executeWorkloadIteration(profileKey, true);
+    executeWorkloadIteration(profileKey, isSteadyState);
 }
 
 export function handleSummary(data) {

@@ -8,7 +8,32 @@ export const SESSION_MAX_ITERATIONS = 30;
 
 let currentSession = null;
 let currentEmail = null;
+let currentAccessToken = null;
+let currentRefreshToken = null;
 let sessionIterationCount = 0;
+
+function extractCookiesFromResponse(res) {
+    if (res && res.cookies) {
+        if (res.cookies.accessToken && res.cookies.accessToken.length > 0) {
+            currentAccessToken = res.cookies.accessToken[0].value;
+        }
+        if (res.cookies.refreshToken && res.cookies.refreshToken.length > 0) {
+            currentRefreshToken = res.cookies.refreshToken[0].value;
+        }
+    }
+    if (!currentAccessToken) {
+        try {
+            const jar = http.cookieJar();
+            const cookies = jar.cookiesForURL(baseUrl);
+            if (cookies && cookies.accessToken && cookies.accessToken.length > 0) {
+                currentAccessToken = cookies.accessToken[0];
+            }
+            if (cookies && cookies.refreshToken && cookies.refreshToken.length > 0) {
+                currentRefreshToken = cookies.refreshToken[0];
+            }
+        } catch (_) {}
+    }
+}
 
 /**
  * Starts a user session by logging in with credentials and fetching the current user profile.
@@ -24,6 +49,7 @@ export function startSession(credentials, roleName) {
         jar.clear(baseUrl);
         const res = AuthService.login(credentials.email, credentials.password);
         if (res && res.status === 204) {
+            extractCookiesFromResponse(res);
             profile = AuthService.getMe();
         }
     });
@@ -46,6 +72,7 @@ export function restartSession(credentials, roleName) {
         jar.set(baseUrl, 'refreshToken', token);
         const res = AuthService.refreshLogin();
         if (res && res.status === 204) {
+            extractCookiesFromResponse(res);
             profile = AuthService.getMe();
         }
     });
@@ -63,6 +90,15 @@ export function restartSession(credentials, roleName) {
 export function initSession(credentials, roleName) {
     if (currentSession && currentEmail === credentials.email && sessionIterationCount < SESSION_MAX_ITERATIONS) {
         sessionIterationCount++;
+        // k6 wipes the VU's cookie jar at the end of each iteration by default.
+        // Re-inject the persistent cookies into this iteration's jar!
+        const jar = http.cookieJar();
+        if (currentAccessToken) {
+            jar.set(baseUrl, 'accessToken', currentAccessToken);
+        }
+        if (currentRefreshToken) {
+            jar.set(baseUrl, 'refreshToken', currentRefreshToken);
+        }
         return currentSession;
     }
 
@@ -71,6 +107,8 @@ export function initSession(credentials, roleName) {
     jar.clear(baseUrl);
     currentSession = null;
     currentEmail = credentials.email;
+    currentAccessToken = null;
+    currentRefreshToken = null;
     sessionIterationCount = 1;
 
     if (Math.random() < 0.95) {
@@ -96,6 +134,8 @@ export function finishSession() {
         jar.clear(baseUrl);
         currentSession = null;
         currentEmail = null;
+        currentAccessToken = null;
+        currentRefreshToken = null;
         sessionIterationCount = 0;
     }
 }
